@@ -1,0 +1,14 @@
+# binary folder
+bin/
+
+# exective file
+*.exe
+*.out
+
+# image file
+*.png
+*.bmp
+*.jpg
+*.gif
+*.eps
+*.pdf
