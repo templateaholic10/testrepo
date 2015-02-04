@@ -1,0 +1,10 @@
+--- hello.cpp	2015-02-04 18:23:42.712120665 +0900
++++ hello2.cpp	2015-02-04 18:39:29.536137947 +0900
+@@ -2,6 +2,6 @@
+ using namespace std;
+ 
+ int main(int argc, char const *argv[]) {
+-    cout << "hello, world!" << endl;
++    cout << "hello, chimpo!" << endl;
+     return 0;
+ }

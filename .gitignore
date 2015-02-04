@@ -1,0 +1,13 @@
+# Graphics
+*.gif
+*.bmp
+*.jpg
+*.png
+*.pdf
+*.svg
+*.eps
+
+# Executables
+*.exe
+*.out
+*.app
