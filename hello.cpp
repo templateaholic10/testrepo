@@ -30,6 +30,6 @@ private:
 };
 
 int main(int argc, char const *argv[]) {
-    cout << "hello, yey177!" << endl;
+    cout << "hello, yey!" << endl;
     return 0;
 }
