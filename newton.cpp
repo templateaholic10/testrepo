@@ -105,34 +105,34 @@ int main(int argc, char const *argv[])
     double    t[]  = { 1.0 / 2, 1.0, 2.0 };
     const int TLEN = 3;
 
-    const int    NUM    = 100;
-    double       x[NUM+1];
-    newton       N;
+    const int NUM = 100;
+    double    x[NUM + 1];
+    newton    N;
 
-    const int flag = 2;
-    double    diviser  = 1 / t[flag];
-    double tmp;
+    const int flag    = 2;
+    double    diviser = 1 / t[flag];
+    double    tmp;
 
     for (int j = 0; j <= NUM; ++j)
     {
-        x[j] = (j*2.0-NUM)/NUM*M_PI;
+        x[j] = (j * 2.0 - NUM) / NUM * M_PI;
     }
 
-    for (int j = 0; j <= 0.61*NUM; ++j)
+    for (int j = 0; j <= 0.61 * NUM; ++j)
     {
         N.init(x[j], t[flag], M_PI);
         tmp = N.solve() * diviser;
         cout << x[j] << "," << tmp << endl;
     }
 
-    for (int j = 0.39*NUM; j <= 0.61*NUM; ++j)
+    for (int j = 0.39 * NUM; j <= 0.61 * NUM; ++j)
     {
         N.init(x[j], t[flag], 0);
         tmp = N.solve() * diviser;
         cout << x[j] << "," << tmp << endl;
     }
 
-    for (int j = 0.39*NUM; j <= NUM; ++j)
+    for (int j = 0.39 * NUM; j <= NUM; ++j)
     {
         N.init(x[j], t[flag], -M_PI);
         tmp = N.solve() * diviser;
