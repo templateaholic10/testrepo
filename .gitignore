@@ -9,6 +9,7 @@ bin/
 *.pdf
 *.svg
 *.eps
+*.dvi
 
 # executables
 *.exe

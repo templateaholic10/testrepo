@@ -109,7 +109,7 @@ int main(int argc, char const *argv[])
     double    x[NUM + 1];
     newton    N;
 
-    const int flag    = 2;
+    const int flag    = 1;
     double    diviser = 1 / t[flag];
     double    tmp;
 
@@ -118,26 +118,34 @@ int main(int argc, char const *argv[])
         x[j] = (j * 2.0 - NUM) / NUM * M_PI;
     }
 
-    for (int j = 0; j <= 0.61 * NUM; ++j)
-    {
-        N.init(x[j], t[flag], M_PI);
-        tmp = N.solve() * diviser;
-        cout << x[j] << "," << tmp << endl;
-    }
-
-    for (int j = 0.39 * NUM; j <= 0.61 * NUM; ++j)
+    for (int j = 0; j <= NUM; ++j)
     {
         N.init(x[j], t[flag], 0);
         tmp = N.solve() * diviser;
         cout << x[j] << "," << tmp << endl;
     }
 
-    for (int j = 0.39 * NUM; j <= NUM; ++j)
-    {
-        N.init(x[j], t[flag], -M_PI);
-        tmp = N.solve() * diviser;
-        cout << x[j] << "," << tmp << endl;
-    }
+    /*
+        for (int j = 0; j <= 0.61 * NUM; ++j)
+        {
+            N.init(x[j], t[flag], M_PI);
+            tmp = N.solve() * diviser;
+            cout << x[j] << "," << tmp << endl;
+        }
 
+        for (int j = 0.39 * NUM; j <= 0.61 * NUM; ++j)
+        {
+            N.init(x[j], t[flag], 0);
+            tmp = N.solve() * diviser;
+            cout << x[j] << "," << tmp << endl;
+        }
+
+        for (int j = 0.39 * NUM; j <= NUM; ++j)
+        {
+            N.init(x[j], t[flag], -M_PI);
+            tmp = N.solve() * diviser;
+            cout << x[j] << "," << tmp << endl;
+        }
+    */
     return 0;
 }

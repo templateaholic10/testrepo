@@ -1,0 +1,154 @@
+%
+\documentclass[10pt,a4paper]{jsarticle}
+%
+% page config section
+\setlength{\textwidth}{\fullwidth}
+\setlength{\textheight}{40\baselineskip}
+\addtolength{\textheight}{\topskip}
+\setlength{\voffset}{-0.2in}
+\setlength{\topmargin}{0pt}
+\setlength{\headheight}{0pt}
+\setlength{\headsep}{0pt}
+%
+% usepackage section
+\usepackage[T1]{fontenc}	% encoding of font
+\usepackage{textcomp}	% tcfont
+\usepackage[utf8]{inputenc}	% encoding of input file
+\usepackage[scaled]{helvet}
+\usepackage{amsmath,amssymb,amsfonts}	% complex math
+\usepackage{mathtools}	% modification of amsmath.sty
+\usepackage{bm}	% \bm{}(for vector of small character)
+\usepackage[dvipdfmx]{graphicx}	% figure include
+\usepackage[dvipdfmx,dvipsnames]{xcolor}	% color difinition
+\usepackage{subcaption}	% subfigure emvironment(horizontal assignment of figure)
+\usepackage{array, booktabs}	% table
+\usepackage{float}	% assignment of figure and table
+\usepackage{ascmac}	% itembox, screen, boxnote, itembox emvironment
+\usepackage{comment}	% comment emvironment
+\usepackage{listings}	% source code include(jlisting not coexist with highlight of "\")
+\usepackage{layout}	% output page layout
+%
+%listings set section
+\lstset{language=[LaTeX]TeX,%
+    basicstyle=\footnotesize\ttfamily\mcfamily,% the size of the fonts that are used for the code
+    breaklines=true,%
+    captionpos=b,% sets the caption-position to bottom
+    frame=single,% adds a frame around the code
+    moretexcs={\setlength,\mcfamily,\gtfamily},%
+    morekeywords={\part,\chapter,\section,\subsection,\subsubsection,\begin,\end,\label,\ref},% structure
+    %morestring=[b]\$,% inline math mode
+    moredelim=*[s][\color{OliveGreen}]{\$}{\$},% inline math mode
+    texcsstyle=*\color{Maroon},% keyword
+    keywordstyle=\color{Red},% structure
+    stringstyle=,% math
+    commentstyle=\color{Gray},% comment
+    showstringspaces=false,%without this there will be a symbol in the places where there is a space
+    numbers=left,% line numbers
+    numberstyle={\tiny \color{black}},% size of the numbers
+    numbersep=9pt,% this defines how far the numbers are from the text
+    title=\lstname,% show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+%
+% global command section
+% デフォルト欧文フォント
+\renewcommand{\rmdefault}{ptm}
+%\renewcommand{\sfdefault}{phv}
+\renewcommand{\ttdefault}{pcr}
+% 参照
+\renewcommand{\eqref}[1]{式~(\ref{#1})}% ref for equation
+\newcommand{\tabref}[1]{表~(\ref{#1})}% ref for table
+\newcommand{\figref}[1]{図~(\ref{#1})}% ref for figure
+% 括弧類
+\newcommand{\paren}[1]{\left( #1 \right)}
+\newcommand{\wave}[1]{\left\{ #1 \right\}}
+\newcommand{\rect}[1]{\left[ #1 \right]}
+\newcommand{\ang}[1]{\left\langle #1 \right\rangle}
+\newcommand{\sbst}[1]{\left. #1 \right|}% substitution
+\newcommand{\comb}[2]{\paren{\genfrac{}{}{0pt}{}{#1}{#2}}}
+% 記号論理
+\newcommand{\limpl}{\supset}% logical implication
+\newcommand{\ltrue}{\bot}% logical true
+\newcommand{\lfalse}{\top}% logical false
+\newcommand{\lded}{\vdash}% logical deduction(syntax)
+\newcommand{\lnded}{\nvdash}% logical not deduction
+\newcommand{\lcons}{\vDash}% logical consequense(semantics)
+\newcommand{\lncons}{\nvDash}% logical not consequense
+% 数式モードでしか使用できない文字
+\newcommand{\textangle}[1]{$\langle\text{#1}\rangle$}
+\newcommand{\textast}{$\ast$}
+% ユーティリティ
+\newcommand{\unit}[1]{\mathrm{#1}}
+\newcommand{\set}[1]{\mathbb{#1}}
+\newcommand{\qed}{\ \Box}
+\newcommand{\im}{\mathrm{i}}
+% 微積分
+\newcommand{\dispdif}[2][]{\frac{d^{#1}}{d {#2}^{#1}}}
+\newcommand{\dif}[3][]{\frac{d^{#1} {#2}}{d {#3}^{#1}}}
+\newcommand{\disppif}[2][]{\frac{\partial^{#1}}{\partial {#2}^{#1}}}
+\newcommand{\pif}[3][]{\frac{\partial^{#1} {#2}}{\partial {#3}^{#1}}}
+\newcommand{\piff}[3]{\frac{\partial^2 {#1}}{\partial {#2} \partial {#3}}}
+\newcommand{\dispmif}[2][]{\frac{D^{#1}}{D {#2}^{#1}}}
+\newcommand{\mif}[3][]{\frac{D^{#1} {#2}}{D {#3}^{#1}}}
+\newcommand{\divergence}{\mathrm{div}}% divergence
+\newcommand{\grad}{\mathrm{grad}}% gradient
+\newcommand{\rot}{\mathrm{rot}}% rotation
+% 画像読み込み
+\newcommand{\incfig}[4][]{% arg: {filename, caption, label}
+\begin{figure}[h]
+\centering
+\includegraphics[width=#1\columnwidth]{#2}
+\caption{#3}
+\label{fig:#4}
+\end{figure}
+}
+\newcommand{\makesubfig}[4][0.48]{	% arg: [width]{filename, caption, label}
+\begin{subfigure}{#1\columnwidth}
+\centering
+\includegraphics[width=\columnwidth]{#2}
+\caption{#3}
+\label{fig:#4}
+\end{subfigure}
+}
+\newcommand{\incsubfig}[4]{	% arg: {subfigure, subfigure, caption, label}
+\begin{figure}[h]
+\centering
+#1
+#2
+\caption{#3}
+\label{fig:#4}
+\end{figure}
+}
+%
+% others
+\graphicspath{{figure/}}	% path of includegraphics
+%
+\title{Instruction of Template}
+\author{yanteyon}
+\date{（2014/10/14更新）}
+\begin{document}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\columnwidth]{t05.eps}
+\caption{$t=0.5$}
+\label{fig:05}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\columnwidth]{t10.eps}
+\caption{$t=1.0$}
+\label{fig:10}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\columnwidth]{t20.eps}
+\caption{$t=2.0$}
+\label{fig:20}
+\end{figure}
+
+
+
+
+\end{document}
