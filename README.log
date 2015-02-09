@@ -1,4 +1,4 @@
-This is e-pTeX, Version 3.1415926-p3.4-110825-2.6 (utf8.euc) (TeX Live 2013/Debian) (format=platex 2014.8.19)  7 FEB 2015 04:11
+This is e-pTeX, Version 3.1415926-p3.4-110825-2.6 (utf8.euc) (TeX Live 2013/Debian) (format=platex 2014.8.19)  7 FEB 2015 05:01
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -822,12 +822,9 @@ File: t10.eps Graphic file (type eps)
  <t10.eps>
 File: t20.eps Graphic file (type eps)
  <t20.eps>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
 [1
 
-] [2] (./README.aux) ) 
+] (./README.aux) ) 
 Here is how much of TeX's memory you used:
  6660 strings out of 495129
  92087 string characters out of 6182595
@@ -837,4 +834,4 @@ Here is how much of TeX's memory you used:
  85 hyphenation exceptions out of 8191
  42i,5n,67p,282b,431s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on README.dvi (2 pages, 1152 bytes).
+Output written on README.dvi (1 page, 984 bytes).
