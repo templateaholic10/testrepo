@@ -1,3 +1,5 @@
+﻿#pragma once
+
 ﻿char *gets(char *str);
 
 #include <iostream>
@@ -5,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <complex>
 #include <boost/optional.hpp>
 
 namespace symbfunc {
@@ -14,7 +17,6 @@ namespace symbfunc {
     };
 
     // 基底クラス
-    template <class T>
     class Basefunc {
     public:
         Basefunc();     // コンストラクタ
@@ -28,12 +30,13 @@ namespace symbfunc {
         virtual std::string str() const = 0;
 
         // 関数適用（未定義の場合がある）
-        virtual boost::optional<T> eval(boost::optional<T> t) const = 0;
+        // メンバテンプレートは仮想関数にできない（オーバーライドされる）
+        template <typename _type>
+        boost::optional <_type> eval(boost::optional <_type> t) const;
 
         // 微分
-        virtual Basefunc <T> d() const = 0;
+        virtual void d(std::vector <std::unique_ptr <Basefunc> > &operand) const = 0;
 
     private:
-        std::vector<std::unique_ptr<Basefunc<T>>> _operand;
     };
 }
