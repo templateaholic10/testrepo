@@ -3,8 +3,8 @@
 #include <iostream>
 
 // Eigenのコア機能とジオメトリ機能を使う
-#include <Eigen/Core>
-#include <Eigen/Geometry>
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
 
 
 int main()

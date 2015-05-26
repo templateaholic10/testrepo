@@ -1,5 +1,3 @@
-char *gets(char *str);
-
 #include <iostream>
 #include <vector>
 #include <array>
@@ -10,13 +8,34 @@ char *gets(char *str);
 #include <boost/numeric/ublas/matrix_sparse.hpp>  // (5) 疎行列用のヘッダ
 #include <boost/numeric/ublas/vector.hpp>         // (6) ベクトル用のヘッダ
 #include <boost/numeric/ublas/vector_sparse.hpp>  // (7) 疎ベクトル用のヘッダ
+#include <boost/numeric/ublas/lu.hpp>
 
 // エイリアステンプレート
-template <int size>
-using dvector = boost::numeric::ublas::bounded_vector<double, size>;
+template <int dim>
+using dvector = boost::numeric::ublas::bounded_vector<double, dim>;
 
-template <int size>
-using dmatrix = boost::numeric::ublas::bounded_matrix<double, size, size>;
+template <int dim>
+using dmatrix = boost::numeric::ublas::bounded_matrix<double, dim, dim>;
+
+// 行列式
+template <class M>
+double determinant(const M& m);
+
+// 逆行列
+template <class M, class MI>
+void invert(const M& m, MI& mi);
+
+// 正規分布
+template <int dim>
+double pnorm(const dvector<dim>& x, const dvector<dim>& mu, const dmatrix<dim>& sigmaInverse, double sigmaDeterminant);
+
+// 正規化子
+template <int dim>
+constexpr double normalize();
+
+// 混合正規分布の対数尤度
+template <int num, int mixture_num>
+double logL(const std::array<double, mixture_num>& pi, const double (&p)[num][mixture_num]);
 
 namespace EM {
 
@@ -31,7 +50,7 @@ namespace EM {
 
         int _dim;
         int _num;
-        double _x[num][dim];  // 次元はdim，要素数はnum
+        dvector<dim> _x[num];  // 次元はdim，要素数はnum
     };
 
     template <int dim, int num, int mixture_num>
@@ -42,10 +61,12 @@ namespace EM {
         EM_estimator(std::istream &datain, std::istream &initialin);
         ~EM_estimator() = default;
 
+        void estimate();
+        void output(std::ostream &estimateout, std::ostream &convergeout) const;
+
+    private:
         void step();
         bool haltCheck() const;
-
-        void output(std::ostream &os) const;
 
     private:
         int _mixture_num;
@@ -56,7 +77,7 @@ namespace EM {
         std::vector<std::array<double, mixture_num>> _pi;  // _pi[step][dist]：ステップ数，分布番号
         std::vector<std::array<dvector<dim>, mixture_num>> _mu;  // _mu[step][dist](i)：ステップ数，分布番号，次元
         std::vector<std::array<dmatrix<dim>, mixture_num>> _sigma;  // _sigma[step][dist](i, j)：ステップ数，分布番号，次元
-        std::vector<double> _E_logL;  // _E_logL[step]：対数尤度の期待値
+        std::vector<double> _logL;  // _E_logL[step]：対数尤度の期待値
     };
 
 }
