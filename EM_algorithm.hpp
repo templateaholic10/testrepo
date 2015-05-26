@@ -35,7 +35,7 @@ constexpr double normalize();
 
 // 混合正規分布の対数尤度
 template <int num, int mixture_num>
-double logL(const std::array<double, mixture_num>& pi, const double (&p)[num][mixture_num]);
+double logL(const std::array<double, mixture_num>& pi, const std::array<std::array<double, mixture_num>, num>& p);
 
 namespace EM {
 
@@ -50,7 +50,7 @@ namespace EM {
 
         int _dim;
         int _num;
-        dvector<dim> _x[num];  // 次元はdim，要素数はnum
+        std::array<dvector<dim>, num> _x;  // 次元はdim，要素数はnum
     };
 
     template <int dim, int num, int mixture_num>

@@ -15,7 +15,7 @@ double determinant(const M& m)
 
     ublas::lu_factorize(lu, pm);
 
-    double det(1);
+    double det(1.);
 
     using size_type = ublas::permutation_matrix<>::size_type;
 
@@ -75,7 +75,7 @@ constexpr double normalize()
 }
 
 template <int num, int mixture_num>
-double logL(const std::array<double, mixture_num>& pi, const double p[num][mixture_num])
+double logL(const std::array<double, mixture_num>& pi, const std::array<std::array<double, mixture_num>, num>& p)
 {
     double logL_all(0.);
     double L_of_data;
@@ -151,7 +151,7 @@ namespace EM {
         getline(initialin, line);
 
         // 中間生成物p[t][dist]
-        double p[num][mixture_num];
+        std::array<std::array<double, mixture_num>, num> p;
         dmatrix<dim> sigmaInverse;
         double sigmaDeterminant;
         for (int dist = 0; dist < mixture_num; dist++) {
@@ -172,7 +172,7 @@ namespace EM {
         // 定義式と同じくn+1←nの漸化式を計算する
 
         // 中間生成物p[t][dist]
-        double p[num][mixture_num];
+        std::array<std::array<double, mixture_num>, num> p;
         dmatrix<dim> sigmaInverse;
         double sigmaDeterminant;
         for (int dist = 0; dist < mixture_num; dist++) {
