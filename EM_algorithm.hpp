@@ -2,6 +2,7 @@ char *gets(char *str);
 
 #include <iostream>
 #include <vector>
+#include <array>
 #include <boost/numeric/ublas/matrix.hpp>         // (1) 普通の行列用のヘッダ
 #include <boost/numeric/ublas/triangular.hpp>     // (2) 三角行列用のヘッダ
 #include <boost/numeric/ublas/symmetric.hpp>      // (3) 対称行列用のヘッダ
@@ -9,13 +10,15 @@ char *gets(char *str);
 #include <boost/numeric/ublas/matrix_sparse.hpp>  // (5) 疎行列用のヘッダ
 #include <boost/numeric/ublas/vector.hpp>         // (6) ベクトル用のヘッダ
 #include <boost/numeric/ublas/vector_sparse.hpp>  // (7) 疎ベクトル用のヘッダ
-using dvector = boost::numeric::ublas::vector<double>;
-using dmatrix = boost::numeric::ublas::matrix<double>;
+
+// エイリアステンプレート
+template <int size>
+using dvector = boost::numeric::ublas::bounded_vector<double, size>;
+
+template <int size>
+using dmatrix = boost::numeric::ublas::bounded_matrix<double, size, size>;
 
 namespace EM {
-
-    constexpr int DIM = 2;
-    constexpr int NUM = 100;
 
     template <int dim, int num> struct Data_series;
     template <int dim, int num, int mixture_num> class EM_estimator;
@@ -23,28 +26,37 @@ namespace EM {
     template <int dim, int num>
     struct Data_series
     {
-        void input(std::ostream &os);
+        Data_series() = delete;
+        Data_series(std::istream &datain);
 
         int _dim;
         int _num;
-        dvector _x[num];  // 次元はdim，要素数はnum
+        double _x[num][dim];  // 次元はdim，要素数はnum
     };
 
     template <int dim, int num, int mixture_num>
     class EM_estimator
     {
     public:
+        EM_estimator() = delete;
+        EM_estimator(std::istream &datain, std::istream &initialin);
+        ~EM_estimator() = default;
+
         void step();
-        void haltCheck();
+        bool haltCheck() const;
+
+        void output(std::ostream &os) const;
+
     private:
+        int _mixture_num;
         int _step;
-        int _epsilon;
+        static constexpr double _epsilon = 0.01;
 
         Data_series<dim, num> _data;
-        std::vector<double[mixture_num]> _pi;  // ステップ数，分布番号
-        std::vector<dvector[mixture_num]> _mu;  // ステップ数，分布番号，次元
-        std::vector<dmatrix[mixture_num]> _sigma;  // ステップ数，分布番号，次元
-        std::vector<double> _likelihood;  // 対数尤度の期待値
+        std::vector<std::array<double, mixture_num>> _pi;  // _pi[step][dist]：ステップ数，分布番号
+        std::vector<std::array<dvector<dim>, mixture_num>> _mu;  // _mu[step][dist](i)：ステップ数，分布番号，次元
+        std::vector<std::array<dmatrix<dim>, mixture_num>> _sigma;  // _sigma[step][dist](i, j)：ステップ数，分布番号，次元
+        std::vector<double> _E_logL;  // _E_logL[step]：対数尤度の期待値
     };
 
 }
