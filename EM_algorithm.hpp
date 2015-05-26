@@ -39,8 +39,39 @@ double logL(const std::array<double, mixture_num>& pi, const std::array<std::arr
 
 namespace EM {
 
+    template <int dim, class distribution> class Generater;
     template <int dim, int num> struct Data_series;
     template <int dim, int num, int mixture_num> class EM_estimator;
+
+    // メタ関数
+    struct UNKNOWN
+    {
+        static const UNKNOWN type;
+    };
+
+    template <int mixture_num>
+    struct GAUSSIAN_MIXTURES
+    {
+        static const GAUSSIAN_MIXTURES<mixture_num> type;
+    };
+
+    // プライマリテンプレート
+    template <int dim, class distribution>
+    class Generater
+    {
+    };
+
+    // 混合ガウス分布の生成器
+    template <int dim>
+    class Generater<dim, GAUSSIAN_MIXTURES<>>
+    {
+    public:
+        void generate(dvector<dim>& data);  // データを1つ生成する関数
+    private:
+        std::array<double, mixture_num> _pi;  // 混合比
+        std::array<dvector<dim>, mixture_num> _mu;  // 平均
+        std::array<dmatrix<dim>, mixture_num> _sigma;  // 分散
+    };
 
     template <int dim, int num>
     struct Data_series
