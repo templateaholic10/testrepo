@@ -124,6 +124,7 @@ namespace functor {
 namespace functor {
     void test()
     {
+        using namespace util;
         auto horizonline = []() {
                                repeat(std::cout, "-", 20);
                                std::cout << std::endl;

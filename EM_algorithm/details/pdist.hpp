@@ -54,8 +54,11 @@ namespace statistic {
                     for (x(3) = x1(3); x(3) < x2(3); x(3) += mesh) {
                         os << pdf(x) << ((i4 != dim - 1) ? delim : '\n');
                     }
+                    os << ((i3 != dim - 1) ? '' : '\n');
                 }
+                os << ((i3 != dim - 1) ? '' : '\n');
             }
+            os << ((x() != dim - 1) ? '' : '\n');
         }
         for (int i = 0; i < dim; i++) {
             while (x(i) <= x2(i)) {

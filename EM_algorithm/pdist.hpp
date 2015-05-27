@@ -5,6 +5,7 @@
 #include <array>
 #include <random>
 #include "statistic_util.hpp"
+#include "../util.hpp"
 
 namespace statistic {
     template <int dim, class distribution> class Probability_distribution;
