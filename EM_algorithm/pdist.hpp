@@ -13,20 +13,20 @@ namespace statistic {
     // 未知の分布
     struct UNKNOWN
     {
-        static const UNKNOWN type;
+        using type = UNKNOWN;
     };
 
     // 正規分布
     struct GAUSSIAN
     {
-        static const GAUSSIAN type;
+        using type = GAUSSIAN;
     };
 
     // 混合正規分布
     template <int mixture_num>
     struct GAUSSIAN_MIXTURES
     {
-        static const GAUSSIAN_MIXTURES <mixture_num> type;
+        using type = GAUSSIAN_MIXTURES <mixture_num>;
     };
 
     // プライマリテンプレート
@@ -51,7 +51,9 @@ namespace statistic {
         void   generate(dvector <dim> &data) const; // 確率分布からデータを1つ生成する関数
 
         template <FORMAT format>
-        void output(std::ostream &os) const;  // ファイルに書き出す
+        void output(std::ostream &os, const Range& range, double mesh) const;  // ファイルに書き出す
+        template <FORMAT format>
+        void outparam(std::ostream &os) const;  // パラメータをファイルに書き出す
 
     private:
         dvector <dim> _mu;  // 平均ベクトル
@@ -81,7 +83,9 @@ namespace statistic {
         void   generate(dvector <dim> &data) const; // 確率分布からデータを1つ生成する関数
 
         template <FORMAT format>
-        void output(std::ostream &os) const;  // ファイルに書き出す
+        void output(std::ostream &os, const Range& range, double mesh) const;  // ファイルに書き出す
+        template <FORMAT format>
+        void outparam(std::ostream &os) const;  // パラメータをファイルに書き出す
 
     private:
         std::array <double, mixture_num>        _pi; // 混合比

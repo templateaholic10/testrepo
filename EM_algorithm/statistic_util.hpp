@@ -2,6 +2,7 @@
 #define STATISTIC_UTIL
 
 #include <iostream>
+#include <vector>
 #include "matrix_util.hpp"
 
 namespace statistic {
@@ -47,6 +48,43 @@ namespace statistic {
     // 混合率とデータごと，分布ごとの確率pを与える
     template <int num, int mixture_num>
     double logL(const std::array <double, mixture_num> &pi, const std::array <std::array <double, mixture_num>, num> &p);
+
+    // 矩形領域
+    // _x1が左上，_x2が右下
+    template <int dim>
+    class Range
+    {
+    public:
+        Range() = delete;
+        Range(const dvector<dim>& x1, const dvector<dim>& x2)
+        {
+            for (int i = 0; i < dim; i++) {
+                BOOST_UBLAS_CHECK(x1(i) <= x2(i));
+            }
+            _x1 = x1; _x2 = x2;
+        };
+        Range(const std::vector<double>& x1, const std::vector<double>& x2)
+        {
+            BOOST_UBLAS_CHECK(x1.size() == dim && x2.size() == dim);
+            for (int i = 0; i < dim; i++) {
+                BOOST_UBLAS_CHECK(x1[i] <= x2[i];
+            }
+            _x1 = x1; _x2 = x2;
+        };
+        ~Range() = default;
+
+        // ゲッター
+        dvector<dim> x1() const
+        {
+            return _x1;
+        };
+        dvector<dim> x2() const
+        {
+            return _x2;
+        };
+    private:
+        dvector<dim> _x1, _x2;
+    };
 }
 
 #include "detail/statistic_util.hpp"
