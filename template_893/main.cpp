@@ -4,5 +4,6 @@ char *gets(char *str);
 
 int main(int argc, char const *argv[]) {
     test1();
+    test2();
     return 0;
 }

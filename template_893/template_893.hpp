@@ -17,11 +17,42 @@ struct A
     };
 };
 
+// (2)テンプレートパラメータにテンプレートを指定する
+// メタ関数
+template <int dim>
+struct Meta
+{
+};
+
+// インタフェース
+template <int param, class T>
+struct Interface
+{
+    static void self_intro();
+};
+
+// インタフェースの特殊化
+// paramとdimは同じ段のスコープに属するので同行に書く
+template <int param, int dim>  // 自由パラメータ
+struct Interface<param, Meta<dim> >  // 束縛パラメータ
+{
+    static void self_intro();
+};
+
 // (1)のテスト
 void test1()
 {
     A<int>::B<float>::C<double> c;
-    c.add(5, 4.2f, 10.5, 'c');  // 118.7
+    c.add(5, 4.2f, 10.5, 'c');
+    return;
+}
+
+// (2)のテスト
+void test2()
+{
+    Interface<1, int>::self_intro();
+    Interface<2, double[]>::self_intro();
+    Interface<3, Meta<0>>::self_intro();
     return;
 }
 
