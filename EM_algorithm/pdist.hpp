@@ -18,7 +18,7 @@ namespace statistic {
     struct GAUSSIAN
     {
         static const GAUSSIAN type;
-    }
+    };
 
     // 混合正規分布
     template <int mixture_num>
@@ -54,7 +54,7 @@ namespace statistic {
     };
 
     // 混合正規分布の確率分布
-    template <int dim>, template <int mixture_num>
+    template <int dim, int mixture_num>
     class Probability_distribution<dim, GAUSSIAN_MIXTURES<mixture_num> >
     {
     public:
