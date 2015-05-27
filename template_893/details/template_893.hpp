@@ -11,29 +11,40 @@ template <class T1>
 template <class T2>
 template <class T3>
 template <class T4>
-void A<T1>::B<T2>::C<T3>::add(T1 a, T2 b, T3 c, T4 d)
+void A<T1>::B<T2>::C<T3>::add1(T1 a, T2 b, T3 c, T4 d)
 {
-    // 内部テンプレートクラス
-    template<class T5>
-    class E
-    {
-        template<class T6>
-        class F
-        {
-            template<class T7>
-            void add_all(T5 e, T6 f, T7 g)
-            {
-                std::cout << a + b + c + d + e + f + g << std::endl;
-            }
-        }
-    }
-    // さすがに宣言と定義を分離することはできない
-
-    E<int>::F<float> tmp;
-    tmp.add_all(1, 6.3f, 7.);
+    std::cout << a + b + c + d << std::endl;
 
     return;
 }
+
+// エラーになるコード
+// template <class T1>
+// template <class T2>
+// template <class T3>
+// template <class T4>
+// void A<T1>::B<T2>::C<T3>::add2(T1 a, T2 b, T3 c, T4 d)
+// {
+//     // 内部テンプレートクラス
+//     template<class T5>
+//     class E
+//     {
+//         template<class T6>
+//         class F
+//         {
+//             template<class T7>
+//             void add_all(T5 e, T6 f, T7 g)
+//             {
+//                 std::cout << a + b + c + d + e + f + g << std::endl;
+//             }
+//         }
+//     }
+//
+//     E<int>::F<float> tmp;
+//     tmp.add_all(1, 6.3f, 7.);
+//
+//     return;
+// }
 
 // (2)テンプレートパラメータにテンプレートを指定する
 // プライマリテンプレート
