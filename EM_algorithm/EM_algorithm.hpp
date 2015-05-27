@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <vector>
 #include <array>
@@ -9,80 +10,11 @@
 #include <boost/numeric/ublas/vector.hpp>         // (6) ベクトル用のヘッダ
 #include <boost/numeric/ublas/vector_sparse.hpp>  // (7) 疎ベクトル用のヘッダ
 #include <boost/numeric/ublas/lu.hpp>
-
-// エイリアステンプレート
-template <int dim>
-using dvector = boost::numeric::ublas::bounded_vector<double, dim>;
-
-template <int dim>
-using dmatrix = boost::numeric::ublas::bounded_matrix<double, dim, dim>;
-
-// 行列式
-template <class M>
-double determinant(const M& m);
-
-// 逆行列
-template <class M, class MI>
-void invert(const M& m, MI& mi);
-
-// 正規分布
-template <int dim>
-double pnorm(const dvector<dim>& x, const dvector<dim>& mu, const dmatrix<dim>& sigmaInverse, double sigmaDeterminant);
-
-// 正規化子
-template <int dim>
-constexpr double normalize();
-
-// 混合正規分布の対数尤度
-template <int num, int mixture_num>
-double logL(const std::array<double, mixture_num>& pi, const std::array<std::array<double, mixture_num>, num>& p);
+#include "statistic_util.hpp"
 
 namespace EM {
 
-    template <int dim, class distribution> class Generater;
-    template <int dim, int num> struct Data_series;
     template <int dim, int num, int mixture_num> class EM_estimator;
-
-    // メタ関数
-    struct UNKNOWN
-    {
-        static const UNKNOWN type;
-    };
-
-    template <int mixture_num>
-    struct GAUSSIAN_MIXTURES
-    {
-        static const GAUSSIAN_MIXTURES<mixture_num> type;
-    };
-
-    // プライマリテンプレート
-    template <int dim, class distribution>
-    class Generater
-    {
-    };
-
-    // 混合ガウス分布の生成器
-    template <int dim>
-    class Generater<dim, GAUSSIAN_MIXTURES<>>
-    {
-    public:
-        void generate(dvector<dim>& data);  // データを1つ生成する関数
-    private:
-        std::array<double, mixture_num> _pi;  // 混合比
-        std::array<dvector<dim>, mixture_num> _mu;  // 平均
-        std::array<dmatrix<dim>, mixture_num> _sigma;  // 分散
-    };
-
-    template <int dim, int num>
-    struct Data_series
-    {
-        Data_series() = delete;
-        Data_series(std::istream &datain);
-
-        int _dim;
-        int _num;
-        std::array<dvector<dim>, num> _x;  // 次元はdim，要素数はnum
-    };
 
     template <int dim, int num, int mixture_num>
     class EM_estimator
