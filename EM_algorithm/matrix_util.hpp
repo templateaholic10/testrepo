@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MATRIX_UTIL
+#define MATRIX_UTIL
+
 #include <boost/numeric/ublas/matrix.hpp>         // (1) 普通の行列用のヘッダ
 #include <boost/numeric/ublas/triangular.hpp>     // (2) 三角行列用のヘッダ
 #include <boost/numeric/ublas/symmetric.hpp>      // (3) 対称行列用のヘッダ
@@ -8,7 +10,7 @@
 #include <boost/numeric/ublas/vector_sparse.hpp>  // (7) 疎ベクトル用のヘッダ
 #include <boost/numeric/ublas/lu.hpp>
 
-namespace matrix {
+namespace matrix_util {
 
     // 行列式
     template <class M>
@@ -19,3 +21,7 @@ namespace matrix {
     void invert(const M& m, MI& mi);
 
 }
+
+#include "detail/matrix_util.hpp"
+
+#endif

@@ -1,4 +1,7 @@
-#include "statistic_util.hpp"
+#ifndef DETAIL_STATISTIC_UTIL
+#define DETAIL_STATISTIC_UTIL
+
+#include "../statistic_util.hpp"
 
 namespace statistic {
 
@@ -36,3 +39,5 @@ namespace statistic {
     }
 
 }
+
+#endif

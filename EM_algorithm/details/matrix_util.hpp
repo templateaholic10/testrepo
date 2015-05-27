@@ -1,6 +1,9 @@
-#include "matrix_util.hpp"
+#ifndef DETAIL_MATRIX_UTIL
+#define DETAIL_MATRIX_UTIL
 
-namespace matrix{
+#include "../matrix_util.hpp"
+
+namespace matrix_util {
 
     template <class M>
     double determinant(const M& m)
@@ -58,3 +61,5 @@ namespace matrix{
     }
 
 }
+
+#endif
