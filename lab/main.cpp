@@ -2,10 +2,6 @@
 
 #include "functor.hpp"
 
-// result_of関数の使用例
-template< class Func, class Result = typename util::result_of<Func>::type >
-Result Test( Func&& func );
-
 int main(int argc, char const *argv[])
 {
     // functor::test();
@@ -25,11 +21,16 @@ int main(int argc, char const *argv[])
                                                            } };
     constexpr auto                       small_cube = make_common_array(make_common_array(0.0, 3.6, 2.6), make_common_array(9.5, 3.8, 9.3));
 
-    // result_of関数のテスト
+    // apply関数のテスト
 
-    const auto printInt = [=](int i){std::cout << i;};
+    constexpr auto x =  make_array<int>(1, 2, 3, 4);
+    const auto printInt = [=](int i){return i;};
     // apply(family_birthmonth, printInt);
-    Test(printInt);
+    auto apx = apply(x, printInt);
+    for (auto a : apx) {
+        std::cout << a << " ";
+    }
+    std::cout << std::endl;
 
     return 0;
 }

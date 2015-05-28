@@ -96,7 +96,7 @@ namespace util {
     {
         return typename common_array_type <TArgs ...>::type { std::forward <TArgs>(args) ... };
     }
-
+/*
     // ・result_ofメタ関数
     // 関数型から戻り値の型を抽出する．
 
@@ -133,7 +133,7 @@ namespace util {
     {
         using type = decltype(result_of_type_impl::Func(std::declval <std::add_pointer<typename std::remove_pointer<T>::type> >()));
     };
-
+*/
     // ・apply関数
     // Rにおけるapply関数を実装する
 
@@ -144,9 +144,11 @@ namespace util {
     // Aはconst lvalue reference，fはvoid以外を返す副作用を持たない関数．
 
     // 1次元版
-    template <typename T, std::size_t Size, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
-    std::array <Result, Size> apply(const std::array <T, Size> &x, Functor f)
+    template <typename T, std::size_t Size, typename Functor, typename Result = decltype(std::declval<Functor>()(std::declval<T>()))>
+    auto apply(const std::array <T, Size> &x, Functor f)
     {
+        static_assert(std::is_same <Result, int>::value, "apply not int error!");
+
         std::cout << "(const lvalue, 1 dim called)" << std::endl;
 
         // 内部でmulti_arrayを作る．
@@ -162,7 +164,7 @@ namespace util {
 
         return std::move(applied_array);
     }
-
+/*
     // 再帰版
     template <typename T, std::size_t Size, std::size_t ... Sizes, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
     multi_array <Result, Size, Sizes ...> apply(const multi_array <T, Size, Sizes ...> &x, Functor f)
@@ -264,6 +266,7 @@ namespace util {
     // apply(multi_array(), fvoid);
     // Aはrvalue reference，fはvoidを返す副作用を持つ関数．
     // ありえない．右辺値を変更する意味がない．
+    */
 }
 
 #endif
