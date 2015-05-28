@@ -182,7 +182,8 @@ namespace util {
 
         return std::move(applied_array);
     }
-
+*/
+/*
     // apply(A, fvoid);
     // Aはlvalue reference，fはvoidを返す副作用を持つ関数．
 
@@ -201,7 +202,8 @@ namespace util {
             }
         }
     }
-
+*/
+/*
     // 再帰版
     template <typename T, std::size_t Size, std::size_t ... Sizes, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
     void apply(multi_array <T, Size, Sizes ...> &x, Functor f)
@@ -217,7 +219,7 @@ namespace util {
             }
         }
     }
-
+*/
     // B = apply(multi_array(), f);
     // Aはrvalue reference，fはvoid以外を返す副作用を持たない関数．
 
@@ -240,7 +242,7 @@ namespace util {
 
         return std::move(applied_array);
     }
-
+/*
     // 再帰版
     template <typename T, std::size_t Size, std::size_t ... Sizes, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
     multi_array <Result, Size, Sizes ...> apply(multi_array <T, Size, Sizes ...> &&x, Functor f)
