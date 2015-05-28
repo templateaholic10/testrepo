@@ -1,6 +1,7 @@
 ﻿char *gets(char *str);
 
 #include "functor.hpp"
+#include "utiltest.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -22,15 +23,7 @@ int main(int argc, char const *argv[])
     constexpr auto                       small_cube = make_common_array(make_common_array(0.0, 3.6, 2.6), make_common_array(9.5, 3.8, 9.3));
 
     // apply関数のテスト
-
-    constexpr auto x =  make_array<int>(1, 2, 3, 4);
-    const auto printInt = [=](int i){return i;};
-    // apply(family_birthmonth, printInt);
-    auto apx = apply(x, printInt);
-    for (auto a : apx) {
-        std::cout << a << " ";
-    }
-    std::cout << std::endl;
+    testapply();
 
     return 0;
 }

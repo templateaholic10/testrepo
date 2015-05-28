@@ -147,8 +147,6 @@ namespace util {
     template <typename T, std::size_t Size, typename Functor, typename Result = decltype(std::declval<Functor>()(std::declval<T>()))>
     auto apply(const std::array <T, Size> &x, Functor f)
     {
-        static_assert(std::is_same <Result, int>::value, "apply not int error!");
-
         std::cout << "(const lvalue, 1 dim called)" << std::endl;
 
         // 内部でmulti_arrayを作る．
