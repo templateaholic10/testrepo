@@ -25,7 +25,7 @@ namespace util {
         }
     }
 
-    enum class APPLYTYPE { CONST_L_1, CONST_L_N, L_1, L_N, R_1, R_N };
+    enum class APPLYTYPE { L_1, L_N, R_1, R_N };
 
     // apply関数のテスト
     template <APPLYTYPE applytype>
@@ -34,7 +34,7 @@ namespace util {
     }
 
     template <>
-    void testapply_sub <APPLYTYPE::CONST_L_1>()
+    void testapply_sub <APPLYTYPE::L_1>()
     {
         // const lvalue，1次元
         std::cout << "test const lvalue, 1 dim :" << std::endl;
@@ -75,12 +75,16 @@ namespace util {
         disp_array(z);
 
         // voidを返す関数については使えない．
-        // auto printInt = [](int x){std::cout << x;};
-        // Apply<int, 1>::apply(x, printInt);
+        auto msg      = make_array <std::string>("void", "function", "operate", "this");
+        auto printStr = [](const std::string &str) {
+                            std::cout << str << ' ';
+                        };
+        Apply <std::string, 1, void>::apply(msg, printStr);
+        std::cout << std::endl;
     }
 
     template <>
-    void testapply_sub <APPLYTYPE::CONST_L_N>()
+    void testapply_sub <APPLYTYPE::L_N>()
     {
         // const lvalue，n次元
         std::cout << "test const lvalue, n dim :" << std::endl;
@@ -103,7 +107,7 @@ namespace util {
         // 以下のようにするとOK．
 
         // リテラル型でないarrayはコンパイル時定数にできない．
-        const auto y = make_common_array(make_array<std::string>("kyo", "no", "osora"), make_array<std::string>("ha", "donna", "sora?"));
+        auto y = make_common_array(make_array <std::string>("kyo", "no", "osora"), make_array <std::string>("ha", "donna", "sora?"));
         for (int i = 0; i < 2; i++) {
             disp_array(y[i]);
         }
@@ -112,12 +116,28 @@ namespace util {
                                return str + " by Akari Ozora";
                            };
         // applyの返り値でarrayを初期化．
-        auto apy = Apply<std::string, 2>::apply(y, quote);
+        auto apy = Apply <std::string, 2>::apply(y, quote);
         for (int i = 0; i < 2; i++) {
             disp_array(apy[i]);
         }
 
         // auto apy_error = apply(y, increment);  // これはコンパイルエラー．静的な型チェックOK．
+
+        int        count     = 0;
+        const auto Enumerate = [&](const std::string &str) {
+                                   count++; std::cout << count << " : " << str << std::endl;
+                               };
+
+        Apply <std::string, 2, void>::apply(y, Enumerate);
+
+        // lvalue，n次元
+        std::cout << "test lvalue, n dim :" << std::endl;
+
+        const auto Encode = [](std::string &str){for (int i = 0; i < str.length(); i++) {str[i]++;}};
+
+        Apply<std::string, 2, void>::apply_side_effect(y, Encode);
+        Apply <std::string, 2, void>::apply(y, Enumerate);
+        // Apply<std::string, 2, void>::apply(y, Encode);
     }
 
     template <>
@@ -138,18 +158,18 @@ namespace util {
     template <>
     void testapply_sub <APPLYTYPE::R_N>()
     {
-            // rvalue，n次元
-            std::cout << "test rvalue, n dim :" << std::endl;
+        // rvalue，n次元
+        std::cout << "test rvalue, n dim :" << std::endl;
 
-            // arrayを2倍．
-            const auto twice = [](double d) {
-                                   return d * 2.;
-                               };
-            // applyを2倍したものでarrayを初期化．
-            auto apx = Apply <double, 2>::apply(make_common_array(make_common_array(0.0, 3.6, 2.6), make_common_array(9.5, 3.8, 9.3)), twice);
-            for (int i = 0; i < 2; i++) {
-                disp_array(apx[i]);
-            }
+        // arrayを2倍．
+        const auto twice = [](double d) {
+                               return d * 2.;
+                           };
+        // applyを2倍したものでarrayを初期化．
+        auto apx = Apply <double, 2>::apply(make_common_array(make_common_array(0.0, 3.6, 2.6), make_common_array(9.5, 3.8, 9.3)), twice);
+        for (int i = 0; i < 2; i++) {
+            disp_array(apx[i]);
+        }
     }
 
     // template <>
@@ -182,9 +202,9 @@ namespace util {
         std::cout << "test apply :" << std::endl;
         horizonline();
         horizonline();
-        testapply_sub <APPLYTYPE::CONST_L_1>();
+        testapply_sub <APPLYTYPE::L_1>();
         horizonline();
-        testapply_sub <APPLYTYPE::CONST_L_N>();
+        testapply_sub <APPLYTYPE::L_N>();
         horizonline();
         testapply_sub <APPLYTYPE::R_1>();
         horizonline();
