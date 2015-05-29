@@ -238,7 +238,7 @@ namespace util {
             return std::move(applied_array);
         }
 
-        // rvalue﻿﻿版版
+        // rvalue﻿﻿版
         template <std::size_t n, typename Functor, typename FResult = typename std::result_of<Functor(T)>::type, class Result = typename convert_array<std::array<T, n>, FResult, 1>::type>
         static Result apply(std::array<T, n> &&x, const Functor& f)
         {
