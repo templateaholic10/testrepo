@@ -5,6 +5,7 @@
 #include <string>
 #include <array>
 #include <iterator>
+#include <typeinfo>
 #include <type_traits>
 #include <utility>
 
@@ -135,6 +136,39 @@ namespace util {
             using type = decltype(result_of_type_impl::Func(std::declval <std::add_pointer<typename std::remove_pointer<T>::type> >()));
         };
     */
+    // ・convert_arrayメタ関数
+    // multi_array<T1, ...>からmulti_array<T2, ...>を得る．
+    // ただ，multi_arrayの次元には任意性があるので（arrayを要素に持つmulti_arrayかもしれない），m(>= n)次元のmulti_array型をn次元で切ってT2に置換した型を得ることにする．
+
+    // プライマリテンプレート．ダミー
+    template <class From, typename T2, int dim>
+    struct convert_array
+    {
+        using type = From;
+    };
+
+    // 再帰版
+    template <typename T2, int dim, class Fromsub, int n>
+    struct convert_array<std::array<Fromsub, n>, T2, dim>
+    {
+        using type = std::array<typename convert_array<Fromsub, T2, dim - 1>::type, n>;
+    };
+
+    // 再帰の末端
+    template <typename T2, typename T1, int n>
+    struct convert_array<std::array<T1, n>, T2, 1>
+    {
+        using type = std::array<T2, n>;
+    };
+
+    // ・convert_array_f関数
+    // 実際のmulti_arrayを受け取って型変換してデフォルトコンストラクトしたものを返す関数
+    template <class From, typename T2, int dim, class Result = typename convert_array<From, T2, dim>::type>
+    Result convert_array_f(From A)
+    {
+        return std::move(Result());
+    }
+
     // ・apply関数
     // Rにおけるapply関数を実装する
 

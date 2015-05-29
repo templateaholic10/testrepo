@@ -12,6 +12,19 @@ namespace util {
         }
     }
 
+    // convert_arrayメタ関数のテスト
+    void testconvert_array()
+    {
+        std::cout << "test convert_array : " << std::endl;
+        constexpr convert_array<std::array<std::array<int, 3>, 2>, double, 2>::type y = make_common_array(make_common_array(0., 1., 2.), make_common_array(3., 4., 5.));
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 3; j++) {
+                std::cout << y[i][j] << ' ';
+            }
+            std::cout << std::endl;
+        }
+    }
+
     enum class APPLYTYPE { CONST_L_1, CONST_L_N, L_1, L_N, R_1, R_N };
 
     // apply関数のテスト
