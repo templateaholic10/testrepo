@@ -149,21 +149,21 @@ namespace util {
 
     // 再帰版
     template <typename T2, int dim, class Fromsub, int n>
-    struct convert_array<std::array<Fromsub, n>, T2, dim>
+    struct convert_array <std::array <Fromsub, n>, T2, dim>
     {
-        using type = std::array<typename convert_array<Fromsub, T2, dim - 1>::type, n>;
+        using type = std::array <typename convert_array <Fromsub, T2, dim - 1>::type, n>;
     };
 
     // 再帰の末端
     template <typename T2, typename T1, int n>
-    struct convert_array<std::array<T1, n>, T2, 1>
+    struct convert_array <std::array <T1, n>, T2, 1>
     {
-        using type = std::array<T2, n>;
+        using type = std::array <T2, n>;
     };
 
     // ・convert_array_f関数
     // 実際のmulti_arrayを受け取って型変換してデフォルトコンストラクトしたものを返す関数
-    template <class From, typename T2, int dim, class Result = typename convert_array<From, T2, dim>::type>
+    template <class From, typename T2, int dim, class Result = typename convert_array <From, T2, dim>::type>
     Result convert_array_f(From A)
     {
         return std::move(Result());
@@ -178,96 +178,369 @@ namespace util {
     // B = apply(A, f);
     // Aはconst lvalue reference，fはvoid以外を返す副作用を持たない関数．
 
-    // 1次元版（プライマリテンプレート，array以外のarrayである場合）
-    template <typename T, std::size_t Size, typename Functor, typename Result = typename std::result_of<Functor(T)>::type>
-    struct Apply_sub
+    // 返り値を持つ版
+    // プライマリテンプレート
+    template <typename T, int dim, typename Resultvoid = T>
+    struct Apply
     {
-        // メタ関数内でオーバーロード
-        static std::array <Result, Size> apply_sub(const std::array <T, Size> &x, Functor f);
-
-        static std::array <Result, Size> apply_sub(std::array <T, Size> &&x, Functor f);
-    };
-
-    template <typename T, std::size_t Size, typename Functor>
-    struct Apply_sub_void
-    {
-        static void apply_sub_void(std::array <T, Size> &x, Functor f);
-    };
-/*
-    // 部分特殊化できるのはクラステンプレートのみ
-    // 多次元版（arrayのarrayである場合の特殊化）
-    template <std::size_t Size, typename Functor, typename Tsub, std::size_t Sizesub>
-    struct Apply_sub <std::array <Tsub, Sizesub>, Size, Functor>
-    {
-        // 返り値は怪しい．
-        static auto apply_sub(const std::array <std::array<Tsub, Sizesub>, Size> &x, Functor f);
-    };
-*/
-    template <typename T, std::size_t Size, typename Functor>
-    auto apply(const std::array <T, Size> &x, Functor f)
-    {
-        return std::move(Apply_sub <T, Size, Functor>::apply_sub(x, f));
-    }
-
-    template <typename T, std::size_t Size, typename Functor>
-    void apply_void(std::array <T, Size> &x, Functor f)
-    {
-        Apply_sub_void <T, Size, Functor>::apply_sub_void(x, f);
-    }
-
-    // 1次元版（プライマリテンプレート，array以外のarrayである場合）
-    template <typename T, std::size_t Size, typename Functor, typename Result>
-    std::array <Result, Size> Apply_sub <T, Size, Functor, Result>::apply_sub(const std::array <T, Size> &x, Functor f)
-    {
-        std::cout << "(const lvalue, 1 dim called)" << std::endl;
-
-        // 内部でmulti_arrayを作る．
-        std::array <Result, Size> applied_array;
-
+        // const lvalue版
+        template <class Fromsub, std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <Fromsub, n>, FResult, dim>::type>
+        static Result apply(const std::array <Fromsub, n> &x, const Functor &f)
         {
-            auto from = x.begin();
-            auto to   = applied_array.begin();
-            for (; from != x.end(); ++from, ++to) {
-                *to = f(*from);
+            Result applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = Apply <T, dim - 1>::apply(*from, f);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+
+        // lvalue版
+        template <class Fromsub, std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <Fromsub, n>, FResult, dim>::type>
+        static Result apply_side_effect(std::array <Fromsub, n> &x, const Functor &f)
+        {
+            Result applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = Apply <T, dim - 1>::apply_side_effect(*from, f);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+
+        // const rvalue版
+        template <class Fromsub, std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <Fromsub, n>, FResult, dim>::type>
+        static Result apply(const std::array <Fromsub, n> &&x, const Functor &f)
+        {
+            Result applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = Apply <T, dim - 1>::apply(*from, f);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+
+        // rvalue版
+        template <class Fromsub, std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <Fromsub, n>, FResult, dim>::type>
+        static Result apply_side_effect(std::array <Fromsub, n> &&x, const Functor &f)
+        {
+            Result applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = Apply <T, dim - 1>::apply_side_effect(*from, f);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+    };
+
+    // 1次元版
+    template <typename T, typename Resultvoid>
+    struct Apply <T, 1, Resultvoid>
+    {
+        // const lvalue版
+        template <std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <T, n>, FResult, 1>::type>
+        static Result apply(const std::array <T, n> &x, const Functor &f)
+        {
+            std::cout << "(const lvalue, nonvoid called)" << std::endl;
+            Result applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = f(*from);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+
+        // lvalue版
+        template <std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <T, n>, FResult, 1>::type>
+        static Result apply_side_effect(std::array <T, n> &x, const Functor &f)
+        {
+            std::cout << "(lvalue, nonvoid called)" << std::endl;
+            Result applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = f(*from);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+
+        // const rvalue﻿﻿版
+        template <std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <T, n>, FResult, 1>::type>
+        static Result apply(const std::array <T, n> &&x, const Functor &f)
+        {
+            std::cout << "(const rvalue, nonvoid called)" << std::endl;
+            Result applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = f(*from);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+
+        // rvalue﻿﻿版
+        template <std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <T, n>, FResult, 1>::type>
+        static Result apply_side_effect(std::array <T, n> &&x, const Functor &f)
+        {
+            std::cout << "(rvalue, nonvoid called)" << std::endl;
+            Result applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = f(*from);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+    };
+
+    // void版
+    // プライマリテンプレート
+    template <typename T, int dim>
+    struct Apply <T, dim, void>
+    {
+        // const lvalue版
+        template <class Fromsub, std::size_t n, typename Functor>
+        static void apply(const std::array <Fromsub, n> &x, const Functor &f)
+        {
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    Apply <T, dim - 1, void>::apply(*from, f);
+                }
             }
         }
 
-        return std::move(applied_array);
-    }
-
-    template <typename T, std::size_t Size, typename Functor, typename Result>
-    std::array <Result, Size> Apply_sub <T, Size, Functor, Result>::apply_sub(std::array <T, Size> &&x, Functor f)
-    {
-        std::cout << "(rvalue, 1 dim called)" << std::endl;
-
-        // 内部でmulti_arrayを作る．
-        std::array <Result, Size> applied_array;
-
+        // lvalue版
+        template <class Fromsub, std::size_t n, typename Functor>
+        static void apply_side_effect(std::array <Fromsub, n> &x, const Functor &f)
         {
-            auto from = x.begin();
-            auto to   = applied_array.begin();
-            for (; from != x.end(); ++from, ++to) {
-                *to = f(*from);
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    Apply <T, dim - 1, void>::apply_side_effect(*from, f);
+                }
             }
         }
 
-        return std::move(applied_array);
-    }
-
-    template <typename T, std::size_t Size, typename Functor>
-    void Apply_sub_void<T, Size, Functor>::apply_sub_void(std::array <T, Size> &x, Functor f)
-    {
-        std::cout << "(lvalue, 1 dim called)" << std::endl;
-
+        // const rvalue版
+        template <class Fromsub, std::size_t n, typename Functor>
+        static void apply(const std::array <Fromsub, n> &&x, const Functor &f)
         {
-            auto from = x.begin();
-            for (; from != x.end(); ++from) {
-                f(*from);
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    Apply <T, dim - 1, void>::apply(*from, f);
+                }
             }
         }
 
-        return;
-    }
+        // rvalue版
+        template <class Fromsub, std::size_t n, typename Functor>
+        static void apply_side_effect(std::array <Fromsub, n> &&x, const Functor &f)
+        {
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    Apply <T, dim - 1, void>::apply_side_effect(*from, f);
+                }
+            }
+        }
+    };
+
+    // 1次元版
+    template <typename T>
+    struct Apply <T, 1, void>
+    {
+        // const lvalue版
+        template <std::size_t n, typename Functor>
+        static void apply(const std::array <T, n> &x, const Functor &f)
+        {
+            std::cout << "(const lvalue, void called)" << std::endl;
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    f(*from);
+                }
+            }
+        }
+
+        // lvalue版
+        template <std::size_t n, typename Functor>
+        static void apply_side_effect(std::array <T, n> &x, const Functor &f)
+        {
+            std::cout << "(lvalue, void called)" << std::endl;
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    f(*from);
+                }
+            }
+        }
+
+        // const rvalue﻿﻿版
+        template <std::size_t n, typename Functor>
+        static void apply(const std::array <T, n> &&x, const Functor &f)
+        {
+            std::cout << "(const rvalue, void called)" << std::endl;
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    f(*from);
+                }
+            }
+        }
+
+        // rvalue﻿﻿版
+        template <std::size_t n, typename Functor>
+        static void apply_side_effect(std::array <T, n> &&x, const Functor &f)
+        {
+            std::cout << "(rvalue, void called)" << std::endl;
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    f(*from);
+                }
+            }
+        }
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+    //     // 1次元版（プライマリテンプレート，array以外のarrayである場合）
+    //     template <typename T, std::size_t Size, typename Functor, typename Result = typename std::result_of<Functor(T)>::type>
+    //     struct Apply_sub
+    //     {
+    //         // メタ関数内でオーバーロード
+    //         static std::array <Result, Size> apply_sub(const std::array <T, Size> &x, Functor f);
+    //
+    //         static std::array <Result, Size> apply_sub(std::array <T, Size> &&x, Functor f);
+    //     };
+    //
+    //     template <typename T, std::size_t Size, typename Functor>
+    //     struct Apply_sub_void
+    //     {
+    //         static void apply_sub_void(std::array <T, Size> &x, Functor f);
+    //     };
+    // /*
+    //     // 部分特殊化できるのはクラステンプレートのみ
+    //     // 多次元版（arrayのarrayである場合の特殊化）
+    //     template <std::size_t Size, typename Functor, typename Tsub, std::size_t Sizesub>
+    //     struct Apply_sub <std::array <Tsub, Sizesub>, Size, Functor>
+    //     {
+    //         // 返り値は怪しい．
+    //         static auto apply_sub(const std::array <std::array<Tsub, Sizesub>, Size> &x, Functor f);
+    //     };
+    // */
+    //     template <typename T, std::size_t Size, typename Functor>
+    //     auto apply(const std::array <T, Size> &x, Functor f)
+    //     {
+    //         return std::move(Apply_sub <T, Size, Functor>::apply_sub(x, f));
+    //     }
+    //
+    //     template <typename T, std::size_t Size, typename Functor>
+    //     void apply_void(std::array <T, Size> &x, Functor f)
+    //     {
+    //         Apply_sub_void <T, Size, Functor>::apply_sub_void(x, f);
+    //     }
+    //
+    //     // 1次元版（プライマリテンプレート，array以外のarrayである場合）
+    //     template <typename T, std::size_t Size, typename Functor, typename Result>
+    //     std::array <Result, Size> Apply_sub <T, Size, Functor, Result>::apply_sub(const std::array <T, Size> &x, Functor f)
+    //     {
+    //         std::cout << "(const lvalue, 1 dim called)" << std::endl;
+    //
+    //         // 内部でmulti_arrayを作る．
+    //         std::array <Result, Size> applied_array;
+    //
+    //         {
+    //             auto from = x.begin();
+    //             auto to   = applied_array.begin();
+    //             for (; from != x.end(); ++from, ++to) {
+    //                 *to = f(*from);
+    //             }
+    //         }
+    //
+    //         return std::move(applied_array);
+    //     }
+    //
+    //     template <typename T, std::size_t Size, typename Functor, typename Result>
+    //     std::array <Result, Size> Apply_sub <T, Size, Functor, Result>::apply_sub(std::array <T, Size> &&x, Functor f)
+    //     {
+    //         std::cout << "(rvalue, 1 dim called)" << std::endl;
+    //
+    //         // 内部でmulti_arrayを作る．
+    //         std::array <Result, Size> applied_array;
+    //
+    //         {
+    //             auto from = x.begin();
+    //             auto to   = applied_array.begin();
+    //             for (; from != x.end(); ++from, ++to) {
+    //                 *to = f(*from);
+    //             }
+    //         }
+    //
+    //         return std::move(applied_array);
+    //     }
+    //
+    //     template <typename T, std::size_t Size, typename Functor>
+    //     void Apply_sub_void<T, Size, Functor>::apply_sub_void(std::array <T, Size> &x, Functor f)
+    //     {
+    //         std::cout << "(lvalue, 1 dim called)" << std::endl;
+    //
+    //         {
+    //             auto from = x.begin();
+    //             for (; from != x.end(); ++from) {
+    //                 f(*from);
+    //             }
+    //         }
+    //
+    //         return;
+    //     }
 
     /*
     // 部分特殊化できるのはクラステンプレートのみ
@@ -395,25 +668,25 @@ namespace util {
     // B = apply(multi_array(), f);
     // Aはrvalue reference，fはvoid以外を返す副作用を持たない関数．
 
-    // 1次元版
-    template <typename T, std::size_t Size, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
-    std::array <Result, Size> apply(std::array <T, Size> &&x, Functor f)
-    {
-        std::cout << "(rvalue, 1 dim called)" << std::endl;
-
-        // 内部でmulti_arrayを作る．
-        std::array <Result, Size> applied_array;
-
-        {
-            auto from = x.begin();
-            auto to   = applied_array.begin();
-            for (; from != x.end(); ++from, ++to) {
-                *to = f(*from);
-            }
-        }
-
-        return std::move(applied_array);
-    }
+    // // 1次元版
+    // template <typename T, std::size_t Size, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
+    // std::array <Result, Size> apply(std::array <T, Size> &&x, Functor f)
+    // {
+    //     std::cout << "(rvalue, 1 dim called)" << std::endl;
+    //
+    //     // 内部でmulti_arrayを作る．
+    //     std::array <Result, Size> applied_array;
+    //
+    //     {
+    //         auto from = x.begin();
+    //         auto to   = applied_array.begin();
+    //         for (; from != x.end(); ++from, ++to) {
+    //             *to = f(*from);
+    //         }
+    //     }
+    //
+    //     return std::move(applied_array);
+    // }
 
     /*
         // 再帰版
