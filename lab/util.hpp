@@ -96,44 +96,45 @@ namespace util {
     {
         return typename common_array_type <TArgs ...>::type { std::forward <TArgs>(args) ... };
     }
-/*
-    // ・result_ofメタ関数
-    // 関数型から戻り値の型を抽出する．
 
-    // 単純に戻り値の型を得るだけならばautoで受けてdecltypeすればよい．result_ofメタ関数による結果をテンプレート宣言に利用できる点が便利．
+    /*
+        // ・result_ofメタ関数
+        // 関数型から戻り値の型を抽出する．
 
-    // 型推論を利用したいので関数テンプレートをメタ関数でラップする．
-    struct result_of_type_impl
-    {
-        // Resultが…
+        // 単純に戻り値の型を得るだけならばautoで受けてdecltypeすればよい．result_ofメタ関数による結果をテンプレート宣言に利用できる点が便利．
 
-        // (1)通常の関数ポインタのとき
-        template <class Result, class ... Args>
-        static Result Func(Result (*)(Args ...));
+        // 型推論を利用したいので関数テンプレートをメタ関数でラップする．
+        struct result_of_type_impl
+        {
+            // Resultが…
 
-        // (2)非constなメンバ関数ポインタのとき
-        template <class T, class Result, class ... Args>
-        static Result Func(Result (T::*)(Args ...));
+            // (1)通常の関数ポインタのとき
+            template <class Result, class ... Args>
+            static Result Func(Result (*)(Args ...));
 
-        // (3)constなメンバ関数ポインタのとき
-        template <class T, class Result, class ... Args>
-        static Result Func(Result (T::*)(Args ...) const);
+            // (2)非constなメンバ関数ポインタのとき
+            template <class T, class Result, class ... Args>
+            static Result Func(Result (T::*)(Args ...));
 
-        // (4)関数オブジェクトのとき（ラムダ式含む）
-        template <class T, class FuncType = decltype(&T::operator())>
-        static decltype(Func(std::declval <FuncType>()))Func(T *);
-        // decltype関数は引数の型を「宣言から」得る．つまり引数は評価されない．
-        // decltype関数の引数に「ある型Tの変数」を使いたいとき，declval<T>()と書くことができる．例えば，T()などとしてしまうとTがdefault constructiveであることが要求されるが，decltypeの中身は評価されないのでdefault constructiveかはどうでもいい．
-    };
+            // (3)constなメンバ関数ポインタのとき
+            template <class T, class Result, class ... Args>
+            static Result Func(Result (T::*)(Args ...) const);
 
-    // ラッパーメタ関数
-    // 例えば T = double (*)(double) （doubleをdoubleに変換する関数ポインタ）
-    template <class T>
-    struct result_of
-    {
-        using type = decltype(result_of_type_impl::Func(std::declval <std::add_pointer<typename std::remove_pointer<T>::type> >()));
-    };
-*/
+            // (4)関数オブジェクトのとき（ラムダ式含む）
+            template <class T, class FuncType = decltype(&T::operator())>
+            static decltype(Func(std::declval <FuncType>()))Func(T *);
+            // decltype関数は引数の型を「宣言から」得る．つまり引数は評価されない．
+            // decltype関数の引数に「ある型Tの変数」を使いたいとき，declval<T>()と書くことができる．例えば，T()などとしてしまうとTがdefault constructiveであることが要求されるが，decltypeの中身は評価されないのでdefault constructiveかはどうでもいい．
+        };
+
+        // ラッパーメタ関数
+        // 例えば T = double (*)(double) （doubleをdoubleに変換する関数ポインタ）
+        template <class T>
+        struct result_of
+        {
+            using type = decltype(result_of_type_impl::Func(std::declval <std::add_pointer<typename std::remove_pointer<T>::type> >()));
+        };
+    */
     // ・apply関数
     // Rにおけるapply関数を実装する
 
@@ -143,9 +144,46 @@ namespace util {
     // B = apply(A, f);
     // Aはconst lvalue reference，fはvoid以外を返す副作用を持たない関数．
 
-    // 1次元版
-    template <typename T, std::size_t Size, typename Functor, typename Result = decltype(std::declval<Functor>()(std::declval<T>()))>
+    // 1次元版（プライマリテンプレート，array以外のarrayである場合）
+    template <typename T, std::size_t Size, typename Functor, typename Result = typename std::result_of<Functor(T)>::type>
+    struct Apply_sub
+    {
+        // メタ関数内でオーバーロード
+        static std::array <Result, Size> apply_sub(const std::array <T, Size> &x, Functor f);
+
+        static std::array <Result, Size> apply_sub(std::array <T, Size> &&x, Functor f);
+    };
+
+    template <typename T, std::size_t Size, typename Functor>
+    struct Apply_sub_void
+    {
+        static void apply_sub_void(std::array <T, Size> &x, Functor f);
+    };
+/*
+    // 部分特殊化できるのはクラステンプレートのみ
+    // 多次元版（arrayのarrayである場合の特殊化）
+    template <std::size_t Size, typename Functor, typename Tsub, std::size_t Sizesub>
+    struct Apply_sub <std::array <Tsub, Sizesub>, Size, Functor>
+    {
+        // 返り値は怪しい．
+        static auto apply_sub(const std::array <std::array<Tsub, Sizesub>, Size> &x, Functor f);
+    };
+*/
+    template <typename T, std::size_t Size, typename Functor>
     auto apply(const std::array <T, Size> &x, Functor f)
+    {
+        return std::move(Apply_sub <T, Size, Functor>::apply_sub(x, f));
+    }
+
+    template <typename T, std::size_t Size, typename Functor>
+    void apply_void(std::array <T, Size> &x, Functor f)
+    {
+        Apply_sub_void <T, Size, Functor>::apply_sub_void(x, f);
+    }
+
+    // 1次元版（プライマリテンプレート，array以外のarrayである場合）
+    template <typename T, std::size_t Size, typename Functor, typename Result>
+    std::array <Result, Size> Apply_sub <T, Size, Functor, Result>::apply_sub(const std::array <T, Size> &x, Functor f)
     {
         std::cout << "(const lvalue, 1 dim called)" << std::endl;
 
@@ -162,15 +200,51 @@ namespace util {
 
         return std::move(applied_array);
     }
-/*
-    // 再帰版
-    template <typename T, std::size_t Size, std::size_t ... Sizes, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
-    multi_array <Result, Size, Sizes ...> apply(const multi_array <T, Size, Sizes ...> &x, Functor f)
+
+    template <typename T, std::size_t Size, typename Functor, typename Result>
+    std::array <Result, Size> Apply_sub <T, Size, Functor, Result>::apply_sub(std::array <T, Size> &&x, Functor f)
+    {
+        std::cout << "(rvalue, 1 dim called)" << std::endl;
+
+        // 内部でmulti_arrayを作る．
+        std::array <Result, Size> applied_array;
+
+        {
+            auto from = x.begin();
+            auto to   = applied_array.begin();
+            for (; from != x.end(); ++from, ++to) {
+                *to = f(*from);
+            }
+        }
+
+        return std::move(applied_array);
+    }
+
+    template <typename T, std::size_t Size, typename Functor>
+    void Apply_sub_void<T, Size, Functor>::apply_sub_void(std::array <T, Size> &x, Functor f)
+    {
+        std::cout << "(lvalue, 1 dim called)" << std::endl;
+
+        {
+            auto from = x.begin();
+            for (; from != x.end(); ++from) {
+                f(*from);
+            }
+        }
+
+        return;
+    }
+
+    /*
+    // 部分特殊化できるのはクラステンプレートのみ
+    // 多次元版（arrayのarrayである場合の特殊化）
+    template <std::size_t Size, typename Functor, typename Tsub, std::size_t Sizesub>
+    auto Apply_sub <std::array <Tsub, Sizesub>, Size, Functor>::apply_sub(const std::array <Tsub, Size> &x, Functor f)
     {
         std::cout << "(const lvalue, n dim called)" << std::endl;
 
         // 内部でmulti_arrayを作る．
-        multi_array <Result, Size, Sizes ...> applied_array;
+        std::array <std::array <Tsub, Sizesub>, Size> applied_array;
 
         {
             auto from = x.begin();
@@ -183,43 +257,107 @@ namespace util {
         return std::move(applied_array);
     }
 */
-/*
-    // apply(A, fvoid);
-    // Aはlvalue reference，fはvoidを返す副作用を持つ関数．
-
-    // 1次元版
-    template <typename T, std::size_t Size, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
-    void apply(std::array <T, Size> &x, Functor f)
-    {
-        static_assert(std::is_same <Result, void>::value, "apply not void error!");
-
-        std::cout << "(lvalue, 1 dim called)" << std::endl;
-
+    /*
+        // 1次元版（プライマリテンプレート，array以外のarrayである場合）
+        template <typename T, std::size_t Size, typename Functor>
+        auto apply(const std::array <T, Size> &x, Functor f)
         {
-            auto from = x.begin();
-            for (; from != x.end(); ++from) {
-                f(*from);
+            std::cout << "(const lvalue, 1 dim called)" << std::endl;
+
+            using Result = decltype(std::declval <Functor>()(std::declval <T>()));
+
+            // 内部でmulti_arrayを作る．
+            std::array <Result, Size> applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = f(*from);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+
+        // 多次元版（arrayのarrayである場合の特殊化）
+        template <std::size_t Size, typename Functor, typename Tsub, std::size_t Sizesub>
+        auto apply <std::array <Tsub, Sizesub>, Size, Functor>(const std::array <Tsub, Size> &x, Functor f)
+        {
+            std::cout << "(const lvalue, n dim called)" << std::endl;
+
+            // 内部でmulti_arrayを作る．
+            std::array <std::array <Tsub, Sizesub>, Size> applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = apply(*from, f);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+    */
+    /*
+        // 再帰版
+        template <typename T, std::size_t Size, std::size_t ... Sizes, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
+        multi_array <Result, Size, Sizes ...> apply(const multi_array <T, Size, Sizes ...> &x, Functor f)
+        {
+            std::cout << "(const lvalue, n dim called)" << std::endl;
+
+            // 内部でmulti_arrayを作る．
+            multi_array <Result, Size, Sizes ...> applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = apply(*from, f);
+                }
+            }
+
+            return std::move(applied_array);
+        }
+    */
+    /*
+        // apply(A, fvoid);
+        // Aはlvalue reference，fはvoidを返す副作用を持つ関数．
+
+        // 1次元版
+        template <typename T, std::size_t Size, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
+        void apply(std::array <T, Size> &x, Functor f)
+        {
+            static_assert(std::is_same <Result, void>::value, "apply not void error!");
+
+            std::cout << "(lvalue, 1 dim called)" << std::endl;
+
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    f(*from);
+                }
             }
         }
-    }
-*/
-/*
-    // 再帰版
-    template <typename T, std::size_t Size, std::size_t ... Sizes, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
-    void apply(multi_array <T, Size, Sizes ...> &x, Functor f)
-    {
-        static_assert(std::is_same <Result, void>::value, "apply not void error!");
-
-        std::cout << "(lvalue, n dim called)" << std::endl;
-
+    */
+    /*
+        // 再帰版
+        template <typename T, std::size_t Size, std::size_t ... Sizes, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
+        void apply(multi_array <T, Size, Sizes ...> &x, Functor f)
         {
-            auto from = x.begin();
-            for (; from != x.end(); ++from) {
-                apply(*from, f);
+            static_assert(std::is_same <Result, void>::value, "apply not void error!");
+
+            std::cout << "(lvalue, n dim called)" << std::endl;
+
+            {
+                auto from = x.begin();
+                for (; from != x.end(); ++from) {
+                    apply(*from, f);
+                }
             }
         }
-    }
-*/
+    */
     // B = apply(multi_array(), f);
     // Aはrvalue reference，fはvoid以外を返す副作用を持たない関数．
 
@@ -242,31 +380,32 @@ namespace util {
 
         return std::move(applied_array);
     }
-/*
-    // 再帰版
-    template <typename T, std::size_t Size, std::size_t ... Sizes, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
-    multi_array <Result, Size, Sizes ...> apply(multi_array <T, Size, Sizes ...> &&x, Functor f)
-    {
-        std::cout << "(rvalue, n dim called)" << std::endl;
 
-        // 内部でmulti_arrayを作る．
-        multi_array <Result, Size, Sizes ...> applied_array;
-
+    /*
+        // 再帰版
+        template <typename T, std::size_t Size, std::size_t ... Sizes, typename Functor, typename Result = decltype(std::declval <Functor>()(std::declval <T>()))>
+        multi_array <Result, Size, Sizes ...> apply(multi_array <T, Size, Sizes ...> &&x, Functor f)
         {
-            auto from = x.begin();
-            auto to   = applied_array.begin();
-            for (; from != x.end(); ++from, ++to) {
-                *to = apply(*from, f);
+            std::cout << "(rvalue, n dim called)" << std::endl;
+
+            // 内部でmulti_arrayを作る．
+            multi_array <Result, Size, Sizes ...> applied_array;
+
+            {
+                auto from = x.begin();
+                auto to   = applied_array.begin();
+                for (; from != x.end(); ++from, ++to) {
+                    *to = apply(*from, f);
+                }
             }
+
+            return std::move(applied_array);
         }
 
-        return std::move(applied_array);
-    }
-
-    // apply(multi_array(), fvoid);
-    // Aはrvalue reference，fはvoidを返す副作用を持つ関数．
-    // ありえない．右辺値を変更する意味がない．
-    */
+        // apply(multi_array(), fvoid);
+        // Aはrvalue reference，fはvoidを返す副作用を持つ関数．
+        // ありえない．右辺値を変更する意味がない．
+        */
 }
 
 #endif

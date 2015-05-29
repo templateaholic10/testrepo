@@ -52,13 +52,55 @@ namespace util {
         // 再代入も可能．
         auto z = make_array <double>(3.1415, 2.71828, 0.57721);
         disp_array(z);
-        // arrayをインクリメント．
+        // arrayを2倍．
         const auto twice = [ = ](double d) {
                                return d * 2.;
                            };
         // 再代入．
         z = apply(z, twice);
         disp_array(z);
+    }
+
+    template <>
+    void testapply_sub <APPLYTYPE::CONST_L_N>()
+    {
+        // const lvalue，n次元
+        /*
+                // リテラル型のarrayはコンパイル時定数にできる．
+                constexpr multi_array<double, 2, 3> x =  make_common_array(make_common_array(0.0, 3.6, 2.6), make_common_array(9.5, 3.8, 9.3));
+                // arrayを2倍．
+                const auto twice = [ = ](double d) {
+                                       return d * 2.;
+                                   };
+                // applyの返り値でarrayを初期化．
+                auto apx = apply(x, twice);
+                disp_array(apx);
+        */
+        /*
+                // リテラル型でないarrayはコンパイル時定数にできない．
+                const auto y =  make_array <std::string>("Ypa", "Oi", "Way", "So", "Yeah");
+                disp_array(y);
+                // arrayをあかりちゃんから引用する．
+                const auto quote = [&](const std::string &str) {
+                                       return str + " by Akari Ozora";
+                                   };
+                // applyの返り値でarrayを初期化．
+                auto apy = apply(y, quote);
+                disp_array(apy);
+
+                // auto apy_error = apply(y, increment);  // これはコンパイルエラー．静的な型チェックOK．
+
+                // 再代入も可能．
+                auto z = make_array <double>(3.1415, 2.71828, 0.57721);
+                disp_array(z);
+                // arrayを2倍．
+                const auto twice = [ = ](double d) {
+                                       return d * 2.;
+                                   };
+                // 再代入．
+                z = apply(z, twice);
+                disp_array(z);
+                */
     }
 
     template <>
@@ -75,9 +117,29 @@ namespace util {
         disp_array(x);
     }
 
+    template <>
+    void testapply_sub <APPLYTYPE::L_1>()
+    {
+        // lvalue，1次元
+
+        auto x = make_array <int>(1, 2, 3, 4);
+        // インクリメント関数の定義．
+        const auto outInt = [ = ](int i) {
+                                std::cout << i;
+                            };
+        apply_void(x, outInt);
+        std::cout << std::endl;
+        // 副作用を持つtwice関数の定義
+        const auto twice = [](int &i){i *= 2;};
+        apply_void(x, twice);
+        apply_void(x, outInt);
+        std::cout << std::endl;
+    }
+
     void testapply()
     {
         testapply_sub <APPLYTYPE::CONST_L_1>();
+        testapply_sub <APPLYTYPE::L_1>();
         testapply_sub <APPLYTYPE::R_1>();
     }
 }
