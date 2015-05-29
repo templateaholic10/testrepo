@@ -107,35 +107,33 @@ namespace util {
         // 以下のようにするとOK．
 
         // リテラル型でないarrayはコンパイル時定数にできない．
-        auto y = make_common_array(make_array <std::string>("kyo", "no", "osora"), make_array <std::string>("ha", "donna", "sora?"));
-        for (int i = 0; i < 2; i++) {
-            disp_array(y[i]);
-        }
-        // arrayをあかりちゃんから引用する．
-        const auto quote = [](const std::string &str) -> std::string {
-                               return str + " by Akari Ozora";
-                           };
-        // applyの返り値でarrayを初期化．
-        auto apy = Apply <std::string, 2>::apply(y, quote);
-        for (int i = 0; i < 2; i++) {
-            disp_array(apy[i]);
-        }
-
-        // auto apy_error = apply(y, increment);  // これはコンパイルエラー．静的な型チェックOK．
-
+        auto y = make_common_array(make_array <std::string>("てか", "あかり", "…"), make_array <std::string>("あかり", "〜〜〜〜", "！！！"));
+        // 数え上げる関数．
         int        count     = 0;
         const auto Enumerate = [&](const std::string &str) {
                                    count++; std::cout << count << " : " << str << std::endl;
                                };
+        Apply <std::string, 2, void>::apply(y, Enumerate);
+        // あかり…．
+        const auto Quote = [](const std::string &str) -> std::string {
+                               return str + "…";
+                           };
+        // 再代入．
+        y = Apply <std::string, 2>::apply(y, Quote);
+        Apply <std::string, 2, void>::apply(y, Enumerate);
+
+        // auto apy_error = apply(y, increment);  // これはコンパイルエラー．静的な型チェックOK．
 
         Apply <std::string, 2, void>::apply(y, Enumerate);
 
         // lvalue，n次元
         std::cout << "test lvalue, n dim :" << std::endl;
 
-        const auto Encode = [](std::string &str){for (int i = 0; i < str.length(); i++) {str[i]++;}};
+        const auto Encode = [](std::string &str) {
+                                for (int i = 0; i < str.length(); i++) { str[i]++; }
+                            };
 
-        Apply<std::string, 2, void>::apply_side_effect(y, Encode);
+        Apply <std::string, 2, void>::apply_side_effect(y, Encode);
         Apply <std::string, 2, void>::apply(y, Enumerate);
         // Apply<std::string, 2, void>::apply(y, Encode);
     }
