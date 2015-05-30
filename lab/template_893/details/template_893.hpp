@@ -1,5 +1,5 @@
-﻿#ifndef DETAILS_TEMPLATE_893
-#define DETAILS_TEMPLATE_893
+﻿#ifndef DETAIL_TEMPLATE_893
+#define DETAIL_TEMPLATE_893
 
 #include <iostream>
 #include "../template_893.hpp"

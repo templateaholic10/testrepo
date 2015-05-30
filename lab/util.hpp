@@ -19,6 +19,38 @@ namespace util {
         }
     }
 
+    // ・nresult_ofメタ関数
+    // 関数fにT型の引数をn個渡した時の返り値の型を返すメタ関数
+
+    // 内部的に用いる_nresult_of_sub関数
+    template <typename Functor, typename T, int n, typename ... Args>
+    struct _nresult_of_sub
+    {
+        using type = typename _nresult_of_sub <Functor, T, n - 1, T, Args ...>::type;
+    };
+
+    template <typename Functor, typename T, typename ... Args>
+    struct _nresult_of_sub <Functor, T, 1, Args ...>
+    {
+        using type = typename std::result_of <Functor(Args...)>::type;
+    };
+
+    template <typename Functor, typename T, int n>
+    struct nresult_of
+    {
+        using type = typename _nresult_of_sub <Functor, T, n - 1, T>::type;
+    };
+
+    template <typename Functor, typename T>
+    struct nresult_of <Functor, T, 1>
+    {
+        using type = typename std::result_of <Functor(T)>::type;
+    };
+
+    // エイリアステンプレート
+    template <typename Functor, typename T, int n>
+    using nresult_of_t = typename nresult_of<Functor, T, n>::type;
+
     // std::arrayの拡張
     // ルーチェさんの実装を丸パクリしただけです．
 

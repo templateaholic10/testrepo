@@ -193,6 +193,6 @@ namespace ex3 {
     }
 }
 
-#include "details/template_893.hpp"
+#include "detail/template_893.hpp"
 
 #endif

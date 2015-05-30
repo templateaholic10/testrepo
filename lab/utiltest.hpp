@@ -12,6 +12,16 @@ namespace util {
         }
     }
 
+    // nresult_ofメタ関数のテスト
+    void testnresult_of()
+    {
+        std::cout << "test nresult_of : " << std::endl;
+        auto add = [](int a, int b) -> double {return static_cast<double>(a+b);};
+        auto itos = [](int a) -> std::string {return std::to_string(a);};
+        static_assert(std::is_same<nresult_of_t<decltype(itos), int, 1>, std::string>::value, "nresult_of error!");
+        // static_assert(std::is_same<nresult_of_t<decltype(add), int, 2>, double>::value, "nresult_of error!");
+    }
+
     // convert_arrayメタ関数のテスト
     void testconvert_array()
     {

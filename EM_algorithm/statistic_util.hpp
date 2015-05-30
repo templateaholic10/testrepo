@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include "../lab/util.hpp"
 #include "matrix_util.hpp"
 
 namespace statistic {
@@ -12,12 +13,12 @@ namespace statistic {
     // ファイルフォーマットからデリミタを得る
     constexpr char formatToDelim(FORMAT format)
     {
-        char ch;
+        char ch('\0');
         switch (format) {
-            case CSV_SPACE:
+            case FORMAT::CSV_SPACE:
                 ch = ' ';
                 break;
-            case CSV_COMMA:
+            case FORMAT::CSV_COMMA:
                 ch = ',';
                 break;
             default:
@@ -54,36 +55,184 @@ namespace statistic {
     template <int dim>
     class Range
     {
+    private:
+        std::array <double, dim> _x1, _x2;
     public:
         Range() = delete;
-        Range(const dvector<dim>& x1, const dvector<dim>& x2)
+        // これで右辺値も参照できる．
+        Range(const std::array <double, dim> &x1, const std::array <double, dim> &x2)
+            : _x1(x1), _x2(x2)
         {
             for (int i = 0; i < dim; i++) {
-                BOOST_UBLAS_CHECK(x1(i) <= x2(i));
+                if (_x1[i] > _x2[i]) {
+                    std::swap(_x1[i], _x2[i]);
+                }
             }
-            _x1 = x1; _x2 = x2;
-        };
-        Range(const std::vector<double>& x1, const std::vector<double>& x2)
+        }
+
+        // これで右辺値も参照できる．
+        Range(const std::vector <double> &x1, const std::vector <double> &x2)
         {
-            BOOST_UBLAS_CHECK(x1.size() == dim && x2.size() == dim);
-            for (int i = 0; i < dim; i++) {
-                BOOST_UBLAS_CHECK(x1[i] <= x2[i];
-            }
+            static_assert((x1.size() == dim && x2.size() == dim), "size error!");
             _x1 = x1; _x2 = x2;
-        };
+            for (int i = 0; i < dim; i++) {
+                if (_x1[i] > _x2[i]) {
+                    std::swap(_x1, _x2);
+                }
+            }
+        }
+
         ~Range() = default;
 
         // ゲッター
-        dvector<dim> x1() const
+        const std::array <double, dim> &x1() const
         {
             return _x1;
-        };
-        dvector<dim> x2() const
+        }
+
+        const std::array <double, dim> &x2() const
         {
             return _x2;
-        };
-    private:
-        dvector<dim> _x1, _x2;
+        }
+
+        // スライシング
+        Range <1> first() const
+        {
+            return Range <1>(std::array <double, 1>(_x1[0]), std::array <double, 1>(_x2[0]));
+        }
+
+        Range <dim - 1> rest() const
+        {
+            static_assert(dim > 1, "range dimension under flow!");
+            // めっちゃ冗長．
+            std::array <double, dim - 1> restx1;
+            std::array <double, dim - 1> restx2;
+            for (int i = 1; i < dim; i++) {
+                restx1[i - 1] = _x1[i];
+                restx2[i - 1] = _x2[i];
+            }
+
+            return std::move(Range <dim - 1>(restx1, restx2));
+        }
+    };
+
+    // 0次元rangeの特殊化を禁止
+    // template <>
+    // Range<0>
+    // {};
+
+    // ・descretize関数
+    // メッシュを切って関数を離散化する．
+    //     Descretize<100, 100>::descretize(f, range)
+    // のような呼び出しを期待する．
+    // ここで，100，100はメッシュの数であり，各次元の要素数より1だけ少ないことに注意．
+
+    // 関数fへの要請は以下の通り．
+    // (1)実数体R^dim上で定義された関数．つまり，dim個のdoubleを変数にとる．
+    // (2)返り値がvoid型ではない．
+
+    template <int offset, typename T, int Size, int ... Sizes>
+    struct _expand_array
+    {
+        using type = std::array <typename _expand_array <offset, T, Sizes ...>::type, Size + offset>;
+    };
+
+    template <int offset, typename T, int Size>
+    struct _expand_array <offset, T, Size>
+    {
+        using type = std::array <T, Size + offset>;
+    };
+
+    // エイリアステンプレート
+    template <int offset, typename T, int ... Sizes>
+    using expand_array = typename _expand_array <offset, T, Sizes ...>::type;
+
+    // 多次元版
+    template <int Sizefirst, int ... Sizerest>
+    struct Descretize
+    {
+        template <typename Functor, typename FResult = typename util::nresult_of <Functor, double, 1 + sizeof ... (Sizerest)>::type, class Result = expand_array <1, FResult, Sizefirst, Sizerest ...> >
+        constexpr static Result descretize(const Functor &f, const Range <1 + sizeof ... (Sizerest)> &range)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+                fd[i] = Descretize <Sizerest ...>::_descretize_sub(f, range.rest(), xfirst);
+            }
+
+            return std::move(fd);
+        }
+
+        template <typename Functor, typename FResult = typename util::nresult_of <Functor, double, 1 + sizeof ... (Sizerest)>::type, class Result = expand_array <1, FResult, Sizefirst, Sizerest ...>, typename ... Doubles>
+        static Result _descretize_sub(const Functor &f, const Range <1 + sizeof ... (Sizerest)> &range, Doubles ... doubles)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+                fd[i] = Descretize <Sizerest ...>::_descretize_sub(f, range.rest(), doubles ..., xfirst);
+            }
+
+            return std::move(fd);
+        }
+
+        /*
+            template <typename... J>
+            static auto descretize(const J&... j)
+            {
+                static_assert(2 * (sizeof...(Sizes)) == (sizeof...(J)), "dimension error!");
+
+                multi_array<double, Sizes...> x;
+                return (std::move(x));
+            }
+            */
+    };
+
+    // 1次元版
+    template <int Sizefirst>
+    struct Descretize <Sizefirst>
+    {
+        template <typename Functor, typename FResult = typename util::nresult_of <Functor, double, 1>::type, class Result = expand_array <1, FResult, Sizefirst> >
+        constexpr static Result descretize(const Functor &f, const Range <1> &range)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+                fd[i] = f(xfirst);
+            }
+
+            return std::move(fd);
+        }
+
+        template <typename Functor, typename FResult = typename util::nresult_of <Functor, double, 1>::type, class Result = expand_array <1, FResult, Sizefirst>, typename ... Doubles>
+        static Result _descretize_sub(const Functor &f, const Range <1> &range, Doubles ... doubles)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+                fd[i] = f(doubles ..., xfirst);
+            }
+
+            return std::move(fd);
+        }
+
+        /*
+                template <typename... J>
+                static auto descretize(const J&... j)
+                {
+                    static_assert(2 * (sizeof...(Sizes)) == (sizeof...(J)), "dimension error!");
+
+                    multi_array<double, Sizes...> x;
+                    return (std::move(x));
+                }
+                */
     };
 }
 

@@ -5,11 +5,9 @@
 #include <array>
 #include <random>
 #include "statistic_util.hpp"
-#include "../util.hpp"
+#include "../lab/util.hpp"
 
 namespace statistic {
-    template <int dim, class distribution> class Probability_distribution;
-
     // メタ関数
     // 未知の分布
     struct UNKNOWN
@@ -36,9 +34,6 @@ namespace statistic {
     {
     };
 
-    template <class distribution>
-    void test();
-
     // 正規分布の確率分布
     template <int dim>
     class Probability_distribution <dim, GAUSSIAN>
@@ -52,7 +47,7 @@ namespace statistic {
         void   generate(dvector <dim> &data) const; // 確率分布からデータを1つ生成する関数
 
         template <FORMAT format>
-        void output(std::ostream &os, const Range& range, double mesh) const;  // ファイルに書き出す
+        void output(std::ostream &os, const Range<dim>& range, double mesh) const;  // ファイルに書き出す
         template <FORMAT format>
         void outparam(std::ostream &os) const;  // パラメータをファイルに書き出す
 
@@ -64,12 +59,10 @@ namespace statistic {
         dmatrix <dim> _sigmaInverse;  // 精度行列
         double        _sigmaDeterminant; // 分散共分散行列のディターミナント
         // 乱数生成器
+        std::random_device _rnd; // 非決定的乱数生成器
         std::mt19937                _mt; // メルセンヌ・ツイスタ
         std::normal_distribution <> _stdnorm;  // 1次元標準正規分布に従う乱数生成器
     };
-
-    template <>
-    void test <GAUSSIAN>();
 
     // 混合正規分布の確率分布
     template <int dim, int mixture_num>
@@ -84,7 +77,7 @@ namespace statistic {
         void   generate(dvector <dim> &data) const; // 確率分布からデータを1つ生成する関数
 
         template <FORMAT format>
-        void output(std::ostream &os, const Range& range, double mesh) const;  // ファイルに書き出す
+        void output(std::ostream &os, const Range<dim>& range, double mesh) const;  // ファイルに書き出す
         template <FORMAT format>
         void outparam(std::ostream &os) const;  // パラメータをファイルに書き出す
 
@@ -93,6 +86,12 @@ namespace statistic {
         std::array <dvector <dim>, mixture_num> _mu;  // 平均
         std::array <dmatrix <dim>, mixture_num> _sigma;  // 分散
     };
+
+    template <class distribution>
+    void test();
+    
+    template <>
+    void test <GAUSSIAN>();
 
     template <>
     void test <GAUSSIAN_MIXTURES <2>>();

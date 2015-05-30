@@ -22,8 +22,11 @@ int main(int argc, char const *argv[])
                                                            } };
     constexpr auto                       small_cube = make_common_array(make_common_array(0.0, 3.6, 2.6), make_common_array(9.5, 3.8, 9.3));
 
+    // nresult_of関数のテスト
+    testnresult_of();
+
     // apply関数のテスト
-    testapply();
+    // testapply();
 
     // convert_arrayのテスト
     // testconvert_array();
