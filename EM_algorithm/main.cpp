@@ -1,12 +1,12 @@
 ﻿char *gets(char *str);
 
-#include "pdist.hpp"
+#include "statistic_utiltest.hpp"
 
 int main(int argc, char const *argv[])
 {
     using namespace statistic;
 
-    test <GAUSSIAN>();
+    testdescrete();
 
     return 0;
 }

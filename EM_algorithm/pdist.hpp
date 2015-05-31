@@ -2,6 +2,7 @@
 #define PDIST
 
 #include <iostream>
+#include <fstream>
 #include <array>
 #include <random>
 #include "statistic_util.hpp"
@@ -44,12 +45,11 @@ namespace statistic {
         ~Probability_distribution() = default;
 
         double pdf(const dvector <dim> &x) const;  // 確率密度関数
-        void   generate(dvector <dim> &data) const; // 確率分布からデータを1つ生成する関数
+        dvector<dim> generate() const; // 確率分布からデータを1つ生成する関数
 
-        template <FORMAT format>
-        void output(std::ostream &os, const Range<dim>& range, double mesh) const;  // ファイルに書き出す
-        template <FORMAT format>
-        void outparam(std::ostream &os) const;  // パラメータをファイルに書き出す
+        template <int... Meshes>
+        void output(std::ostream &os, const Range<dim>& range, const FORMAT format) const;  // ファイルに書き出す
+        void outparam(std::ostream &os, const FORMAT format) const;  // パラメータをファイルに書き出す
 
     private:
         dvector <dim> _mu;  // 平均ベクトル
@@ -89,7 +89,7 @@ namespace statistic {
 
     template <class distribution>
     void test();
-    
+
     template <>
     void test <GAUSSIAN>();
 

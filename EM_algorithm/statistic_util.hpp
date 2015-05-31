@@ -11,7 +11,7 @@ namespace statistic {
     enum class FORMAT { CSV_SPACE, CSV_COMMA };
 
     // ファイルフォーマットからデリミタを得る
-    constexpr char formatToDelim(FORMAT format)
+    constexpr char formatToDelim(const FORMAT format)
     {
         char ch('\0');
         switch (format) {
@@ -36,6 +36,25 @@ namespace statistic {
 
     template <int dim>
     using dmatrix = boost::numeric::ublas::bounded_matrix <double, dim, dim>;
+
+    // それぞれの出力
+    template <int dim>
+    void output(std::ostream &os, const dvector <dim> &v, const char delim)
+    {
+        for (int i = 0; i < dim; i++) {
+            os << v(i) << ((i != dim - 1) ? delim : '\n');
+        }
+    }
+
+    template <int dim>
+    void output(std::ostream &os, const dmatrix <dim> &A, const char delim)
+    {
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++) {
+                os << A(i, j) << ((j != dim - 1) ? delim : '\n');
+            }
+        }
+    }
 
     // 多次元正規分布のpdf
     template <int dim>
@@ -70,18 +89,19 @@ namespace statistic {
             }
         }
 
-        // これで右辺値も参照できる．
-        Range(const std::vector <double> &x1, const std::vector <double> &x2)
-        {
-            static_assert((x1.size() == dim && x2.size() == dim), "size error!");
-            _x1 = x1; _x2 = x2;
-            for (int i = 0; i < dim; i++) {
-                if (_x1[i] > _x2[i]) {
-                    std::swap(_x1, _x2);
+        /*
+                // これで右辺値も参照できる．
+                Range(const std::vector <double> &x1, const std::vector <double> &x2)
+                {
+                    static_assert((x1.size() == dim && x2.size() == dim), "size error!");
+                    _x1 = x1; _x2 = x2;
+                    for (int i = 0; i < dim; i++) {
+                        if (_x1[i] > _x2[i]) {
+                            std::swap(_x1, _x2);
+                        }
+                    }
                 }
-            }
-        }
-
+        */
         ~Range() = default;
 
         // ゲッター
@@ -116,6 +136,16 @@ namespace statistic {
         }
     };
 
+    template <int dim>
+    void output(std::ostream &os, const Range <dim> &range)
+    {
+        os << "[" << range.x1()[0] << ", " << range.x2()[0] << "]";
+        for (int i = 1; i < dim; i++) {
+            os << " * " << "[" << range.x1()[i] << ", " << range.x2()[i] << "]";
+        }
+        os << std::endl;
+    }
+
     // 0次元rangeの特殊化を禁止
     // template <>
     // Range<0>
@@ -130,6 +160,8 @@ namespace statistic {
     // 関数fへの要請は以下の通り．
     // (1)実数体R^dim上で定義された関数．つまり，dim個のdoubleを変数にとる．
     // (2)返り値がvoid型ではない．
+
+    // メンバ関数だとまずい？
 
     template <int offset, typename T, int Size, int ... Sizes>
     struct _expand_array
@@ -147,6 +179,45 @@ namespace statistic {
     template <int offset, typename T, int ... Sizes>
     using expand_array = typename _expand_array <offset, T, Sizes ...>::type;
 
+    // dimでそもそもの次元を保持．
+    // 多次元版
+    template <int dim, int Sizefirst, int ... Sizerest>
+    struct Descretize_sub
+    {
+        template <typename Functor, typename FResult = typename util::nresult_of <Functor, double, dim>::type, class Result = expand_array <1, FResult, Sizefirst, Sizerest ...>, typename ... Doubles>
+        constexpr static Result _descretize_sub(const Functor &f, const Range <1 + sizeof ... (Sizerest)> &range, Doubles ... doubles)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+                fd[i] = Descretize_sub <dim, Sizerest ...>::_descretize_sub(f, range.rest(), doubles ..., xfirst);
+            }
+
+            return std::move(fd);
+        }
+    };
+
+    // 1次元版
+    template <int dim, int Sizefirst>
+    struct Descretize_sub <dim, Sizefirst>
+    {
+        template <typename Functor, typename FResult = typename util::nresult_of <Functor, double, dim>::type, class Result = expand_array <1, FResult, Sizefirst>, typename ... Doubles>
+        constexpr static Result _descretize_sub(const Functor &f, const Range <1> &range, Doubles ... doubles)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+                fd[i] = f(doubles ..., xfirst);
+            }
+
+            return std::move(fd);
+        }
+    };
+
     // 多次元版
     template <int Sizefirst, int ... Sizerest>
     struct Descretize
@@ -159,36 +230,11 @@ namespace statistic {
 
             double xfirst = range.x1()[0];
             for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
-                fd[i] = Descretize <Sizerest ...>::_descretize_sub(f, range.rest(), xfirst);
+                fd[i] = Descretize_sub <1 + sizeof ... (Sizerest), Sizerest ...>::_descretize_sub(f, range.rest(), xfirst);
             }
 
             return std::move(fd);
         }
-
-        template <typename Functor, typename FResult = typename util::nresult_of <Functor, double, 1 + sizeof ... (Sizerest)>::type, class Result = expand_array <1, FResult, Sizefirst, Sizerest ...>, typename ... Doubles>
-        static Result _descretize_sub(const Functor &f, const Range <1 + sizeof ... (Sizerest)> &range, Doubles ... doubles)
-        {
-            Result fd;
-            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
-
-            double xfirst = range.x1()[0];
-            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
-                fd[i] = Descretize <Sizerest ...>::_descretize_sub(f, range.rest(), doubles ..., xfirst);
-            }
-
-            return std::move(fd);
-        }
-
-        /*
-            template <typename... J>
-            static auto descretize(const J&... j)
-            {
-                static_assert(2 * (sizeof...(Sizes)) == (sizeof...(J)), "dimension error!");
-
-                multi_array<double, Sizes...> x;
-                return (std::move(x));
-            }
-            */
     };
 
     // 1次元版
@@ -208,31 +254,6 @@ namespace statistic {
 
             return std::move(fd);
         }
-
-        template <typename Functor, typename FResult = typename util::nresult_of <Functor, double, 1>::type, class Result = expand_array <1, FResult, Sizefirst>, typename ... Doubles>
-        static Result _descretize_sub(const Functor &f, const Range <1> &range, Doubles ... doubles)
-        {
-            Result fd;
-            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
-
-            double xfirst = range.x1()[0];
-            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
-                fd[i] = f(doubles ..., xfirst);
-            }
-
-            return std::move(fd);
-        }
-
-        /*
-                template <typename... J>
-                static auto descretize(const J&... j)
-                {
-                    static_assert(2 * (sizeof...(Sizes)) == (sizeof...(J)), "dimension error!");
-
-                    multi_array<double, Sizes...> x;
-                    return (std::move(x));
-                }
-                */
     };
 }
 
