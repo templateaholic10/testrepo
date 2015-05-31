@@ -8,6 +8,7 @@
 #include <typeinfo>
 #include <type_traits>
 #include <utility>
+#include <cstddef>
 
 namespace util {
     // ・repeat関数
