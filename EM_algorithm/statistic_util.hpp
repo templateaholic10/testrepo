@@ -7,6 +7,9 @@
 #include "matrix_util.hpp"
 
 namespace statistic_util {
+
+    constexpr double epsilon = 1.e-6;
+
     // ファイルフォーマット
     enum class FORMAT { CSV_SPACE, CSV_COMMA, CSV_COMMA_SQ };
 
