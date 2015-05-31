@@ -6,7 +6,7 @@ int main(int argc, char const *argv[])
 {
     using namespace statistic;
 
-    testdescrete();
+    testdescrete1();
 
     return 0;
 }

@@ -191,7 +191,7 @@ namespace statistic {
             double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
 
             double xfirst = range.x1()[0];
-            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
                 fd[i] = Descretize_sub <dim, Sizerest ...>::_descretize_sub(f, range.rest(), doubles ..., xfirst);
             }
 
@@ -210,7 +210,7 @@ namespace statistic {
             double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
 
             double xfirst = range.x1()[0];
-            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
                 fd[i] = f(doubles ..., xfirst);
             }
 
@@ -229,7 +229,7 @@ namespace statistic {
             double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
 
             double xfirst = range.x1()[0];
-            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
                 fd[i] = Descretize_sub <1 + sizeof ... (Sizerest), Sizerest ...>::_descretize_sub(f, range.rest(), xfirst);
             }
 
@@ -248,7 +248,7 @@ namespace statistic {
             double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
 
             double xfirst = range.x1()[0];
-            for (int i = 0; i < Sizefirst; i++, xfirst += mesh) {
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
                 fd[i] = f(xfirst);
             }
 
