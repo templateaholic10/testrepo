@@ -10,9 +10,9 @@ namespace statistic_util {
     {
         namespace ublas = boost::numeric::ublas;
 
-        double exponent(-0.5 * ublas::inner_prod((x - mu), ublas::prod(sigmaInverse, (x - mu))));
+        double exponent = -0.5 * ublas::inner_prod((x - mu), ublas::prod(sigmaInverse, (x - mu)));
 
-        return normalize<dim>() / sqrt(sigmaDeterminant) * exponent;
+        return normalize<dim>() / sqrt(sigmaDeterminant) * exp(exponent);
     }
 
     template <int dim>

@@ -30,7 +30,7 @@ namespace util {
     };
 
     template <typename Functor, typename T, typename ... Args>
-    struct _nresult_of_sub <Functor, T, 1, Args ...>
+    struct _nresult_of_sub <Functor, T, 0, Args ...>
     {
         using type = typename std::result_of <Functor(Args...)>::type;
     };
@@ -41,11 +41,14 @@ namespace util {
         using type = typename _nresult_of_sub <Functor, T, n - 1, T>::type;
     };
 
-    template <typename Functor, typename T>
-    struct nresult_of <Functor, T, 1>
-    {
-        using type = typename std::result_of <Functor(T)>::type;
-    };
+    // nresult_of<F, T, 2>::type
+    // = _nresult_of_sub<F, T, 1, T>::type
+    // = _nresult_of_sub<F, T, 0, T, T>::type
+    // = std::result_of<F(T, T)>::type
+
+    // nresult_of<F, T, 1>::type
+    // = _nresult_of_sub<F, T, 0, T>::type
+    // = std::result_of<F(T)>::type
 
     // エイリアステンプレート
     template <typename Functor, typename T, int n>
@@ -435,6 +438,7 @@ namespace util {
             }
         }
     };
+
 }
 
 #endif
