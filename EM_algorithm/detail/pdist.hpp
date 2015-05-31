@@ -3,6 +3,7 @@
 
 #include "../statistic_util.hpp"
 #include "../pdist.hpp"
+#include "../matrix_util.hpp"
 
 namespace statistic {
     /* --- 正規分布の実装 --- */
@@ -153,10 +154,8 @@ namespace statistic {
     /* --- 混合正規分布の実装 --- */
 
     template <int dim, int mixture_num>
-    Probability_distribution <dim, GAUSSIAN_MIXTURES <mixture_num> >::Probability_distribution(const std::array <double, mixture_num> &pi, const std::array <dvector <dim>, mixture_num> &mus, const std::array <dmatrix <dim>,
-                                                                                                                                                                                                                 mixture_num> &As)
-        : _pi(pi), _mus(mus), _As(As), _sigmas(util::Apply <dmatrix <dim>, 1>::apply(As, matrix_util::transToSigma)), _sigmaInverses(util::Apply <dmatrix <dim>, 1>::apply(_sigmas, matrix_util::invert)), _sigmaDeterminants(
-            util::Apply <dmatrix <dim>, 1>::apply(_sigmas, matrix_util::determinant)), _rnd(), _mt(_rnd()), _stdnorm(0., 1.), _mixvoter(0, mixture_num - 1)
+    Probability_distribution <dim, GAUSSIAN_MIXTURES <mixture_num> >::Probability_distribution(const std::array <double, mixture_num> &pi, const std::array <dvector <dim>, mixture_num> &mus, const std::array <dmatrix <dim>, mixture_num> &As)
+        : _pi(pi), _mus(mus), _As(As), _sigmas(util::Apply <dmatrix <dim>, 1>::apply(As, matrix_util::transToSigma)), _sigmaInverses(util::Apply <dmatrix <dim>, 1>::apply(_sigmas, matrix_util::invert<dmatrix<dim>>)), _sigmaDeterminants(util::Apply <dmatrix <dim>, 1>::apply(_sigmas, matrix_util  ::determinant<dmatrix<dim>>)), _rnd(), _mt(_rnd()), _stdnorm(0., 1.), _mixvoter(0, mixture_num - 1)
     {
         double sum = 0.;
         for (auto p : pi) {
@@ -310,28 +309,38 @@ namespace statistic {
 
     void testgaussian_mixtures()
     {
-        constexpr int dim = 2;      // 2次元
-        using PD = Probability_distribution <dim, GAUSSIAN>;
+        constexpr int dim         = 2; // 2次元
+        constexpr int mixture_num = 2;  // 混合数
+        using PD = Probability_distribution <dim, GAUSSIAN_MIXTURES <mixture_num> >;
         constexpr statistic_util::FORMAT format = statistic_util::FORMAT::CSV_COMMA_SQ;
         std::ofstream                    fout;
 
         // パラメータ群
-        dvector <dim> mu = matrix_util::make_bounded_vector <double, dim>(util::make_array <double>(0., 0.));
+        std::array <double, mixture_num> pi = { 0.5, 0.5 };
 
-        dmatrix <dim> A = matrix_util::make_bounded_matrix <double, dim, dim>(util::make_common_array(
-                                                                                  util::make_common_array(1., 0.),
-                                                                                  util::make_common_array(0., 1.)
-                                                                                  ));
+        std::array <dvector <dim>, mixture_num> mus;
+        mus[0] = matrix_util::make_bounded_vector <double, dim>(util::make_array <double>(0., 0.));
+        mus[1] = matrix_util::make_bounded_vector <double, dim>(util::make_array <double>(10., 0.));
+
+        std::array <dmatrix <dim>, mixture_num> As;
+        As[0] = matrix_util::make_bounded_matrix <double, dim, dim>(util::make_common_array(
+                                                                        util::make_common_array(1., 0.),
+                                                                        util::make_common_array(0., 1.)
+                                                                        ));
+        As[1] = matrix_util::make_bounded_matrix <double, dim, dim>(util::make_common_array(
+                                                                        util::make_common_array(1., 0.),
+                                                                        util::make_common_array(0., 1.)
+                                                                        ));
 
         // 確率分布
-        PD pd(mu, A);
+        PD pd(pi, mus, As);
 
         // 出力
-        fout.open("testgaussian.param");
+        fout.open("testgaussian_mixtures.param");
         pd.outparam(fout, format);
         fout.close();
         statistic_util::Range <dim> range({ -10., -10. }, { 10., 10. });
-        fout.open("testgaussian.csv");
+        fout.open("testgaussian_mixtures.csv");
         pd.output <20, 20>(fout, range, format);
         fout.close();
     }
