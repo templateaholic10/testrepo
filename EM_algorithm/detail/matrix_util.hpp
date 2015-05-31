@@ -5,6 +5,8 @@
 
 namespace matrix_util {
 
+    using namespace boost::numeric;
+
     template <class M>
     double determinant(const M& m)
     {
@@ -28,8 +30,8 @@ namespace matrix_util {
         return det;
     }
 
-    template <class M, class MI>
-    void invert(const M& m, MI& mi)
+    template <class M>
+    M invert(const M& m)
     {
         namespace ublas = boost::numeric::ublas;
 
@@ -55,9 +57,37 @@ namespace matrix_util {
         );
     #endif
 
+        // >>>>>>>>>>
+        /*
         mi.resize(rhs.size1(), rhs.size2(), false);
         mi.assign(rhs);
         // mi.assign_temporary(rhs);
+        */
+        // ----------
+        return std::move(rhs);
+        // <<<<<<<<<<
+    }
+
+    // std::arrayからbounded_vectorを作る
+    template <typename T, int dim>
+    ublas::bounded_vector<T, dim> make_bounded_vector(const std::array<T, dim>& v)
+    {
+        ublas::bounded_vector<T, dim> bv;
+        std::copy(v.begin(), v.end(), bv.begin());
+        return std::move(bv);
+    }
+
+    // std::array<std::array<T, n2>, n1>からbounded_matrixを作る
+    template <typename T, int dim1, int dim2>
+    ublas::bounded_matrix<T, dim1, dim2> make_bounded_matrix(const std::array<std::array<T, dim2>, dim1>& M)
+    {
+        ublas::bounded_matrix<T, dim1, dim2> bm;
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                bm(i, j) = M[i][j];
+            }
+        }
+        return std::move(bm);
     }
 
 }

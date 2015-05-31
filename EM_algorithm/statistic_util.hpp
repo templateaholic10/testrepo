@@ -6,7 +6,7 @@
 #include "../lab/util.hpp"
 #include "matrix_util.hpp"
 
-namespace statistic {
+namespace statistic_util {
     // ファイルフォーマット
     enum class FORMAT { CSV_SPACE, CSV_COMMA };
 
@@ -163,6 +163,10 @@ namespace statistic {
 
     // メンバ関数だとまずい？
 
+    // descretize関数→f(double, double, ..., double)
+    // descretizeA関数→f(std::array<double, dim>)
+    // descretizeDV関数→f(dvector<dim>)
+
     template <int offset, typename T, int Size, int ... Sizes>
     struct _expand_array
     {
@@ -197,6 +201,34 @@ namespace statistic {
 
             return std::move(fd);
         }
+
+        template <typename Functor, typename FResult = typename std::result_of <Functor(std::array<double, dim>)>::type, class Result = expand_array <1, FResult, Sizefirst, Sizerest ...>, typename ... Doubles>
+        constexpr static Result _descretizeA_sub(const Functor &f, const Range <1 + sizeof ... (Sizerest)> &range, Doubles ... doubles)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
+                fd[i] = Descretize_sub <dim, Sizerest ...>::_descretizeA_sub(f, range.rest(), doubles ..., xfirst);
+            }
+
+            return std::move(fd);
+        }
+
+        template <typename Functor, typename FResult = typename std::result_of <Functor(dvector<dim>)>::type, class Result = expand_array <1, FResult, Sizefirst, Sizerest ...>, typename ... Doubles>
+        static Result _descretizeDV_sub(const Functor &f, const Range <1 + sizeof ... (Sizerest)> &range, Doubles ... doubles)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
+                fd[i] = Descretize_sub <dim, Sizerest ...>::_descretizeDV_sub(f, range.rest(), doubles ..., xfirst);
+            }
+
+            return std::move(fd);
+        }
     };
 
     // 1次元版
@@ -212,6 +244,34 @@ namespace statistic {
             double xfirst = range.x1()[0];
             for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
                 fd[i] = f(doubles ..., xfirst);
+            }
+
+            return std::move(fd);
+        }
+
+        template <typename Functor, typename FResult = typename std::result_of <Functor(std::array<double, dim>)>::type, class Result = expand_array <1, FResult, Sizefirst>, typename ... Doubles>
+        constexpr static Result _descretizeA_sub(const Functor &f, const Range <1> &range, Doubles ... doubles)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
+                fd[i] = f(util::make_array <double>(doubles ..., xfirst));
+            }
+
+            return std::move(fd);
+        }
+
+        template <typename Functor, typename FResult = typename std::result_of <Functor(dvector<dim>)>::type, class Result = expand_array <1, FResult, Sizefirst>, typename ... Doubles>
+        static Result _descretizeDV_sub(const Functor &f, const Range <1> &range, Doubles ... doubles)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
+                fd[i] = f(matrix_util::make_bounded_vector<double, dim>(util::make_array<double>(doubles ..., xfirst)));
             }
 
             return std::move(fd);
@@ -235,6 +295,34 @@ namespace statistic {
 
             return std::move(fd);
         }
+
+        template <typename Functor, typename FResult = typename std::result_of <Functor(std::array<double, 1 + sizeof ... (Sizerest)>)>::type, class Result = expand_array <1, FResult, Sizefirst, Sizerest ...> >
+        constexpr static Result descretizeA(const Functor &f, const Range <1 + sizeof ... (Sizerest)> &range)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
+                fd[i] = Descretize_sub <1 + sizeof ... (Sizerest), Sizerest ...>::_descretizeA_sub(f, range.rest(), xfirst);
+            }
+
+            return std::move(fd);
+        }
+
+        template <typename Functor, typename FResult = typename std::result_of <Functor(dvector<1 + sizeof ... (Sizerest)>)>::type, class Result = expand_array <1, FResult, Sizefirst, Sizerest ...> >
+        static Result descretizeDV(const Functor &f, const Range <1 + sizeof ... (Sizerest)> &range)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
+                fd[i] = Descretize_sub <1 + sizeof ... (Sizerest), Sizerest ...>::_descretizeDV_sub(f, range.rest(), xfirst);
+            }
+
+            return std::move(fd);
+        }
     };
 
     // 1次元版
@@ -250,6 +338,34 @@ namespace statistic {
             double xfirst = range.x1()[0];
             for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
                 fd[i] = f(xfirst);
+            }
+
+            return std::move(fd);
+        }
+
+        template <typename Functor, typename FResult = typename std::result_of <Functor(std::array<double, 1>)>::type, class Result = expand_array <1, FResult, Sizefirst> >
+        constexpr static Result descretizeA(const Functor &f, const Range <1> &range)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
+                fd[i] = f(util::make_array<double>(xfirst));
+            }
+
+            return std::move(fd);
+        }
+
+        template <typename Functor, typename FResult = typename std::result_of <Functor(dvector<1>)>::type, class Result = expand_array <1, FResult, Sizefirst> >
+        static Result descretizeDV(const Functor &f, const Range <1> &range)
+        {
+            Result fd;
+            double mesh = (range.x2()[0] - range.x1()[0]) / Sizefirst;
+
+            double xfirst = range.x1()[0];
+            for (int i = 0; i <= Sizefirst; i++, xfirst += mesh) {
+                fd[i] = f(matrix_util::make_bounded_vector<double, 1>(util::make_array<double>(xfirst)));
             }
 
             return std::move(fd);

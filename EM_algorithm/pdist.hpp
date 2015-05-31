@@ -5,10 +5,18 @@
 #include <fstream>
 #include <array>
 #include <random>
+#include <functional>
 #include "statistic_util.hpp"
 #include "../lab/util.hpp"
 
 namespace statistic {
+
+    template <int dim>
+    using dvector = statistic_util::dvector<dim>;
+
+    template <int dim>
+    using dmatrix = statistic_util::dmatrix<dim>;
+
     // メタ関数
     // 未知の分布
     struct UNKNOWN
@@ -48,20 +56,20 @@ namespace statistic {
         dvector<dim> generate() const; // 確率分布からデータを1つ生成する関数
 
         template <int... Meshes>
-        void output(std::ostream &os, const Range<dim>& range, const FORMAT format) const;  // ファイルに書き出す
-        void outparam(std::ostream &os, const FORMAT format) const;  // パラメータをファイルに書き出す
+        void output(std::ostream &os, const statistic_util::Range<dim>& range, const statistic_util::FORMAT format) const;  // ファイルに書き出す
+        void outparam(std::ostream &os, const statistic_util::FORMAT format) const;  // パラメータをファイルに書き出す
 
     private:
-        dvector <dim> _mu;  // 平均ベクトル
-        dmatrix <dim> _sigma;  // 分散共分散行列 _sigma := _A * _A^T
+        const dvector <dim> _mu;  // 平均ベクトル
+        const dmatrix <dim> _sigma;  // 分散共分散行列 _sigma := _A * _A^T
         // 以下冗長
-        dmatrix <dim> _A;  // 変換行列
-        dmatrix <dim> _sigmaInverse;  // 精度行列
-        double        _sigmaDeterminant; // 分散共分散行列のディターミナント
+        const dmatrix <dim> _A;  // 変換行列
+        const dmatrix <dim> _sigmaInverse;  // 精度行列
+        const double        _sigmaDeterminant; // 分散共分散行列のディターミナント
         // 乱数生成器
         std::random_device _rnd; // 非決定的乱数生成器
-        std::mt19937                _mt; // メルセンヌ・ツイスタ
-        std::normal_distribution <> _stdnorm;  // 1次元標準正規分布に従う乱数生成器
+        const std::mt19937                _mt; // メルセンヌ・ツイスタ
+        const std::normal_distribution <> _stdnorm;  // 1次元標準正規分布に従う乱数生成器
     };
 
     // 混合正規分布の確率分布
@@ -76,9 +84,9 @@ namespace statistic {
         double pdf(const dvector <dim> &x) const;  // 確率密度関数
         void   generate(dvector <dim> &data) const; // 確率分布からデータを1つ生成する関数
 
-        template <FORMAT format>
-        void output(std::ostream &os, const Range<dim>& range, double mesh) const;  // ファイルに書き出す
-        template <FORMAT format>
+        template <statistic_util::FORMAT format>
+        void output(std::ostream &os, const statistic_util::Range<dim>& range, double mesh) const;  // ファイルに書き出す
+        template <statistic_util::FORMAT format>
         void outparam(std::ostream &os) const;  // パラメータをファイルに書き出す
 
     private:

@@ -3,7 +3,7 @@
 
 #include "../statistic_util.hpp"
 
-namespace statistic {
+namespace statistic_util {
 
     template <int dim>
     double pnorm(const dvector<dim>& x, const dvector<dim>& mu, const dmatrix<dim>& sigmaInverse, double sigmaDeterminant)

@@ -9,9 +9,8 @@ namespace statistic {
 
     template <int dim>
     Probability_distribution <dim, GAUSSIAN>::Probability_distribution(const dvector <dim> &mu, const dmatrix <dim> &A)
-        : _mu(mu), _A(A), _sigma(boost::numeric::ublas::prod(A, boost::numeric::ublas::trans(A))), _sigmaDeterminant(matrix_util::determinant(_sigma)), _rnd(), _mt(_rnd()), _stdnorm(0., 1.)
+        : _mu(mu), _A(A), _sigma(boost::numeric::ublas::prod(A, boost::numeric::ublas::trans(A))), _sigmaInverse(matrix_util::invert(_sigma)), _sigmaDeterminant(matrix_util::determinant(_sigma)), _rnd(), _mt(_rnd()), _stdnorm(0., 1.)
     {
-        matrix_util::invert(_sigma, _sigmaInverse);
         // 変換行列Aがフルランクであることの確認
     }
 
@@ -37,15 +36,16 @@ namespace statistic {
     // 書き出し
     template <int dim>
     template <int... Meshes>
-    void Probability_distribution <dim, GAUSSIAN>::output(std::ostream& os, const Range <dim>& range, const FORMAT format) const
+    void Probability_distribution <dim, GAUSSIAN>::output(std::ostream& os, const statistic_util::Range <dim>& range, const statistic_util::FORMAT format) const
     {
         // 指定するメッシュ数の数は次元と一致する．
         static_assert(dim == sizeof...(Meshes), "mesh dimension error!");
         char delim(formatToDelim(format));
 
         os << "# --- range ---" << std::endl;
-        statistic::output(os, range);
+        statistic_util::output(os, range);
 
+        os << std::endl;
         auto meshes = util::make_array<int>(Meshes...);
         os << "# --- meshes ---" << std::endl;
         os << meshes[0];
@@ -53,7 +53,10 @@ namespace statistic {
             os << " * " << meshes[i];
         }
 
-        auto M = Descretize<Meshes...>::descretize(pdf, range);
+        os << std::endl;
+        using namespace std::placeholders;
+        auto nonmemberpdf = std::bind(pnorm, std::ref(_1), _mu, _sigmaInverse, _sigmaDeterminant);
+        auto M = statistic_util::Descretize<Meshes...>::descretizeDV(nonmemberpdf, range);
         os << "# --- pdf ----" << std::endl;
         auto out = [&](double d){os << d << std::endl;};
         util::Apply<double, dim, void>::apply(M, out);
@@ -61,15 +64,16 @@ namespace statistic {
 
     // パラメータの書き出し
     template <int dim>
-    void Probability_distribution <dim, GAUSSIAN>::outparam(std::ostream& os, const FORMAT format) const
+    void Probability_distribution <dim, GAUSSIAN>::outparam(std::ostream& os, const statistic_util::FORMAT format) const
     {
         const char delim = formatToDelim(format);
 
         os << "# --- average mu ---" << std::endl;
-        output(os, _mu, delim);
+        statistic_util::output<dim>(os, _mu, delim);
+
         os << std::endl;
         os << "# --- variance sigma ---" << std::endl;
-        output(os, _sigma, delim);
+        statistic_util::output<dim>(os, _sigma, delim);
     }
 
     template <class distribution>
@@ -82,7 +86,7 @@ namespace statistic {
     {
         constexpr int dim = 2;  // 2次元
         using PD = Probability_distribution <dim, GAUSSIAN>;
-        FORMAT format = FORMAT::CSV_COMMA;
+        statistic_util::FORMAT format = statistic_util::FORMAT::CSV_COMMA;
         std::ofstream fout;
 
         // パラメータ群
@@ -100,7 +104,7 @@ namespace statistic {
         fout.open("testgaussian.param");
         pd.outparam(fout, format);
         fout.close();
-        Range<dim> range({-10., 10.}, {-10., 10.});
+        statistic_util::Range<dim> range({-10., 10.}, {-10., 10.});
         fout.open("testgaussian.pdf");
         pd.output<100, 100>(fout, range, format);
         fout.close();
