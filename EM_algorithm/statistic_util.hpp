@@ -7,7 +7,6 @@
 #include "matrix_util.hpp"
 
 namespace statistic_util {
-
     constexpr double epsilon = 1.e-6;
 
     // ファイルフォーマット
@@ -36,10 +35,10 @@ namespace statistic_util {
 
     // エイリアステンプレート
     template <int dim>
-    using dvector = boost::numeric::ublas::bounded_vector <double, dim>;
+    using dvector = boost::numeric::ublas::bounded_vector <double, static_cast <std::size_t>(dim)>;
 
     template <int dim>
-    using dmatrix = boost::numeric::ublas::bounded_matrix <double, dim, dim>;
+    using dmatrix = boost::numeric::ublas::bounded_matrix <double, static_cast <std::size_t>(dim), static_cast <std::size_t>(dim)>;
 
     // それぞれの出力
     template <int dim>
@@ -158,7 +157,7 @@ namespace statistic_util {
     // ・outputSQ関数
     // 2次元multi_arrayを矩形に整形して表示する．
     template <std::size_t n1, std::size_t n2>
-    void outputSQ(std::ostream &os, const util::multi_array <double, n1, n2>& M, const char delim)
+    void outputSQ(std::ostream &os, const util::multi_array <double, n1, n2> &M, const char delim)
     {
         for (int i = 0; i < n1; i++) {
             for (int j = 0; j < n2; j++) {
@@ -168,7 +167,7 @@ namespace statistic_util {
     }
 
     template <typename T, std::size_t nx, std::size_t ny, int meshnumx = nx - 1, int meshnumy = ny - 1>
-    void outputSQ(std::ostream &os, const std::array<std::array<T, ny>, nx>& M, const Range <2>& range, const char delim)
+    void outputSQ(std::ostream &os, const std::array <std::array <T, ny>, nx> &M, const Range <2> &range, const char delim)
     {
         double meshx = (range.x2()[0] - range.x1()[0]) / meshnumx;
         double meshy = (range.x2()[1] - range.x1()[1]) / meshnumy;
