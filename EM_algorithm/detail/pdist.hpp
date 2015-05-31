@@ -122,13 +122,7 @@ namespace statistic {
         statistic_util::output <dim>(os, _sigma, delim);
     }
 
-    template <class distribution>
-    void test()
-    {
-    }
-
-    template <>
-    void test <GAUSSIAN>()
+    void testgaussian()
     {
         constexpr int dim = 2;  // 2次元
         using PD = Probability_distribution <dim, GAUSSIAN>;

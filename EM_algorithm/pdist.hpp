@@ -95,14 +95,8 @@ namespace statistic {
         std::array <dmatrix <dim>, mixture_num> _sigma;  // 分散
     };
 
-    template <class distribution>
-    void test();
-
-    template <>
-    void test <GAUSSIAN>();
-
-    template <>
-    void test <GAUSSIAN_MIXTURES <2>>();
+    void testgaussian();
+    void testgaussian_mixtures();
 
 }
 
