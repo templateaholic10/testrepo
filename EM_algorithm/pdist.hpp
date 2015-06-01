@@ -83,7 +83,7 @@ namespace statistic {
 
         double        pdf(const dvector <dim> &x) const; // 確率密度関数
 
-        dvector <dim> generate() const; // 確率分布からデータを1つ生成する関数
+        dvector <dim> generate(); // 確率分布からデータを1つ生成する関数
 
         template <int ... Meshes>
         void output(std::ostream &os, const statistic_util::Range <dim> &range, const statistic_util::FORMAT format) const;        // ファイルに書き出す

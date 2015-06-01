@@ -27,6 +27,7 @@ namespace statistic {
     };
 
     void test_data_series_gaussian();
+    void test_data_series_gaussian_mixtures();
 
 }
 #include "detail/data_struct.hpp"

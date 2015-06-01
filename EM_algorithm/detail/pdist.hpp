@@ -32,7 +32,7 @@ namespace statistic {
             z(i) = _stdnorm(_mt);
         }
 
-        return std::move(boost::numeric::ublas::prod(_A, (z - _mu)));
+        return std::move(_mu + boost::numeric::ublas::prod(_A, z));
     }
 
     // 書き出し
@@ -263,12 +263,13 @@ namespace statistic {
 
     // データ生成関数
     template <int dim, int mixture_num>
-    dvector <dim> Probability_distribution <dim, GAUSSIAN_MIXTURES <mixture_num> >::generate() const
+    dvector <dim> Probability_distribution <dim, GAUSSIAN_MIXTURES <mixture_num> >::generate()
     {
         using namespace boost::numeric;
 
         // まずどの分布から選択されるかを選択．
         int mixindex = _mixvoter(_mt);
+        // std::cout << mixindex << std::endl;  // 確認
 
         dvector <dim> z;
         // 多変量標準正規分布を生成
@@ -276,7 +277,7 @@ namespace statistic {
             z(i) = _stdnorm(_mt);
         }
 
-        return std::move(boost::numeric::ublas::prod(_As[mixindex], (z - _mus[mixindex])));
+        return std::move(_mus[mixindex] + boost::numeric::ublas::prod(_As[mixindex], z));
     }
 
     // 書き出し
