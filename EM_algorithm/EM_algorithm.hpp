@@ -1,46 +1,48 @@
-#pragma once
+﻿#ifndef EM_ALGORITHM
+#define EM_ALGORITHM
+
 #include <iostream>
-#include <vector>
+#include <deque>
 #include <array>
-#include <boost/numeric/ublas/matrix.hpp>         // (1) 普通の行列用のヘッダ
-#include <boost/numeric/ublas/triangular.hpp>     // (2) 三角行列用のヘッダ
-#include <boost/numeric/ublas/symmetric.hpp>      // (3) 対称行列用のヘッダ
-#include <boost/numeric/ublas/hermitian.hpp>      // (4) エルミート行列用のヘッダ
-#include <boost/numeric/ublas/matrix_sparse.hpp>  // (5) 疎行列用のヘッダ
-#include <boost/numeric/ublas/vector.hpp>         // (6) ベクトル用のヘッダ
-#include <boost/numeric/ublas/vector_sparse.hpp>  // (7) 疎ベクトル用のヘッダ
 #include <boost/numeric/ublas/lu.hpp>
 #include "statistic_util.hpp"
+#include "data_struct.hpp"
 
 namespace EM {
+    // エイリアステンプレート
+    template <int dim>
+    using dvector = statistic_util::dvector <dim>;
 
-    template <int dim, int num, int mixture_num> class EM_estimator;
+    template <int dim>
+    using dmatrix = statistic_util::dmatrix <dim>;
 
-    template <int dim, int num, int mixture_num>
-    class EM_estimator
+    // EM_estimatorはインスタンスを持たない推定器．
+
+    // プライマリテンプレート
+    template <int dim, class distribution>
+    struct EM_estimator
     {
-    public:
-        EM_estimator() = delete;
-        EM_estimator(std::istream &datain, std::istream &initialin);
-        ~EM_estimator() = default;
-
-        void estimate();
-        void output(std::ostream &estimateout, std::ostream &convergeout) const;
-
-    private:
-        void step();
-        bool haltCheck() const;
-
-    private:
-        int _mixture_num;
-        int _step;
-        static constexpr double _epsilon = 0.01;
-
-        Data_series<dim, num> _data;
-        std::vector<std::array<double, mixture_num>> _pi;  // _pi[step][dist]：ステップ数，分布番号
-        std::vector<std::array<dvector<dim>, mixture_num>> _mu;  // _mu[step][dist](i)：ステップ数，分布番号，次元
-        std::vector<std::array<dmatrix<dim>, mixture_num>> _sigma;  // _sigma[step][dist](i, j)：ステップ数，分布番号，次元
-        std::vector<double> _logL;  // _E_logL[step]：対数尤度の期待値
     };
 
+    // 混合正規分布のEMアルゴリズム
+    template <int dim, int mixture_num>
+    struct EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >
+    {
+        // レコードは {混合比，平均，分散}
+        using Record = std::tuple <std::array <double, mixture_num>, std::array <dvector <dim>, mixture_num>, std::array <dmatrix <dim>, mixture_num> >;
+
+        // パラメータを更新し，対数尤度を返す関数
+        template <int num>
+        static std::tuple <Record, double> update(const Record &record, const statistic::Data_series <dim, num> &data_series);
+
+        // 対数尤度を返す関数
+        template <int num>
+        static double logL(const Record &record, const statistic::Data_series <dim, num> &data_series);
+    };
+
+    void test_EM_gaussian_mixtures();
 }
+
+#include "detail/EM_algorithm.hpp"
+
+#endif

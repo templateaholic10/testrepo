@@ -1,6 +1,7 @@
 ﻿char *gets(char *str);
 
-#include "data_struct.hpp"
+#include "EM_algorithm.hpp"
+// #include "data_struct.hpp"
 // #include "pdist.hpp"
 // #include "statistic_utiltest.hpp"
 

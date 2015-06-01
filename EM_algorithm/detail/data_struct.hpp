@@ -29,6 +29,12 @@ namespace statistic {
         }
     }
 
+    template <int dim, int num>
+    const std::array<dvector<dim>, num>& Data_series <dim, num>::dataset() const
+    {
+        return _x;
+    }
+
     void test_data_series_gaussian()
     {
         constexpr int dim = 2;  // 2次元

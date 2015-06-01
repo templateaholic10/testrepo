@@ -20,6 +20,8 @@ namespace statistic {
         Data_series(PD<dim, distribution>& pd);  // 生成器から作る場合
 
         void output(std::ostream& os, const statistic_util::FORMAT& format) const;  // ファイルに書き出す
+
+        const std::array<dvector<dim>, num>& dataset() const;
     private:
         int _dim;
         int _num;
