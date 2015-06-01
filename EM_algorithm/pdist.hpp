@@ -53,7 +53,7 @@ namespace statistic {
 
         double        pdf(const dvector <dim> &x) const; // 確率密度関数
 
-        dvector <dim> generate() const; // 確率分布からデータを1つ生成する関数
+        dvector <dim> generate(); // 確率分布からデータを1つ生成する関数
 
         template <int ... Meshes>
         void output(std::ostream &os, const statistic_util::Range <dim> &range, const statistic_util::FORMAT format) const;  // ファイルに書き出す
@@ -68,8 +68,8 @@ namespace statistic {
         const double        _sigmaDeterminant; // 分散共分散行列のディターミナント
         // 乱数生成器
         std::random_device                _rnd; // 非決定的乱数生成器
-        const std::mt19937                _mt; // メルセンヌ・ツイスタ
-        const std::normal_distribution <> _stdnorm;  // 1次元標準正規分布に従う乱数生成器
+        std::mt19937                _mt; // メルセンヌ・ツイスタ
+        std::normal_distribution <> _stdnorm;  // 1次元標準正規分布に従う乱数生成器
     };
 
     // 混合正規分布の確率分布
@@ -93,19 +93,19 @@ namespace statistic {
         const std::array <double, mixture_num>        _pi; // 混合比
         const std::array <dvector <dim>, mixture_num> _mus;  // 平均ベクトル
         const std::array <dmatrix <dim>, mixture_num> _As;  // 変換行列
-        std::array <dmatrix <dim>, mixture_num> _sigmas;  // 分散共分散行列 _sigma := _A * _A^T
+        std::array <dmatrix <dim>, mixture_num>       _sigmas; // 分散共分散行列 _sigma := _A * _A^T
         // 以下冗長
         std::array <dmatrix <dim>, mixture_num> _sigmaInverses;  // 精度行列
         std::array <double, mixture_num>        _sigmaDeterminants; // 分散共分散行列のディターミナント
         // 乱数生成器
         std::random_device                     _rnd; // 非決定的乱数生成器
-        const std::mt19937                     _mt; // メルセンヌ・ツイスタ
-        const std::normal_distribution <>      _stdnorm; // 1次元標準正規分布に従う乱数生成器
-        const std::uniform_int_distribution <> _mixvoter;  // 一様分布に従う乱数生成器
+        std::mt19937                     _mt; // メルセンヌ・ツイスタ
+        std::normal_distribution <>      _stdnorm; // 1次元標準正規分布に従う乱数生成器
+        std::uniform_int_distribution <> _mixvoter;  // 一様分布に従う乱数生成器
     };
 
     void testgaussian();
-    void testgaussian_mixtures();
+    // void testgaussian_mixtures();
 }
 
 #include "detail/pdist.hpp"

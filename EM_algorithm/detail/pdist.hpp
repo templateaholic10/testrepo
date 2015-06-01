@@ -24,7 +24,7 @@ namespace statistic {
 
     // データ生成関数
     template <int dim>
-    dvector <dim> Probability_distribution <dim, GAUSSIAN>::generate() const
+    dvector <dim> Probability_distribution <dim, GAUSSIAN>::generate()
     {
         dvector <dim> z;
         // 多変量標準正規分布を生成
@@ -70,44 +70,46 @@ namespace statistic {
         util::Apply <double, dim, void>::apply(M, out);
     }
 
+    // 疎結合性を考えればこれはいらない．
+
     // 書き出し
-    template <>
-    template <int ... Meshes>
-    void Probability_distribution <2, GAUSSIAN>::output(std::ostream &os, const statistic_util::Range <2> &range, const statistic_util::FORMAT format) const
-    {
-        constexpr int dim = 2;
-        // 指定するメッシュ数の数は次元と一致する．
-        static_assert(dim == sizeof ... (Meshes), "mesh dimension error!");
-        const char delim = formatToDelim(format);
-
-        using namespace std::placeholders;
-        const auto nonmemberpdf = [&](const dvector <dim> &x) {
-                                      double exponent = -0.5 * boost::numeric::ublas::inner_prod((x - _mu), boost::numeric::ublas::prod(_sigmaInverse, (x - _mu)));
-
-                                      return statistic_util::normalize <dim>() / sqrt(_sigmaDeterminant) * exp(exponent);
-                                  };
-        statistic_util::expand_array <1, double, Meshes ...> M = statistic_util::Descretize <Meshes ...>::descretizeDV(nonmemberpdf, range);
-        os << "# --- pdf ----" << std::endl;
-        if (format == statistic_util::FORMAT::CSV_COMMA_SQ) {
-            statistic_util::outputSQ(os, M, range, delim);
-        } else {
-            os << "# --- range ---" << std::endl;
-            statistic_util::output(os, range);
-
-            os << std::endl;
-            constexpr std::array <int, dim> meshes = util::make_array <int>(Meshes ...);
-            os << "# --- meshes ---" << std::endl;
-            for (int i = 0; i < dim; i++) {
-                os << meshes[i] << ((i != dim - 1) ? '*' : '\n');
-            }
-
-            os << std::endl;
-            auto out = [&](double d) {
-                           os << d << std::endl;
-                       };
-            util::Apply <double, dim, void>::apply(M, out);
-        }
-    }
+    // template <>
+    // template <int ... Meshes>
+    // void Probability_distribution <2, GAUSSIAN>::output(std::ostream &os, const statistic_util::Range <2> &range, const statistic_util::FORMAT format) const
+    // {
+    //     constexpr int dim = 2;
+    //     // 指定するメッシュ数の数は次元と一致する．
+    //     static_assert(dim == sizeof ... (Meshes), "mesh dimension error!");
+    //     const char delim = formatToDelim(format);
+    //
+    //     using namespace std::placeholders;
+    //     const auto nonmemberpdf = [&](const dvector <dim> &x) {
+    //                                   double exponent = -0.5 * boost::numeric::ublas::inner_prod((x - _mu), boost::numeric::ublas::prod(_sigmaInverse, (x - _mu)));
+    //
+    //                                   return statistic_util::normalize <dim>() / sqrt(_sigmaDeterminant) * exp(exponent);
+    //                               };
+    //     statistic_util::expand_array <1, double, Meshes ...> M = statistic_util::Descretize <Meshes ...>::descretizeDV(nonmemberpdf, range);
+    //     os << "# --- pdf ----" << std::endl;
+    //     if (format == statistic_util::FORMAT::CSV_COMMA_SQ) {
+    //         statistic_util::outputSQ(os, M, range, delim);
+    //     } else {
+    //         os << "# --- range ---" << std::endl;
+    //         statistic_util::output(os, range);
+    //
+    //         os << std::endl;
+    //         constexpr std::array <int, dim> meshes = util::make_array <int>(Meshes ...);
+    //         os << "# --- meshes ---" << std::endl;
+    //         for (int i = 0; i < dim; i++) {
+    //             os << meshes[i] << ((i != dim - 1) ? '*' : '\n');
+    //         }
+    //
+    //         os << std::endl;
+    //         auto out = [&](double d) {
+    //                        os << d << std::endl;
+    //                    };
+    //         util::Apply <double, dim, void>::apply(M, out);
+    //     }
+    // }
 
     // パラメータの書き出し
     template <int dim>
@@ -127,7 +129,7 @@ namespace statistic {
     {
         constexpr int dim = 2;  // 2次元
         using PD = Probability_distribution <dim, GAUSSIAN>;
-        constexpr statistic_util::FORMAT format = statistic_util::FORMAT::CSV_COMMA_SQ;
+        constexpr statistic_util::FORMAT format = statistic_util::FORMAT::CSV_COMMA;
         std::ofstream                    fout;
 
         // パラメータ群
@@ -319,6 +321,8 @@ namespace statistic {
         util::Apply <double, dim, void>::apply(M, out);
     }
 
+    // 疎結合性を考えればこれはいらない．
+
     // 書き出し
     // template <int mixture_num>
     // template <int ... Meshes>
@@ -394,7 +398,7 @@ namespace statistic {
         constexpr int dim         = 2; // 2次元
         constexpr int mixture_num = 2;  // 混合数
         using PD = Probability_distribution <dim, GAUSSIAN_MIXTURES <mixture_num> >;
-        constexpr statistic_util::FORMAT format = statistic_util::FORMAT::CSV_COMMA_SQ;
+        constexpr statistic_util::FORMAT format = statistic_util::FORMAT::CSV_COMMA;
         std::ofstream                    fout;
 
         // パラメータ群

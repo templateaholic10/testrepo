@@ -10,7 +10,7 @@ namespace statistic_util {
     constexpr double epsilon = 1.e-6;
 
     // ファイルフォーマット
-    enum class FORMAT { CSV_SPACE, CSV_COMMA, CSV_COMMA_SQ };
+    enum class FORMAT { CSV_SPACE, CSV_COMMA };
 
     // ファイルフォーマットからデリミタを得る
     constexpr char formatToDelim(const FORMAT format)
@@ -21,7 +21,6 @@ namespace statistic_util {
                 ch = ' ';
                 break;
             case FORMAT::CSV_COMMA:
-            case FORMAT::CSV_COMMA_SQ:
                 ch = ',';
                 break;
             default:
