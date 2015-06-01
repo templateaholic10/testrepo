@@ -155,8 +155,90 @@ namespace statistic {
 
     template <int dim, int mixture_num>
     Probability_distribution <dim, GAUSSIAN_MIXTURES <mixture_num> >::Probability_distribution(const std::array <double, mixture_num> &pi, const std::array <dvector <dim>, mixture_num> &mus, const std::array <dmatrix <dim>, mixture_num> &As)
-        : _pi(pi), _mus(mus), _As(As), _sigmas(util::Apply <dmatrix <dim>, 1>::apply(As, matrix_util::transToSigma)), _sigmaInverses(util::Apply <dmatrix <dim>, 1>::apply(_sigmas, matrix_util::invert<dmatrix<dim>>)), _sigmaDeterminants(util::Apply <dmatrix <dim>, 1>::apply(_sigmas, matrix_util  ::determinant<dmatrix<dim>>)), _rnd(), _mt(_rnd()), _stdnorm(0., 1.), _mixvoter(0, mixture_num - 1)
+        : _pi(pi), _mus(mus), _As(As), _rnd(), _mt(_rnd()), _stdnorm(0., 1.), _mixvoter(0, mixture_num - 1)
     {
+        // todo :
+        // std::array<dvector<2>, 2> vs;
+        // vs[0] = matrix_util::make_bounded_vector(util::make_array<double>(1., 0.));
+        // vs[1] = matrix_util::make_bounded_vector(util::make_array<double>(0., 1.));
+        // auto twice = [](const dvector<2> _v) -> dvector<2>{return 2 * _v;};
+        // auto doubled = util::Apply<dvector<2>, 1>::apply(vs, twice);
+        // static_assert(std::is_same<decltype(doubled), std::array<dvector<2>, 2>>::value, "apply type error!");
+
+        // std::array<dmatrix<2>, 2> ms;
+        // ms[0](0,0) = 1.; ms[0](0,1) = 0.;
+        // ms[0](1,0) = 0.; ms[0](1,1) = 1.;
+        // ms[1](0,0) = 1.; ms[1](0,1) = 0.;
+        // ms[1](1,0) = 0.; ms[1](1,1) = 1.;
+        // auto twice = [](const dmatrix<2> _M) -> double{return _M(0,0)*_M(1,1) - _M(0,1)*_M(1,0);};
+        // auto deters = util::Apply<dmatrix<2>, 1>::apply(ms, statistic_util::transToSigmaD2);
+        // static_assert(std::is_same<decltype(deters), std::array<double, 2>>::value, "apply type error!");
+        // auto lefttop = [](const dmatrix<dim> &_M)->double{return _M(0,0);};
+        // auto lefttops = util::Apply<dmatrix<dim>, 1>::apply(As, lefttop);
+        // static_assert(std::is_same<decltype(lefttops), std::array<double, mixture_num>>::value, "apply type error!");
+        // auto inv = matrix_util::transToSigma(ms);
+        // static_assert(std::is_same<decltype(inv), decltype(ms)>::value, "apply type error!");
+
+        auto local_transToSigma = [](const dmatrix<dim>& _M) -> dmatrix<dim> {
+            return std::move(boost::numeric::ublas::prod(_M, boost::numeric::ublas::trans(_M)));
+        };
+        auto local_invert = [](const dmatrix<dim>& _M) -> dmatrix<dim> {
+            namespace ublas = boost::numeric::ublas;
+
+            dmatrix<dim> lhs(_M);
+            ublas::matrix <double>       rhs(ublas::identity_matrix <double>(_M.size1()));
+            ublas::permutation_matrix <> pm(_M.size1());
+
+            ublas::lu_factorize(lhs, pm);
+            ublas::lu_substitute(lhs, pm, rhs);
+
+            BOOST_UBLAS_CHECK(rhs.size1() == _M.size1(), ublas::internal_logic());
+            BOOST_UBLAS_CHECK(rhs.size2() == _M.size2(), ublas::internal_logic());
+
+            #if BOOST_UBLAS_TYPE_CHECK
+                BOOST_UBLAS_CHECK(
+                    ublas::detail::expression_type_check(
+                        ublas::prod(_M, rhs),
+                        ublas::identity_matrix <typename dmatrix<dim>::value_type>(_M.size1())
+                        ),
+                    ublas::internal_logic()
+                    );
+            #endif
+
+            // >>>>>>>>>>
+            /*
+            mi.resize(rhs.size1(), rhs.size2(), false);
+            mi.assign(rhs);
+            // mi.assign_temporary(rhs);
+            */
+
+            // ----------
+            return std::move(rhs);
+            // <<<<<<<<<<
+        };
+        auto local_determinant = [](const dmatrix<dim>& _M) -> double {
+            namespace ublas = boost::numeric::ublas;
+
+            dmatrix<dim>       lu(_M);
+            ublas::permutation_matrix <> pm(_M.size1());
+
+            ublas::lu_factorize(lu, pm);
+
+            double det(1.);
+
+            using size_type = ublas::permutation_matrix <>::size_type;
+
+            for (size_type i = 0; i < pm.size(); ++i) {
+                det *= (i == pm(i)) ? +lu(i, i) : -lu(i, i);
+            }
+
+            return det;
+        };
+
+        _sigmas = util::Apply <dmatrix <dim>, 1>::apply(As, local_transToSigma);
+        _sigmaInverses = util::Apply <dmatrix <dim>, 1>::apply(_sigmas, local_invert);
+        _sigmaDeterminants = util::Apply <dmatrix <dim>, 1>::apply(_sigmas, local_determinant);
+
         double sum = 0.;
         for (auto p : pi) {
             sum += p;
@@ -319,18 +401,14 @@ namespace statistic {
         std::array <double, mixture_num> pi = { 0.5, 0.5 };
 
         std::array <dvector <dim>, mixture_num> mus;
-        mus[0] = matrix_util::make_bounded_vector <double, dim>(util::make_array <double>(0., 0.));
-        mus[1] = matrix_util::make_bounded_vector <double, dim>(util::make_array <double>(10., 0.));
+        mus[0](0) = 0.; mus[0](1) = 0.;
+        mus[1](0) = 10.; mus[1](1) = 0.;
 
         std::array <dmatrix <dim>, mixture_num> As;
-        As[0] = matrix_util::make_bounded_matrix <double, dim, dim>(util::make_common_array(
-                                                                        util::make_common_array(1., 0.),
-                                                                        util::make_common_array(0., 1.)
-                                                                        ));
-        As[1] = matrix_util::make_bounded_matrix <double, dim, dim>(util::make_common_array(
-                                                                        util::make_common_array(1., 0.),
-                                                                        util::make_common_array(0., 1.)
-                                                                        ));
+        As[0](0,0) = 1.; As[0](0,1) = 0.;
+        As[0](1,0) = 0.; As[0](1,1) = 1.;
+        As[1](0,0) = 1.; As[1](0,1) = 0.;
+        As[1](1,0) = 0.; As[1](1,1) = 1.;
 
         // 確率分布
         PD pd(pi, mus, As);

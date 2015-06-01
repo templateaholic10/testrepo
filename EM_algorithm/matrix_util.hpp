@@ -25,7 +25,7 @@ namespace matrix_util {
     // 座標変換行列から分散行列を得る
     template <class M>
     M transToSigma(const M &m);
-
+    
     // std::arrayからbounded_vectorを作る
     template <typename T, std::size_t dim>
     ublas::bounded_vector <T, dim> make_bounded_vector(const std::array <T, dim> &v);

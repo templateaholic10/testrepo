@@ -93,10 +93,10 @@ namespace statistic {
         const std::array <double, mixture_num>        _pi; // 混合比
         const std::array <dvector <dim>, mixture_num> _mus;  // 平均ベクトル
         const std::array <dmatrix <dim>, mixture_num> _As;  // 変換行列
-        const std::array <dmatrix <dim>, mixture_num> _sigmas;  // 分散共分散行列 _sigma := _A * _A^T
+        std::array <dmatrix <dim>, mixture_num> _sigmas;  // 分散共分散行列 _sigma := _A * _A^T
         // 以下冗長
-        const std::array <dmatrix <dim>, mixture_num> _sigmaInverses;  // 精度行列
-        const std::array <double, mixture_num>        _sigmaDeterminants; // 分散共分散行列のディターミナント
+        std::array <dmatrix <dim>, mixture_num> _sigmaInverses;  // 精度行列
+        std::array <double, mixture_num>        _sigmaDeterminants; // 分散共分散行列のディターミナント
         // 乱数生成器
         std::random_device                     _rnd; // 非決定的乱数生成器
         const std::mt19937                     _mt; // メルセンヌ・ツイスタ

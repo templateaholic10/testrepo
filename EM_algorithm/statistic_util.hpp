@@ -59,6 +59,14 @@ namespace statistic_util {
         }
     }
 
+    // 座標変換行列から分散行列を得る
+    // dmatrix<2> transToSigmaD2(const dmatrix<2>& m)
+    // {
+    //     BOOST_UBLAS_CHECK(m.size1() == m.size2(), boost::numeric::ublas::external_logic());
+    //
+    //     return std::move(boost::numeric::ublas::prod(m, boost::numeric::ublas::trans(m)));
+    // }
+
     // 多次元正規分布のpdf
     template <int dim>
     double pnorm(const dvector <dim> &x, const dvector <dim> &mu, const dmatrix <dim> &sigmaInverse, double sigmaDeterminant);
