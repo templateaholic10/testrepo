@@ -157,7 +157,7 @@ namespace statistic {
 
     template <int dim, int mixture_num>
     Probability_distribution <dim, GAUSSIAN_MIXTURES <mixture_num> >::Probability_distribution(const std::array <double, mixture_num> &pi, const std::array <dvector <dim>, mixture_num> &mus, const std::array <dmatrix <dim>, mixture_num> &As)
-        : _pi(pi), _mus(mus), _As(As), _rnd(), _mt(_rnd()), _stdnorm(0., 1.), _mixvoter(0, mixture_num - 1)
+        : _pi(pi), _mus(mus), _As(As), _rnd(), _mt(_rnd()), _stdnorm(0., 1.), _mixvoter(0., 1.)
     {
         // todo :
         // std::array<dvector<2>, 2> vs;
@@ -268,8 +268,16 @@ namespace statistic {
         using namespace boost::numeric;
 
         // まずどの分布から選択されるかを選択．
-        int mixindex = _mixvoter(_mt);
-        // std::cout << mixindex << std::endl;  // 確認
+        double uni = _mixvoter(_mt);
+        double cummurate = 0.;
+        int mixindex = 0;
+        for (int dist = 0; dist < mixture_num; dist++) {
+            cummurate += _pi[dist];
+            if (uni < cummurate) {
+                mixindex = dist;
+                break;
+            }
+        }
 
         dvector <dim> z;
         // 多変量標準正規分布を生成

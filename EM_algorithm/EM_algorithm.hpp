@@ -38,6 +38,9 @@ namespace EM {
         // 対数尤度を返す関数
         template <int num>
         static double logL(const Record &record, const statistic::Data_series <dim, num> &data_series);
+
+        // レコードを出力する関数
+        static void output(std::ostream& os, const Record& record);
     };
 
     void test_EM_gaussian_mixtures();

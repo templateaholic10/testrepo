@@ -101,7 +101,7 @@ namespace statistic {
         std::random_device                     _rnd; // 非決定的乱数生成器
         std::mt19937                     _mt; // メルセンヌ・ツイスタ
         std::normal_distribution <>      _stdnorm; // 1次元標準正規分布に従う乱数生成器
-        std::uniform_int_distribution <> _mixvoter;  // 一様分布に従う乱数生成器
+        std::uniform_real_distribution <> _mixvoter;  // 一様分布に従う乱数生成器
     };
 
     void testgaussian();

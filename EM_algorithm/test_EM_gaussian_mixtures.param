@@ -1,0 +1,12 @@
+# --- mixture rate ---
+0.01,0.99
+
+# --- average mus ---
+0,0
+10,10
+
+# --- variance sigmas ---
+5,2
+2,1
+1,3
+3,13
