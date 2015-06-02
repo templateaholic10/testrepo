@@ -25,7 +25,7 @@ namespace matrix_util {
     // 座標変換行列から分散行列を得る
     template <class M>
     M transToSigma(const M &m);
-    
+
     // std::arrayからbounded_vectorを作る
     template <typename T, std::size_t dim>
     ublas::bounded_vector <T, dim> make_bounded_vector(const std::array <T, dim> &v);
@@ -33,6 +33,14 @@ namespace matrix_util {
     // std::array<std::array<T, n2>, n1>からbounded_matrixを作る
     template <typename T, std::size_t dim1, std::size_t dim2>
     ublas::bounded_matrix <T, dim1, dim2> make_bounded_matrix(const std::array <std::array <T, dim2>, dim1> &M);
+
+    // ベクトルのL-inf距離
+    template <typename T, std::size_t dim>
+    double d_inf(const ublas::bounded_vector <T, dim>& v1, const ublas::bounded_vector <T, dim>& v2);
+
+    // 行列のL-inf距離
+    template <typename T, std::size_t dim1, std::size_t dim2>
+    double d_inf(const ublas::bounded_matrix <T, dim1, dim2>& m1, const ublas::bounded_matrix <T, dim1, dim2>& m2);
 }
 
 #include "detail/matrix_util.hpp"

@@ -4,9 +4,19 @@
 
 namespace statistic {
     template <int dim, int num>
-    Data_series <dim, num>::Data_series(std::istream &datain)
+    Data_series <dim, num>::Data_series(std::istream &datain, const statistic_util::FORMAT &format)
     {
-        assert(false);
+        char delim;
+        std::string line;
+        for (int t = 0; t < num; t++) {
+            for (int i = 0; i < dim; i++) {
+                datain >> _x[t](i);
+                if (format == statistic_util::FORMAT::CSV_COMMA && i != dim - 1) {
+                    datain >> delim;
+                }
+            }
+            getline(datain, line);
+        }
     }
 
     template <int dim, int num>

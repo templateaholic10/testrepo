@@ -102,6 +102,36 @@ namespace matrix_util {
 
         return std::move(bm);
     }
+
+    // ベクトルのL-inf距離
+    template <typename T, std::size_t dim>
+    double d_inf(const ublas::bounded_vector <T, dim> &v1, const ublas::bounded_vector <T, dim> &v2)
+    {
+        auto v = v2 - v1;
+        T max = 0.;
+        for (size_t i = 0; i < dim; i++) {
+            if (fabs(v(i)) > max) {
+                max = fabs(v(i));
+            }
+        }
+        return max;
+    }
+
+    // 行列のL-inf距離
+    template <typename T, std::size_t dim1, std::size_t dim2>
+    double d_inf(const ublas::bounded_matrix <T, dim1, dim2> &m1, const ublas::bounded_matrix <T, dim1, dim2> &m2)
+    {
+        auto m = m2 - m1;
+        T max = 0.;
+        for (size_t i = 0; i < dim1; i++) {
+            for (size_t j = 0; j < dim2; j++) {
+                if (fabs(m(i, j)) > max) {
+                    max = fabs(m(i, j));
+                }
+            }
+        }
+        return max;
+    }
 }
 
 #endif

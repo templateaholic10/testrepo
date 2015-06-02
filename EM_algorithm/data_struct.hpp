@@ -15,7 +15,7 @@ namespace statistic {
     {
     public:
         Data_series() = delete;
-        Data_series(std::istream& datain);  // ファイルから読み込む場合
+        Data_series(std::istream& datain, const statistic_util::FORMAT &format);  // ファイルから読み込む場合
         template <class distribution>
         Data_series(PD<dim, distribution>& pd);  // 生成器から作る場合
 
