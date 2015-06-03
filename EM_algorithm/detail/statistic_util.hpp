@@ -30,8 +30,8 @@ namespace statistic_util {
     {
         namespace ublas = boost::numeric::ublas;
 
-        ublas::matrix <double>       lhs(m);
-        ublas::matrix <double>       rhs(ublas::identity_matrix <double>(m.size1()));
+        dmatrix<dim> lhs(m);
+        dmatrix<dim> rhs(ublas::identity_matrix <double>(m.size1()));
         ublas::permutation_matrix <> pm(m.size1());
 
         // LU分解可能でないとき，失敗．
@@ -71,8 +71,8 @@ namespace statistic_util {
     {
         namespace ublas = boost::numeric::ublas;
 
-        ublas::matrix <double>       lhs(m);
-        ublas::matrix <double>       rhs(ublas::identity_matrix <double>(m.size1()));
+        dmatrix<dim> lhs(m);
+        dmatrix<dim> rhs(ublas::identity_matrix <double>(m.size1()));
         ublas::permutation_matrix <> pm(m.size1());
 
         // LU分解可能でないとき，失敗．
