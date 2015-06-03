@@ -295,10 +295,10 @@ namespace EM {
         std::deque <double> logLtable;
 
         // 初期化
-        auto                                    pi1 = util::make_array <double>(0.25, 0.25, 0.25, 0.25);
+        auto                                    pi1 = util::make_array <double>(0.28, 0.37, 0.12, 0.23);
         std::array <dvector <dim>, mixture_num> mus1;
-        mus1[0](0) = 0.; mus1[0](1) = 0.;
-        mus1[1](0) = 0.; mus1[1](1) = 0.01;
+        mus1[0](0) = 60.; mus1[0](1) = -70.;
+        mus1[1](0) = 15.; mus1[1](1) = 0.01;
         mus1[2](0) = 0.01; mus1[2](1) = 0.;
         mus1[3](0) = 0.01; mus1[3](1) = 0.01;
         std::array <dmatrix <dim>, mixture_num> sigmas1;
@@ -415,55 +415,61 @@ namespace EM {
         newlogL   = EM::logL(newrecord, ds);
 
         // 初期値，初期対数尤度の出力
-        const char delim = formatToDelim(format);
+        const char delim = statistic_util::formatToDelim(format);
         EM::output(os, newrecord, delim);
         os << ",";
         os << newlogL;
 
-        do {
-            // 更新
-            oldrecord                    = newrecord;
-            oldlogL                      = newlogL;
-            std::tie(newrecord, newlogL) = EM::update(oldrecord, ds);
+        try {
+            do {
+                // std::cout << "step : " << counter << std::endl;
 
-            // 停止判定
-            // すべて小さければ停止．
-            stop_flag = true;
-            for (size_t dist = 0; dist < mixture_num; dist++) {
-                if (fabs(std::get <0>(newrecord)[dist] - std::get <0>(oldrecord)[dist]) > epsilon) {
-                    stop_flag = false;
-                    continue;
+                // 更新
+                oldrecord                    = newrecord;
+                oldlogL                      = newlogL;
+                std::tie(newrecord, newlogL) = EM::update(oldrecord, ds);
+
+                // 停止判定
+                // すべて小さければ停止．
+                stop_flag = true;
+                for (size_t dist = 0; dist < mixture_num; dist++) {
+                    if (fabs(std::get <0>(newrecord)[dist] - std::get <0>(oldrecord)[dist]) > epsilon) {
+                        stop_flag = false;
+                        continue;
+                    }
+                    if (matrix_util::d_inf(std::get <1>(newrecord)[dist], std::get <1>(oldrecord)[dist]) > epsilon) {
+                        stop_flag = false;
+                        continue;
+                    }
+                    if (matrix_util::d_inf(std::get <2>(newrecord)[dist], std::get <2>(oldrecord)[dist]) > epsilon) {
+                        stop_flag = false;
+                        continue;
+                    }
                 }
-                if (matrix_util::d_inf(std::get <1>(newrecord)[dist], std::get <1>(oldrecord)[dist]) > epsilon) {
+                if (fabs(newlogL - oldlogL) > epsilon) {
                     stop_flag = false;
-                    continue;
                 }
-                if (matrix_util::d_inf(std::get <2>(newrecord)[dist], std::get <2>(oldrecord)[dist]) > epsilon) {
-                    stop_flag = false;
-                    continue;
+
+                // 無限ループストッパ
+                if (counter > big_num) {
+                    std::cout << "too many loop." << "(" << big_num << ")" << std::endl;
+                    break;
                 }
-            }
-            if (fabs(newlogL - oldlogL) > epsilon) {
-                stop_flag = false;
-            }
 
-            // 無限ループストッパ
-            if (counter > big_num) {
-                std::cout << "too many loop." << "(" << big_num << ")" << std::endl;
-                break;
-            }
-
-            counter++;
-        } while (!stop_flag);
-
-        // 出力
-        os << ",";
-        EM::output(os, newrecord, delim);
-        os << ",";
-        os << newlogL;
-        os << ",";
-        os << counter;
-        os << std::endl;
+                counter++;
+            } while (!stop_flag);
+            // 出力
+            os << ",";
+            EM::output(os, newrecord, delim);
+            os << ",";
+            os << newlogL;
+            os << ",";
+            os << counter;
+            os << std::endl;
+        }
+        catch (...) {
+            os << std::endl;
+        }
     }
 
     void test_EM_initial_value()
@@ -489,9 +495,14 @@ namespace EM {
 
         // 初期値データの読込
         fin.open("data/square.initial");
+        int counter = 0;
         while (!fin.eof()) {
+            // std::cout << "initial : " << counter << std::endl;
             _test_EM_initial_value(fout, ds, EM::input(fin, delim));
+            counter++;
         }
+        fin.close();
+        fout.close();
     }
 }
 

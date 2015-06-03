@@ -7,7 +7,7 @@
 
 int main(int argc, char const *argv[])
 {
-    EM::test_EM_gaussian_mixtures();
+    EM::test_EM_initial_value();
     // statistic::Probability_distribution <2, statistic::GAUSSIAN_MIXTURES <2> >::test();
     // statistic_util::testdescreteDV1();
     // statistic_util::testdescreteDV2();
