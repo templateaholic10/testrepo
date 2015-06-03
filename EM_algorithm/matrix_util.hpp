@@ -10,21 +10,25 @@
 #include <boost/numeric/ublas/vector.hpp>         // (6) ベクトル用のヘッダ
 #include <boost/numeric/ublas/vector_sparse.hpp>  // (7) 疎ベクトル用のヘッダ
 #include <boost/numeric/ublas/lu.hpp>
+#include <boost/optional.hpp>
+
+#undef BOOST_UBLAS_TYPE_CHECK
+#define BOOST_UBLAS_TYPE_CHECK 0
 
 namespace matrix_util {
     using namespace boost::numeric;
 
     // 行列式
     template <class M>
-    double determinant(const M &m);
+    boost::optional<double> determinant(const M &m);
 
     // 逆行列
     template <class M>
-    M invert(const M &m);
+    boost::optional<M> invert(const M &m);
 
     // 座標変換行列から分散行列を得る
     template <class M>
-    M transToSigma(const M &m);
+    boost::optional<M> transToSigma(const M &m);
 
     // std::arrayからbounded_vectorを作る
     template <typename T, std::size_t dim>

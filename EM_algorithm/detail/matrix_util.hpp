@@ -7,11 +7,14 @@ namespace matrix_util {
     using namespace boost::numeric;
 
     template <class M>
-    double determinant(const M &m)
+    boost::optional<double> determinant(const M &m)
     {
         namespace ublas = boost::numeric::ublas;
 
-        BOOST_UBLAS_CHECK(m.size1() == m.size2(), ublas::external_logic());
+        // 正方行列でないとき，失敗．
+        if (m.size1() != m.size2()) {
+            return boost::none;
+        }
 
         ublas::matrix <double>       lu(m);
         ublas::permutation_matrix <> pm(m.size1());
@@ -30,31 +33,39 @@ namespace matrix_util {
     }
 
     template <class M>
-    M invert(const M &m)
+    boost::optional<M> invert(const M &m)
     {
         namespace ublas = boost::numeric::ublas;
 
-        BOOST_UBLAS_CHECK(m.size1() == m.size2(), ublas::external_logic());
+        // 正方行列でないとき，失敗．
+        if (m.size1() != m.size2()) {
+            return boost::none;
+        }
 
         ublas::matrix <double>       lhs(m);
         ublas::matrix <double>       rhs(ublas::identity_matrix <double>(m.size1()));
         ublas::permutation_matrix <> pm(m.size1());
 
-        ublas::lu_factorize(lhs, pm);
+        // LU分解可能でないとき，失敗．
+        if (ublas::lu_factorize(lhs, pm) != 0) {
+            return boost::none;
+        }
+
         ublas::lu_substitute(lhs, pm, rhs);
 
-        BOOST_UBLAS_CHECK(rhs.size1() == m.size1(), ublas::internal_logic());
-        BOOST_UBLAS_CHECK(rhs.size2() == m.size2(), ublas::internal_logic());
+        if (rhs.size1() != m.size1() || rhs.size2() != m.size2()) {
+            return boost::none;
+        }
 
-        #if BOOST_UBLAS_TYPE_CHECK
-            BOOST_UBLAS_CHECK(
-                ublas::detail::expression_type_check(
-                    ublas::prod(m, rhs),
-                    ublas::identity_matrix <typename M::value_type>(m.size1())
-                    ),
-                ublas::internal_logic()
-                );
-        #endif
+        // #if BOOST_UBLAS_TYPE_CHECK
+        //     BOOST_UBLAS_CHECK(
+        //         ublas::detail::expression_type_check(
+        //             ublas::prod(m, rhs),
+        //             ublas::identity_matrix <typename M::value_type>(m.size1())
+        //             ),
+        //         ublas::internal_logic()
+        //         );
+        // #endif
 
         // >>>>>>>>>>
         /*
@@ -69,12 +80,15 @@ namespace matrix_util {
     }
 
     template <class M>
-    M transToSigma(const M &m)
+    boost::optional<M> transToSigma(const M &m)
     {
         // boostのsize_typeはstd::size_t
         static_assert(std::is_same <decltype(ublas::vector <double>(1).size()), std::size_t>::value, "boost size_type check");
 
-        BOOST_UBLAS_CHECK(m.size1() == m.size2(), boost::numeric::ublas::external_logic());
+        // 正方行列でないとき，失敗．
+        if (m.size1() != m.size2()) {
+            return boost::none;
+        }
 
         return std::move(boost::numeric::ublas::prod(m, boost::numeric::ublas::trans(m)));
     }

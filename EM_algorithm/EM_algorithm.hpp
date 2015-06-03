@@ -8,6 +8,9 @@
 #include "statistic_util.hpp"
 #include "data_struct.hpp"
 
+#undef BOOST_UBLAS_TYPE_CHECK
+#define BOOST_UBLAS_TYPE_CHECK 0
+
 namespace EM {
     // エイリアステンプレート
     template <int dim>
@@ -33,11 +36,11 @@ namespace EM {
 
         // パラメータを更新し，対数尤度を返す関数
         template <int num>
-        static std::tuple <Record, double> update(const Record &record, const statistic::Data_series <dim, num> &data_series);
+        static boost::optional<std::tuple <Record, double>> update(const Record &record, const statistic::Data_series <dim, num> &data_series);
 
         // 対数尤度を返す関数
         template <int num>
-        static double logL(const Record &record, const statistic::Data_series <dim, num> &data_series);
+        static boost::optional<double> logL(const Record &record, const statistic::Data_series <dim, num> &data_series);
 
         // レコードを読み込む関数
         static Record input(std::istream &is, const char delim);

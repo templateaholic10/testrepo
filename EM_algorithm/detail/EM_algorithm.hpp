@@ -7,14 +7,21 @@
 namespace EM {
     template <int dim, int mixture_num>
     template <int num>
-    std::tuple <typename EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::Record, double> EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::update(const typename EM_estimator <dim,
-                                                                                                                                                                                                               statistic::GAUSSIAN_MIXTURES <
-                                                                                                                                                                                                                   mixture_num> >::Record&
-                                                                                                                                                                                  record, const statistic::Data_series <dim, num> &data_series)
+    boost::optional <std::tuple <typename EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::Record, double> > EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::update(const typename EM_estimator <dim,
+                                                                                                                                                                                                                                  statistic::
+                                                                                                                                                                                                                                  GAUSSIAN_MIXTURES
+                                                                                                                                                                                                                                  <
+                                                                                                                                                                                                                                      mixture_num> >
+                                                                                                                                                                                                     ::Record&
+                                                                                                                                                                                                     record, const statistic::Data_series <dim,
+                                                                                                                                                                                                                                           num>
+                                                                                                                                                                                                     &data_series)
     {
         auto pi     = std::get <0>(record);
         auto mus    = std::get <1>(record);
         auto sigmas = std::get <2>(record);
+        // sigmasの要素は参照になっている！
+        static_assert(std::is_same <decltype(sigmas[0]), dmatrix <dim>&>::value, "tuple type check error!");
 
         // 中間生成物p[t][dist]
         util::multi_array <double, num, mixture_num> p;
@@ -22,9 +29,14 @@ namespace EM {
         dmatrix <dim>                                sigmaInverse;
         double                                       sigmaDeterminant;
         for (int dist = 0; dist < mixture_num; dist++) {
-            mu               = mus[dist];
-            sigmaInverse     = matrix_util::invert(sigmas[dist]);
-            sigmaDeterminant = matrix_util::determinant(sigmas[dist]);
+            mu = mus[dist];
+            if (const auto inv = statistic_util::invert <dim>(sigmas[dist])) {
+                sigmaInverse = *inv;
+            } else {
+                // 分散が正則でない．
+                return boost::none;
+            }
+            sigmaDeterminant = statistic_util::determinant <dim>(sigmas[dist]);
             for (int t = 0; t < num; t++) {
                 p[t][dist] = statistic_util::pnorm <dim>(data_series.dataset()[t], mu, sigmaInverse, sigmaDeterminant);
             }
@@ -102,14 +114,16 @@ namespace EM {
 
     template <int dim, int mixture_num>
     template <int num>
-    double EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::logL(const typename EM_estimator <dim,
-                                                                                                              statistic::GAUSSIAN_MIXTURES <
-                                                                                                                  mixture_num> >::Record&
-                                                                                 record, const statistic::Data_series <dim, num> &data_series)
+    boost::optional <double> EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::logL(const typename EM_estimator <dim,
+                                                                                                                                statistic::GAUSSIAN_MIXTURES <
+                                                                                                                                    mixture_num> >::Record&
+                                                                                                   record, const statistic::Data_series <dim, num> &data_series)
     {
         auto pi     = std::get <0>(record);
         auto mus    = std::get <1>(record);
         auto sigmas = std::get <2>(record);
+        // sigmasの要素は参照になっている！
+        static_assert(std::is_same <decltype(sigmas[0]), dmatrix <dim>&>::value, "tuple type check error!");
 
         // 中間生成物p[t][dist]
         util::multi_array <double, num, mixture_num> p;
@@ -117,9 +131,14 @@ namespace EM {
         dmatrix <dim>                                sigmaInverse;
         double                                       sigmaDeterminant;
         for (int dist = 0; dist < mixture_num; dist++) {
-            mu               = mus[dist];
-            sigmaInverse     = matrix_util::invert(sigmas[dist]);
-            sigmaDeterminant = matrix_util::determinant(sigmas[dist]);
+            mu = mus[dist];
+            if (const auto inv = statistic_util::invert <dim>(sigmas[dist])) {
+                sigmaInverse = *inv;
+            } else {
+                // 分散が正則でない．
+                return boost::none;
+            }
+            sigmaDeterminant = statistic_util::determinant <dim>(sigmas[dist]);
             for (int t = 0; t < num; t++) {
                 p[t][dist] = statistic_util::pnorm <dim>(data_series.dataset()[t], mu, sigmaInverse, sigmaDeterminant);
             }
@@ -470,57 +489,91 @@ namespace EM {
         int          counter = 0;
         const int    big_num = 1e6;
         const double epsilon = statistic_util::epsilon;
-        bool         stop_flag;
+        bool         stop_flag, fail_flag;
 
-        // 初期化
-        newrecord = record;
-        newlogL   = EM::logL(newrecord, ds);
-
-        // 初期値，初期対数尤度の出力
+        // 初期値の出力
         const char delim = statistic_util::formatToDelim(format);
+        newrecord = record;
         EM::output(os, newrecord, delim);
+
+        // 初期対数尤度の出力
+        if (auto tmplogL = EM::logL(newrecord, ds)) {
+            newlogL = *tmplogL;
+        } else {
+            // 初期から分散が正則でないとき，終了．
+            os << ",";
+            os << "NA";
+            os << ",";
+            EM::output(os, statistic_util::NA(), delim);
+            os << ",";
+            os << "NA";
+            os << ",";
+            os << "NA";
+            os << std::endl;
+            return;
+        }
+
         os << ",";
         os << newlogL;
 
-        try {
-            do {
-                // std::cout << "step : " << counter << std::endl;
+        // try {
+        do {
+            // std::cout << "step : " << counter << std::endl;
 
-                // 更新
-                oldrecord                    = newrecord;
-                oldlogL                      = newlogL;
-                std::tie(newrecord, newlogL) = EM::update(oldrecord, ds);
+            fail_flag = false;
 
-                // 停止判定
-                // すべて小さければ停止．
-                stop_flag = true;
-                for (size_t dist = 0; dist < mixture_num; dist++) {
-                    if (fabs(std::get <0>(newrecord)[dist] - std::get <0>(oldrecord)[dist]) > epsilon) {
-                        stop_flag = false;
-                        continue;
-                    }
-                    if (matrix_util::d_inf(std::get <1>(newrecord)[dist], std::get <1>(oldrecord)[dist]) > epsilon) {
-                        stop_flag = false;
-                        continue;
-                    }
-                    if (matrix_util::d_inf(std::get <2>(newrecord)[dist], std::get <2>(oldrecord)[dist]) > epsilon) {
-                        stop_flag = false;
-                        continue;
-                    }
-                }
-                if (fabs(newlogL - oldlogL) > epsilon) {
+            // 更新
+            oldrecord = newrecord;
+            oldlogL   = newlogL;
+            if (auto tmp = EM::update(oldrecord, ds)) {
+                // 分散の逆行列が存在すればOK．
+                std::tie(newrecord, newlogL) = *tmp;
+            } else {
+                // 存在しなければ，この初期値ではダメ．
+                fail_flag = true;
+                break;
+            }
+
+            // 停止判定
+            // すべて小さければ停止．
+            stop_flag = true;
+            for (size_t dist = 0; dist < mixture_num; dist++) {
+                if (fabs(std::get <0>(newrecord)[dist] - std::get <0>(oldrecord)[dist]) > epsilon) {
                     stop_flag = false;
+                    continue;
                 }
-
-                // 無限ループストッパ
-                if (counter > big_num) {
-                    std::cout << "too many loop." << "(" << big_num << ")" << std::endl;
-                    break;
+                if (matrix_util::d_inf(std::get <1>(newrecord)[dist], std::get <1>(oldrecord)[dist]) > epsilon) {
+                    stop_flag = false;
+                    continue;
                 }
+                if (matrix_util::d_inf(std::get <2>(newrecord)[dist], std::get <2>(oldrecord)[dist]) > epsilon) {
+                    stop_flag = false;
+                    continue;
+                }
+            }
+            if (fabs(newlogL - oldlogL) > epsilon) {
+                stop_flag = false;
+            }
 
-                counter++;
-            } while (!stop_flag);
-            // 出力
+            // 無限ループストッパ
+            if (counter > big_num) {
+                std::cout << "too many loop." << "(" << big_num << ")" << std::endl;
+                fail_flag = true;
+                break;
+            }
+
+            counter++;
+        } while (!stop_flag);
+        // 出力
+        if (fail_flag) {
+            os << ",";
+            EM::output(os, statistic_util::NA(), delim);
+            os << ",";
+            os << "NA";
+            os << ",";
+            os << "NA";
+            os << std::endl;
+        } else {
             os << ",";
             EM::output(os, newrecord, delim);
             os << ",";
@@ -529,10 +582,12 @@ namespace EM {
             os << counter;
             os << std::endl;
         }
-        catch (...) {
-            EM::output(os, statistic_util::NA(), delim);
-            os << std::endl;
-        }
+
+        // }
+        // catch (...) {
+        //     EM::output(os, statistic_util::NA(), delim);
+        //     os << std::endl;
+        // }
     }
 
     void test_EM_initial_value()
@@ -559,7 +614,7 @@ namespace EM {
 
         // 初期値データの読込
         fin.open("data01/square.initial");
-        int counter = 0;
+        int       counter = 0;
         const int big_num = 100;
         while (!fin.eof() && counter < big_num) {
             // std::cout << "initial : " << counter << std::endl;

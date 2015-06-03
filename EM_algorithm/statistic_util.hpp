@@ -66,6 +66,22 @@ namespace statistic_util {
         }
     }
 
+    // 行列式
+    template <int dim>
+    double determinant(const dmatrix <dim> &m);
+
+    // 逆行列
+    template <int dim>
+    boost::optional <dmatrix <dim> > invert(const dmatrix <dim> &m);
+
+    // 一致しないのでしかたなく．
+    template <int dim>
+    boost::optional <dmatrix <dim> > invert(dmatrix <dim> &m);
+
+    // 座標変換行列から分散行列を得る
+    template <int dim>
+    dmatrix <dim> transToSigma(const dmatrix <dim> &m);
+
     // 座標変換行列から分散行列を得る
     // dmatrix<2> transToSigmaD2(const dmatrix<2>& m)
     // {

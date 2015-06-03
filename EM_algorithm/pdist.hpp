@@ -64,7 +64,7 @@ namespace statistic {
         const dmatrix <dim> _sigma;  // 分散共分散行列 _sigma := _A * _A^T
         // 以下冗長
         const dmatrix <dim> _A;  // 変換行列
-        const dmatrix <dim> _sigmaInverse;  // 精度行列
+        dmatrix <dim> _sigmaInverse;  // 精度行列
         const double        _sigmaDeterminant; // 分散共分散行列のディターミナント
         // 乱数生成器
         std::random_device                _rnd; // 非決定的乱数生成器

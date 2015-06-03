@@ -10,9 +10,15 @@ namespace statistic {
 
     template <int dim>
     Probability_distribution <dim, GAUSSIAN>::Probability_distribution(const dvector <dim> &mu, const dmatrix <dim> &A)
-        : _mu(mu), _A(A), _sigma(boost::numeric::ublas::prod(A, boost::numeric::ublas::trans(A))), _sigmaInverse(matrix_util::invert(_sigma)), _sigmaDeterminant(matrix_util::determinant(_sigma)), _rnd(), _mt(_rnd()), _stdnorm(0., 1.)
+        : _mu(mu), _A(A), _sigma(statistic_util::transToSigma<dim>(A)),  _sigmaDeterminant(statistic_util::determinant<dim>(_sigma)), _rnd(), _mt(_rnd()), _stdnorm(0., 1.)
     {
         // 変換行列Aがフルランクであることの確認
+        if (auto const inv = statistic_util::invert<dim>(_sigma)) {
+            _sigmaInverse = *inv;
+        } else {
+            // フルランクでないとき，落ちる．
+            assert(false);
+        }
     }
 
     // 確率密度関数
@@ -191,21 +197,21 @@ namespace statistic {
             ublas::matrix <double>       rhs(ublas::identity_matrix <double>(_M.size1()));
             ublas::permutation_matrix <> pm(_M.size1());
 
-            ublas::lu_factorize(lhs, pm);
+            assert(ublas::lu_factorize(lhs, pm) == 0);
             ublas::lu_substitute(lhs, pm, rhs);
 
-            BOOST_UBLAS_CHECK(rhs.size1() == _M.size1(), ublas::internal_logic());
-            BOOST_UBLAS_CHECK(rhs.size2() == _M.size2(), ublas::internal_logic());
+            assert(rhs.size1() == _M.size1());
+            assert(rhs.size2() == _M.size2());
 
-            #if BOOST_UBLAS_TYPE_CHECK
-                BOOST_UBLAS_CHECK(
-                    ublas::detail::expression_type_check(
-                        ublas::prod(_M, rhs),
-                        ublas::identity_matrix <typename dmatrix<dim>::value_type>(_M.size1())
-                        ),
-                    ublas::internal_logic()
-                    );
-            #endif
+            // #if BOOST_UBLAS_TYPE_CHECK
+            //     BOOST_UBLAS_CHECK(
+            //         ublas::detail::expression_type_check(
+            //             ublas::prod(_M, rhs),
+            //             ublas::identity_matrix <typename dmatrix<dim>::value_type>(_M.size1())
+            //             ),
+            //         ublas::internal_logic()
+            //         );
+            // #endif
 
             // >>>>>>>>>>
             /*
