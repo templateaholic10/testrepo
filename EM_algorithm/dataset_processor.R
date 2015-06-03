@@ -1,4 +1,4 @@
-pdf.org <- read.csv("test_EM_gaussian_mixtures.dataset", header = FALSE)
+pdf.org <- read.csv("square.dataset", header = FALSE)
 library(MASS)
 x <- pdf.org$V1
 y <- pdf.org$V2

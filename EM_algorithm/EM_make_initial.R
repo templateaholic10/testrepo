@@ -10,18 +10,18 @@ tmpsum <- sum(pi)
 pi <- pi / tmpsum
 
 # mus vector
-musmin <- -100
-musmax <- 100
+musmin <- -200
+musmax <- 200
 mus <- runif(dim * mixture_num, min=musmin, max=musmax)
 
 # sigmas vector
-# 対角成分はN(25, 100)
-# 交差成分はN(10, 100)
+# 対角成分はN(0, 25)
+# 交差成分はN(0, 25)
 sigmas <- 1:(dim * dim * mixture_num)
 for (i in 1:mixture_num) {
   while (TRUE) {
-    diag <- rnorm(dim, mean=25, sd=10)
-    cros <- rnorm(dim, mean=10, sd=10)
+    diag <- rnorm(dim, mean=0, sd=5)
+    cros <- rnorm(dim, mean=0, sd=5)
     if (abs(diag[1]*diag[2]-cros[1]*cros[2]) > epsilon) {
       break;
     }

@@ -40,19 +40,23 @@ namespace EM {
         static double logL(const Record &record, const statistic::Data_series <dim, num> &data_series);
 
         // レコードを読み込む関数
-        static Record input(std::istream& is, const char delim);
+        static Record input(std::istream &is, const char delim);
 
         // レコードを出力する関数
-        static void output(std::ostream& os, const Record& record, const char delim);
+        static void output(std::ostream &os, const Record &record, const char delim);
+
+        static void output(std::ostream &os, const statistic_util::NA &na, const char delim);
+
+        static void output(std::ostream &os, const statistic_util::Header &header, const char delim);
     };
 
-    constexpr int DIM = 2;
+    constexpr int DIM         = 2;
     constexpr int MIXTURE_NUM = 4;
-    constexpr int NUM = 1000;
+    constexpr int NUM         = 1000;
 
     void test_EM_gaussian_mixtures();
 
-    void _test_EM_initial_value(std::ostream& os, const statistic::Data_series<DIM, NUM>& ds, const EM_estimator<DIM, statistic::GAUSSIAN_MIXTURES <MIXTURE_NUM> >::Record& record);
+    void _test_EM_initial_value(std::ostream &os, const statistic::Data_series <DIM, NUM> &ds, const EM_estimator <DIM, statistic::GAUSSIAN_MIXTURES <MIXTURE_NUM> >::Record &record);
 
     void test_EM_initial_value();
 }

@@ -1,12 +1,14 @@
 # definition
 initial_num <- 1000
+filepath <- "~/testrepo/EM_algorithm/"
 
-source("EM_make_initial.R")
-data <- record
+source(paste(filepath,"EM_make_initial.R",sep=""))
+mydata <- record
 
 for (i in 2:initial_num) {
-  source("EM_make_initial.R")
-  data <- rbind(data,record)
+  source(paste(filepath,"EM_make_initial.R",sep=""))
+  mydata <- rbind(mydata,record)
 }
 
-write.csv(data, "data/square_initial.csv", quote=FALSE, row.names=FALSE, col.names=NA)
+mydata.frame <- data.frame(mydata)
+write.table( mydata,paste(filepath,"data01/","square_initial.csv",sep=""), sep=",",row=F,col=F,qme="double")

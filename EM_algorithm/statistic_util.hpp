@@ -9,6 +9,14 @@
 namespace statistic_util {
     constexpr double epsilon = 1.e-6;
 
+    // 欠損値型
+    struct NA {
+    };
+
+    // ヘッダ型
+    struct Header {
+    };
+
     // ファイルフォーマット
     enum class FORMAT { CSV_SPACE, CSV_COMMA };
 
