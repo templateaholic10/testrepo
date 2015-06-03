@@ -144,44 +144,99 @@ namespace EM {
     }
 
     template <int dim, int mixture_num>
-    void EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::output(std::ostream &os, const Record &record)
+    typename EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::Record EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::input(std::istream &is, const char delim)
+    {
+        char ch;
+
+        std::array <double, mixture_num> tmppi;
+        for (int dist = 0; dist < mixture_num; dist++) {
+            is >> tmppi[dist];
+            if (dist != mixture_num - 1 && delim != ' ') {
+                is >> ch;
+            }
+        }
+
+        if (delim != ' ') {
+            is >> ch;
+        }
+
+        std::array <dvector <dim>, mixture_num> tmpmus;
+        for (int dist = 0; dist < mixture_num; dist++) {
+            for (int j = 0; j < dim; j++) {
+                is >> tmpmus[dist](j);
+                if (j != dim - 1 && delim != ' ') {
+                    is >> ch;
+                }
+            }
+            if (dist != mixture_num - 1 && delim != ' ') {
+                is >> ch;
+            }
+        }
+
+        if (delim != ' ') {
+            is >> ch;
+        }
+
+        std::array <dmatrix <dim>, mixture_num> tmpsigmas;
+        for (int dist = 0; dist < mixture_num; dist++) {
+            for (int i = 0; i < dim; i++) {
+                for (int j = 0; j < dim; j++) {
+                    is >> tmpsigmas[dist](i, j);
+                    if (j != dim - 1 && delim != ' ') {
+                        is >> ch;
+                    }
+                }
+                if (i != dim - 1 && delim != ' ') {
+                    is >> ch;
+                }
+            }
+            if (dist != mixture_num - 1 && delim != ' ') {
+                is >> ch;
+            }
+        }
+
+        return std::move(std::make_tuple(tmppi, tmpmus, tmpsigmas));
+    }
+
+    template <int dim, int mixture_num>
+    void EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::output(std::ostream &os, const Record &record, const char delim)
     {
         auto tmppi = std::get <0>(record);
         for (int dist = 0; dist < mixture_num; dist++) {
-            os << tmppi[dist] << ((dist != mixture_num - 1) ? ',' : '\0');
+            os << tmppi[dist] << ((dist != mixture_num - 1) ? delim : '\0');
         }
 
-        os << ',';
+        os << delim;
 
         auto tmpmus = std::get <1>(record);
         for (int dist = 0; dist < mixture_num; dist++) {
             for (int j = 0; j < dim; j++) {
-                os << tmpmus[dist](j) << ((j != dim - 1) ? ',' : '\0');
+                os << tmpmus[dist](j) << ((j != dim - 1) ? delim : '\0');
             }
-            os << ((dist != mixture_num - 1) ? ',' : '\0');
+            os << ((dist != mixture_num - 1) ? delim : '\0');
         }
 
-        os << ',';
+        os << delim;
 
         auto tmpsigmas = std::get <2>(record);
         for (int dist = 0; dist < mixture_num; dist++) {
             for (int i = 0; i < dim; i++) {
                 for (int j = 0; j < dim; j++) {
-                    os << tmpsigmas[dist](i, j) << ((j != dim - 1) ? ',' : '\0');
+                    os << tmpsigmas[dist](i, j) << ((j != dim - 1) ? delim : '\0');
                 }
-                os << ((i != dim - 1) ? ',' : '\0');
+                os << ((i != dim - 1) ? delim : '\0');
             }
-            os << ((dist != mixture_num - 1) ? ',' : '\0');
+            os << ((dist != mixture_num - 1) ? delim : '\0');
         }
 
-        os << std::endl;
+        os << std::flush;
     }
 
     void test_EM_gaussian_mixtures()
     {
-        constexpr int dim         = 2; // 2次元
-        constexpr int mixture_num = 4;  // 混合数
-        constexpr int num         = 1000;
+        constexpr int dim         = DIM; // 2次元
+        constexpr int mixture_num = MIXTURE_NUM;  // 混合数
+        constexpr int num         = NUM;
         using PD = statistic::Probability_distribution <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >;
         using DS = statistic::Data_series <dim, num>;
         constexpr statistic_util::FORMAT format = statistic_util::FORMAT::CSV_COMMA;
@@ -228,7 +283,7 @@ namespace EM {
 
         // データの読込
         std::ifstream fin("data/square.dataset");
-        DS ds(fin, format);
+        DS            ds(fin, format);
         fin.close();
 
         // EMアルゴリズム
@@ -240,32 +295,34 @@ namespace EM {
         std::deque <double> logLtable;
 
         // 初期化
-        auto pi1 = util::make_array<double>(0.25, 0.25, 0.25, 0.25);
+        auto                                    pi1 = util::make_array <double>(0.25, 0.25, 0.25, 0.25);
         std::array <dvector <dim>, mixture_num> mus1;
         mus1[0](0) = 0.; mus1[0](1) = 0.;
-        mus1[1](0) = 0.; mus1[1](1) = 0.;
-        mus1[2](0) = 0.; mus1[2](1) = 0.;
-        mus1[3](0) = 0.; mus1[3](1) = 0.;
+        mus1[1](0) = 0.; mus1[1](1) = 0.01;
+        mus1[2](0) = 0.01; mus1[2](1) = 0.;
+        mus1[3](0) = 0.01; mus1[3](1) = 0.01;
         std::array <dmatrix <dim>, mixture_num> sigmas1;
-        sigmas1[0](0, 0) = 1.; sigmas1[0](0, 1) = 0.;
-        sigmas1[0](1, 0) = 0.; sigmas1[0](1, 1) = 1.;
-        sigmas1[1](0, 0) = 1.; sigmas1[1](0, 1) = 0.;
-        sigmas1[1](1, 0) = 0.; sigmas1[1](1, 1) = 1.;
-        sigmas1[2](0, 0) = 1.; sigmas1[2](0, 1) = 0.;
-        sigmas1[2](1, 0) = 0.; sigmas1[2](1, 1) = 1.;
-        sigmas1[3](0, 0) = 1.; sigmas1[3](0, 1) = 0.;
-        sigmas1[3](1, 0) = 0.; sigmas1[3](1, 1) = 1.;
+        sigmas1[0](0, 0) = 1.; sigmas1[0](1, 1) = 1.;
+        sigmas1[0](0, 1) = sigmas1[0](1, 0) = 0.;
+        sigmas1[1](0, 0) = 1.; sigmas1[1](1, 1) = 1.;
+        sigmas1[1](0, 1) = sigmas1[1](1, 0) = 0.;
+        sigmas1[2](0, 0) = 1.; sigmas1[2](1, 1) = 1.;
+        sigmas1[2](0, 1) = sigmas1[2](1, 0) = 0.;
+        sigmas1[3](0, 0) = 1.; sigmas1[3](1, 1) = 1.;
+        sigmas1[3](0, 1) = sigmas1[3](1, 0) = 0.;
 
         auto record = std::make_tuple(pi1, mus1, sigmas1);
         paramtable.push_back(record);
         logLtable.push_back(EM::logL(record, ds));
 
         // EM
-        Record oldrecord, newrecord;
-        double oldlogL, newlogL;
-        int    counter = 0;
-        const int big_num = 1e6;
-        double max, tmp;
+        Record       oldrecord, newrecord;
+        double       oldlogL, newlogL;
+        int          counter = 0;
+        const int    big_num = 1e6;
+        const double epsilon = statistic_util::epsilon;
+        bool         stop_flag;
+
         newrecord = paramtable.back();
         newlogL   = logLtable.back();
         do {
@@ -278,31 +335,41 @@ namespace EM {
             newlogL   = logLtable.back();
 
             // 停止判定
-            max = 0.;
+            // すべて小さければ停止．
+            stop_flag = true;
             for (size_t dist = 0; dist < mixture_num; dist++) {
-                if ((tmp = fabs(std::get <0>(newrecord)[dist] - std::get <0>(oldrecord)[dist])) > max) {
-                    max = tmp;
+                if (fabs(std::get <0>(newrecord)[dist] - std::get <0>(oldrecord)[dist]) > epsilon) {
+                    stop_flag = false;
+                    continue;
                 }
-                if ((tmp = matrix_util::d_inf(std::get <1>(newrecord)[dist], std::get <1>(oldrecord)[dist])) > max) {
-                    max = tmp;
+                if (matrix_util::d_inf(std::get <1>(newrecord)[dist], std::get <1>(oldrecord)[dist]) > epsilon) {
+                    stop_flag = false;
+                    continue;
                 }
-                if ((tmp = matrix_util::d_inf(std::get <2>(newrecord)[dist], std::get <2>(oldrecord)[dist])) > max) {
-                    max = tmp;
+                if (matrix_util::d_inf(std::get <2>(newrecord)[dist], std::get <2>(oldrecord)[dist]) > epsilon) {
+                    stop_flag = false;
+                    continue;
                 }
+            }
+            if (fabs(newlogL - oldlogL) > epsilon) {
+                stop_flag = false;
+            }
+
+            // 無限ループストッパ
+            if (counter > big_num) {
+                std::cout << "too many loop." << "(" << big_num << ")" << std::endl;
+                break;
             }
 
             counter++;
-            if (counter > big_num) {
-                std::cout << "too many loop." << std::endl;
-                break;
-            }
-        } while (max > statistic_util::epsilon);
+        } while (!stop_flag);
 
         // 出力
         const char delim = formatToDelim(format);
         fout.open("test_EM.params");
         while (!paramtable.empty()) {
-            EM::output(fout, paramtable.front());
+            EM::output(fout, paramtable.front(), delim);
+            fout << std::endl;
             paramtable.pop_front();
         }
         fout.close();
@@ -313,6 +380,118 @@ namespace EM {
             logLtable.pop_front();
         }
         fout.close();
+    }
+
+    void _test_EM_initial_value(std::ostream &os, const statistic::Data_series <DIM, NUM> &ds, const EM_estimator <DIM, statistic::GAUSSIAN_MIXTURES <MIXTURE_NUM> >::Record &record)
+    {
+        // 必要な情報は初期値，初期対数尤度，最終値，最終対数尤度，ステップ数．
+
+        constexpr int dim         = DIM; // 2次元
+        constexpr int mixture_num = MIXTURE_NUM;  // 混合数
+        constexpr int num         = NUM;
+        // using PD = statistic::Probability_distribution <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >;
+        // using DS = statistic::Data_series <dim, num>;
+        constexpr statistic_util::FORMAT format = statistic_util::FORMAT::CSV_COMMA;
+
+        // EMアルゴリズム
+        using EM     = EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >;
+        using Record = EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::Record;
+        static_assert(std::is_same <Record, std::tuple <std::array <double, mixture_num>, std::array <dvector <dim>, mixture_num>, std::array <dmatrix <dim>, mixture_num> > >::value, "Record type error!");
+
+        // 中間は不要
+        // std::deque <Record> paramtable;
+        // std::deque <double> logLtable;
+
+        // EM
+        Record       oldrecord, newrecord;
+        double       oldlogL, newlogL;
+        int          counter = 0;
+        const int    big_num = 1e6;
+        const double epsilon = statistic_util::epsilon;
+        bool         stop_flag;
+
+        // 初期化
+        newrecord = record;
+        newlogL   = EM::logL(newrecord, ds);
+
+        // 初期値，初期対数尤度の出力
+        const char delim = formatToDelim(format);
+        EM::output(os, newrecord, delim);
+        os << ",";
+        os << newlogL;
+
+        do {
+            // 更新
+            oldrecord                    = newrecord;
+            oldlogL                      = newlogL;
+            std::tie(newrecord, newlogL) = EM::update(oldrecord, ds);
+
+            // 停止判定
+            // すべて小さければ停止．
+            stop_flag = true;
+            for (size_t dist = 0; dist < mixture_num; dist++) {
+                if (fabs(std::get <0>(newrecord)[dist] - std::get <0>(oldrecord)[dist]) > epsilon) {
+                    stop_flag = false;
+                    continue;
+                }
+                if (matrix_util::d_inf(std::get <1>(newrecord)[dist], std::get <1>(oldrecord)[dist]) > epsilon) {
+                    stop_flag = false;
+                    continue;
+                }
+                if (matrix_util::d_inf(std::get <2>(newrecord)[dist], std::get <2>(oldrecord)[dist]) > epsilon) {
+                    stop_flag = false;
+                    continue;
+                }
+            }
+            if (fabs(newlogL - oldlogL) > epsilon) {
+                stop_flag = false;
+            }
+
+            // 無限ループストッパ
+            if (counter > big_num) {
+                std::cout << "too many loop." << "(" << big_num << ")" << std::endl;
+                break;
+            }
+
+            counter++;
+        } while (!stop_flag);
+
+        // 出力
+        os << ",";
+        EM::output(os, newrecord, delim);
+        os << ",";
+        os << newlogL;
+        os << ",";
+        os << counter;
+        os << std::endl;
+    }
+
+    void test_EM_initial_value()
+    {
+        constexpr int dim         = DIM; // 2次元
+        constexpr int mixture_num = MIXTURE_NUM;  // 混合数
+        constexpr int num         = NUM;
+        using PD = statistic::Probability_distribution <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >;
+        using DS = statistic::Data_series <dim, num>;
+        constexpr statistic_util::FORMAT format = statistic_util::FORMAT::CSV_COMMA;
+        constexpr char                   delim  = formatToDelim(format);
+        using EM     = EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >;
+        using Record = EM_estimator <dim, statistic::GAUSSIAN_MIXTURES <mixture_num> >::Record;
+        static_assert(std::is_same <Record, std::tuple <std::array <double, mixture_num>, std::array <dvector <dim>, mixture_num>, std::array <dmatrix <dim>, mixture_num> > >::value, "Record type error!");
+
+        // データの読込
+        std::ifstream fin("data/square.dataset");
+        DS            ds(fin, format);
+        fin.close();
+
+        // 出力ファイルの設定
+        std::ofstream fout("data/square.initialtest");
+
+        // 初期値データの読込
+        fin.open("data/square.initial");
+        while (!fin.eof()) {
+            _test_EM_initial_value(fout, ds, EM::input(fin, delim));
+        }
     }
 }
 
