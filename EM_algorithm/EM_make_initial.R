@@ -10,8 +10,8 @@ tmpsum <- sum(pi)
 pi <- pi / tmpsum
 
 # mus vector
-musmin <- -200
-musmax <- 200
+musmin <- -10
+musmax <- 10
 mus <- runif(dim * mixture_num, min=musmin, max=musmax)
 
 # sigmas vector
@@ -20,14 +20,14 @@ mus <- runif(dim * mixture_num, min=musmin, max=musmax)
 sigmas <- 1:(dim * dim * mixture_num)
 for (i in 1:mixture_num) {
   while (TRUE) {
-    diag <- rnorm(dim, mean=0, sd=5)
-    cros <- rnorm(dim, mean=0, sd=5)
+    diag <- rnorm(dim, mean=0, sd=1)
+    cros <- rnorm(dim, mean=0, sd=1)
     if (abs(diag[1]*diag[2]-cros[1]*cros[2]) > epsilon) {
       break;
     }
   }
   A <- matrix(c(diag[1],cros[1],cros[2],diag[2]),2,2)
-  sigma <- A * t(A)
+  sigma <- A %*% t(A)
   sigmas[(4*i-3):(4*i)] <- c(sigma[1,],sigma[2,])
 }
 

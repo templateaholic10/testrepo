@@ -1,0 +1,480 @@
+\documentclass[uplatex]{jsarticle}
+\makeatletter
+  \usepackage{lmodern}%(Latin Modern font)
+  \usepackage[T1]{fontenc}
+  \usepackage{amsmath}
+  \usepackage{amssymb}
+  \usepackage{bm}
+  \usepackage[dvipdfmx]{xcolor}
+  \usepackage[dvipdfmx]{graphicx}
+  \usepackage{apmayfes2015}
+  \usepackage{apmayfes2015deco}
+% ---- 必要なパッケージは適宜追加してください ----
+  \usepackage{ascmac}
+  \usepackage{url}
+  \usepackage{tikz}
+  \usepackage{listings}
+  \usepackage{subcaption}	% subfigure emvironment(horizontal assignment of figure)
+  \usepackage[english]{babel}
+% ---- ここに独自のマクロの定義を書きましょう ----
+  \def\catC{\mathbf{C}}
+  \def\functIdemC{\mathrm{Id}_{\catC}}
+  \newcommand{\If}{ \ \mathrm{if} \ }
+  \newcommand{\Where}{ \ \mathrm{where} \ }
+  \newcommand{\tr}{\mathop{\mathrm{tr}}}
+  \newcommand{\mathhyphen}{\mathchar`-}
+  % color define section
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+%
+%listings set section
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{blue},    % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,                    % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{mygreen},       % keyword style
+  language=C,                 % the language of the code
+  morekeywords={*,...},            % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mymauve}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+%
+\graphicspath{{data03/fig/},{data04/fig/}}	% path of includegraphics
+% ---- ----
+%
+  \title{EM algorithm}
+  \author{140588 Takashi Kurokawa}
+\makeatother
+\begin{document}
+  \maketitle
+%
+  \section{Abstruct}
+	\indent
+	  Estimated parameters of a mixture gaussian distribution data come from, using EM algrithm. I implemented program with C++, processed data with Python, analyzed data with R. 
+	\par
+%
+  \section{EM algorithm}
+    \subsection{parameters update}
+      \indent
+	See lecture handout.
+      \par
+%
+  \section{Numerical experiment 1}
+    \indent
+      I estimated parameters of the true distribution by EM algorithm with: \textbf{Fixed true distribution, fixed tutor data, various initial parameters.} I set dimension $2$, number of mixed gaussian distributions $4$.
+    \par
+    \subsection{true parameters}
+      \indent
+	I set true parameters below:
+	\begin{description}
+	  \item[mixture rate] $\pi_1 = 0.1 : \pi_2 =  0.2 : \pi_3 = 0.3 : \pi_4 = 0.4$
+	  \item[mean vectors] $\mu_1 = [-2,-2], \mu_2 = [-2,2], \mu_3 = [2,-2], \mu_4 = [2,2]$
+	  \item[covariance matrices]
+	    $
+	      \Sigma_1 = \Sigma_2 = \Sigma_3 = \Sigma_4 = I_2 =
+	      \begin{pmatrix}
+		1 & 0
+		\\
+		0 & 1
+	      \end{pmatrix}
+	    $
+	\end{description}
+	See Figure \ref{fig:true_contour} and Figure \ref{fig:true_persp} also.
+	\begin{figure}[h]
+	\centering
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{contour.pdf}
+	  \caption{contour}
+	  \label{fig:true_contour}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{persp.pdf}
+	  \caption{perspective}
+	  \label{fig:true_persp}
+	  \end{subfigure}
+	\caption{true distribution}
+	\label{fig:true}
+	\end{figure}
+      \par
+    \subsection{Tutor data}
+      \indent
+	I generated 1000 tutor data with R. See Figure \ref{fig:square1000}.
+	\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.96\columnwidth]{square1000.pdf}
+	\caption{1000 tutor data}
+	\label{fig:square1000}
+	\end{figure}
+      \par
+    \subsection{Initial parameters}
+      \indent
+	I generated 6000 initial parameters as below:
+	\begin{description}
+	  \item[mixture rate] First I generated 4 real numbers uniform distribution in $[0,1]$. Second I normalize them so that their sum is equal to 1 and set them as mixture rate. Repeated it 6000 times.
+	  \item[mean vectors] I generated 8 components of 4 vectors from uniform distribution in $[-10,10]$ and set them as mean vectors. Repeated it 6000 times.
+	  \item[covariance matrices] First I generated 16 components of 4 matrices from 6 gaussian distributions - 1000 from $N_1(0,1)$, 1000 from $N_1(0,4)$, 1000 from $N_1(0,25)$, 1000 from $N_1(0,0.25)$, 1000 from $N_1(0,100)$, 1000 from $N_1(0,2500)$. If the generated matrix is not invertible, regenerated. Second I produce each generated matrix and its tranposition, got 4 positive-definite symmetrical matrices, and set them as convariance matrices.
+	\end{description}
+      \par
+    \subsection{Stop condition}
+      \indent
+	I repeated EM algorithm until differences of all parameters and a logical likelifood through a step are greater than $\epsilon = 10^{-6}$, very small positive number. In addition, the program skip test with specific initial values in two cases: [1] In parameters update phase, some covariant matrix is not invertible(because of numerical error). [2] In logical likelifood calculate phase, probability distribution function with some tutor data is so small that $\log (\pi_i * \app{\mathrm{pdf}}{x_t})$ is evaluated $-\infty$.
+      \par
+    \subsection{Estimate}
+      \indent
+	I tried explaining convergence and its speed of EM algorithm with initial parameters. I constructed the following assumpotion:
+      \par
+      \indent
+	\begin{shadebox}
+	  \begin{itemize}
+	    \item The logical likelifood with initial parameters reflects similarity between initial mixture gaussian ditribution and true distribution. Therefore that explain convergence and its speed.
+	    \item Jensen-Shannon divergence among mixed initial gaussian distributions reflects flexibility initial gaussian mixture ditribution. Therefore that explain convergence and its speed.
+	  \end{itemize}
+	\end{shadebox}
+      \par
+      \indent
+	Jensen-Shannon divergence(JS divergence from now on) is commutative Kullback-Leibler devergence(KL divergence from now on). KL divergence of multi\_variate normal distribution is below:
+	\begin{align}
+	  \app{KL}{X_1, X_2} = \frac{1}{2}\paren{\log\frac{\absprn{\Sigma_2}}{\absprn{\Sigma_1}} + \tr\paren{\Sigma_2^{-1}\Sigma_1} + \trsps{\paren{\mu_1 - \mu_2}}\Sigma_2^{-1}\paren{\mu_1 - \mu_2} - d}
+	\end{align}
+	JS divergence below:
+	\begin{align}
+	  \app{JS}{X_1, X_2} = \frac{1}{4}\paren{\tr\paren{\Sigma_2^{-1}\Sigma_1} + \tr\paren{\Sigma_1^{-1}\Sigma_2} + \trsps{\paren{\mu_1 - \mu_2}}\paren{\Sigma_1^{-1} + \Sigma_2^{-1}}\paren{\mu_1 - \mu_2} - 2d}
+	\end{align}
+      \par
+    \subsection{Result and analysis}
+      \indent
+	First I removed records whose logical likelifood is $-\infty$ and devided records into two groups, Group 1 \textemdash param-converging and Group 2 \textemdash param-diverging. I made a two-sample Kolmogorov-Smirnov test for their mean of JS divergences between initial mixed distributions(JS mean), max of JS divergences between initial mixed distributions(JS max), initial logical likelifood(logL).
+      \par
+      \indent
+	According to the tests, all three variables are two-sided between Group 1 and 2. See Figure \ref{fig:condi} also.
+	\begin{figure}[h]
+	\centering
+	  \begin{subfigure}{0.32\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{loglogLcondi.pdf}
+	  \caption{log(logL)}
+	  \label{fig:loglogLcondi}
+	  \end{subfigure}
+	  \begin{subfigure}{0.32\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{logKLmeancondi.pdf}
+	  \caption{log(JSmean)}
+	  \label{fig:logJSmeancondi}
+	  \end{subfigure}
+	  \begin{subfigure}{0.32\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{logKLmaxcondi.pdf}
+	  \caption{log(JSmax)}
+	  \label{fig:logJSmaxcondi}
+	  \end{subfigure}
+	\caption{boxplot \textemdash converges or not}
+	\label{fig:condi}
+	\end{figure}
+      \par
+      \indent
+	Second I removed records in Group 2 and devided records into two groups again, Group 1' \textemdash settled in local optimum and Group 2' \textemdash settled in global optimum. I made a two-sample Kolmogorov-Smirnov test for the same three variables.
+      \par
+      \indent
+	All three variables are two-sided between Group 1' and 2' again. See Figure \ref{fig:localunlocal} also.
+	\begin{figure}[h]
+	\centering
+	  \begin{subfigure}{0.32\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{loglogLlocalunlocal.pdf}
+	  \caption{log(logL)}
+	  \label{fig:loglogLlocalunlocal}
+	  \end{subfigure}
+	  \begin{subfigure}{0.32\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{logKLmeanlocalunlocal.pdf}
+	  \caption{log(JSmean)}
+	  \label{fig:logJSmeanlocalunlocal}
+	  \end{subfigure}
+	  \begin{subfigure}{0.32\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{logKLmaxlocalunlocal.pdf}
+	  \caption{log(JSmax)}
+	  \label{fig:logJSmaxlocalunlocal}
+	  \end{subfigure}
+	\caption{boxplot \textemdash locally settled or not}
+	\label{fig:localunlocal}
+	\end{figure}
+      \par
+      \indent
+	Now we can conclude: JS mean, JS max, and logL, which are all charactoristics of initial parameters, are related whether EM converges or not, and if it does, whether EM settles in global optimum or not.
+      \par
+%
+  \section{Numerical experiment 2}
+    \indent
+      I estimated parameters of the true distribution by EM algorithm with: \textbf{Fixed true distribution, various tutor data, fixed initial parameters.} I set dimension $2$, number of mixed gaussian distributions $4$.
+    \par
+    \subsection{true parameters}
+      \indent
+	I set true parameters same as experiment 1.
+      \par
+    \subsection{Tutor data}
+      \indent
+	I generated 100, 500, 1000 tutor data with R. See Figure \ref{fig:square1000}.
+	\begin{figure}[h]
+	\centering
+	  \begin{subfigure}{0.32\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{square100.pdf}
+	  \caption{size 100}
+	  \label{fig:square100}
+	  \end{subfigure}
+	  \begin{subfigure}{0.32\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{square1000.pdf}
+	  \caption{size 1000}
+	  \label{fig:square1000}
+	  \end{subfigure}
+	  \begin{subfigure}{0.32\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{square5000.pdf}
+	  \caption{size 5000}
+	  \label{fig:square5000}
+	  \end{subfigure}
+	\caption{tutor data}
+	\label{fig:condi}
+	\end{figure}
+      \par
+    \subsection{Initial parameters}
+      \indent
+	I generated 1000 initial parameters as below:
+	\begin{description}
+	  \item[mixture rate] Exactly same as experiment 1.
+	  \item[mean vectors] Exactly same as experiment 1.
+	  \item[covariance matrices] First I generated 16 components of 4 matrices from a gaussian distribution $N_1(0,1)$ and get covariance matrices in the same way.
+	\end{description}
+      \par
+    \subsection{Stop condition}
+      \indent
+	Exactly same as experiment 1.
+      \par
+    \subsection{Estimate}
+      \indent
+	I tried explaining convergence and its speed of EM algorithm with size of tutor data. I constructed the following assumpotion:
+      \par
+      \indent
+	\begin{shadebox}
+	  \begin{itemize}
+	    \item The more tutor data you give, the more often EM algorithm converges, gets to the global optimum and the faster it does.
+	  \end{itemize}
+	\end{shadebox}
+      \par
+    \subsection{Result and analysis}
+      \indent
+	First I assumed: Sizes of tutor data influence convergence of EM algorithm(alternative hypothesis $H_1$). So I conducted independence test between size of tutor data and whether EM converges or not. According to the test, they are not independent(See Table \ref{tab:SandC} also).
+	\begin{table}[h]
+	  \centering
+	  \caption{Chi-square test(size and convergence)}
+	  \begin{tabular}{lrrr}
+	    \hline
+	    & 100 & 1000 & 5000
+	    \\ \hline
+	    converge & 106 & 252 & 320
+	    \\
+	    diverge & 894 & 748 & 680
+	    \\ \hline
+	    \rule{0pt}{1em}
+	    \\ \hline \hline
+	    \multicolumn{4}{c}{$p = 2.071e\mathhyphen 30$}
+	    \\ \hline \hline
+	  \end{tabular}
+	  \label{tab:SandC}
+	\end{table}
+      \par
+      \indent
+	Second I assumed: The larger tutor data we use, the more rapidly EM algorithm converges(alternative hypothesis $H_1$). So I extracted converged cases and applied ANOVA, size of tutor data to the step EM converges(See Figure \ref{fig:anovaconverge}).
+	\begin{figure}[h]
+	\centering
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{sizeconvergeRF.pdf}
+	  \caption{Residuals vs Fitted}
+	  \label{fig:sizeconvergeRF}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{sizeconvergeQQ.pdf}
+	  \caption{Normal Q-Q}
+	  \label{fig:sizeconvergeQQ}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{sizeconvergeSL.pdf}
+	  \caption{Scale-Location}
+	  \label{fig:sizeconvergeSL}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{sizeconvergeCook.pdf}
+	  \caption{Residuals vs Leverage}
+	  \label{fig:sizeconvergeCook}
+	  \end{subfigure}
+	\caption{ANOVA(size and converging speed)}
+	\label{fig:anovaconverge}
+	\end{figure}
+	At first look at figures, we realize that this model poorly explains data. Each group doesn't follow any gaussian distributions obviously, and therefore I test the same hypothesis with Kruskal-Wallis test(See Table \ref{tab:SandS})
+	\begin{table}[h]
+	  \centering
+	  \caption{Kruskal-Wallis test(size and converging speed)}
+	  \begin{tabular}{c}
+	    \hline \hline
+	    $p = 9.362e\mathhyphen 07$
+	    \\ \hline \hline
+	  \end{tabular}
+	  \label{tab:SandS}
+	\end{table}
+	Now we know that large tutor data accelerate EM convergence.
+      \par
+      \indent
+	Third I assumed: Sizes of tutor data influence settlement in the global optimum of EM algorithm(alternative hypothesis $H_1$). So I extracted converged cases and conducted independence test between size of tutor data and whether EM settles in the global optimum or not(just a local optimum). According to the test, they are not independent(See Table \ref{tab:SandG} also).
+	\begin{table}[h]
+	  \centering
+	  \caption{Chi-square test(size and global settlement)}
+	  \begin{tabular}{lrrr}
+	    \hline
+	    & 100 & 1000 & 5000
+	    \\ \hline
+	    global & 27 & 160 & 211
+	    \\
+	    local & 79 & 92 & 109
+	    \\ \hline
+	    \rule{0pt}{1em}
+	    \\ \hline \hline
+	    \multicolumn{4}{c}{$p = 3.141e\mathhyphen 13$}
+	    \\ \hline \hline
+	  \end{tabular}
+	  \label{tab:SandG}
+	\end{table}
+      \par
+      \indent
+	Fourth I assumed: The larger tutor data we use, the more rapidly EM algorithm converges into the global optimum(alternative hypothesis $H_1$). So I extracted global-optimum converged cases and applied ANOVA, size of tutor data to the step EM converges(See Figure \ref{fig:anovaglobal}).
+	\begin{figure}[h]
+	\centering
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{sizeglobalRF.pdf}
+	  \caption{Residuals vs Fitted}
+	  \label{fig:sizeglobalRF}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{sizeglobalQQ.pdf}
+	  \caption{Normal Q-Q}
+	  \label{fig:sizeglobalQQ}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{sizeglobalSL.pdf}
+	  \caption{Scale-Location}
+	  \label{fig:sizeglobalSL}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	  \centering
+	  \includegraphics[width=\columnwidth]{sizeglobalCook.pdf}
+	  \caption{Residuals vs Leverage}
+	  \label{fig:sizeglobalCook}
+	  \end{subfigure}
+	\caption{ANOVA(size and converging speed(global optimum))}
+	\label{fig:anovaglobal}
+	\end{figure}
+	Observing figures, we realize that data includes some outliers. I remove records 144, 344, 365 as outliers and reapplied ANOVA(See Figure \ref{fig:anovaglobalmod}).
+	\begin{figure}[h]
+	\centering
+	  \begin{subfigure}{0.48\columnwidth}
+	    \centering
+	    \includegraphics[width=\columnwidth]{sizeglobalRFmod.pdf}
+	    \caption{Residuals vs Fitted}
+	    \label{fig:sizeglobalRFmod}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	    \centering
+	    \includegraphics[width=\columnwidth]{sizeglobalQQmod.pdf}
+	    \caption{Normal Q-Q}
+	    \label{fig:sizeglobalQQmod}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	    \centering
+	    \includegraphics[width=\columnwidth]{sizeglobalSLmod.pdf}
+	    \caption{Scale-Location}
+	    \label{fig:sizeglobalSLmod}
+	  \end{subfigure}
+	  \begin{subfigure}{0.48\columnwidth}
+	    \centering
+	    \includegraphics[width=\columnwidth]{sizeglobalCookmod.pdf}
+	    \caption{Residuals vs Leverage}
+	    \label{fig:sizeglobalCookmod}
+	  \end{subfigure}
+	\caption{reANOVA(size and converging speed(global optimum))}
+	\label{fig:anovaglobalmod}
+	\end{figure}
+	Q-Q plot implies that an error doesn't follow any gaussian distribution. I confirmed it with Shapiro-Wilk test. The result is below:
+	\begin{table}[h]
+	  \centering
+	  \caption{Shapiro-Wilk test(normality of error)}
+	  \begin{tabular}{c}
+	    \hline \hline
+	    $p = 2.2e\mathhyphen 16$
+	    \\ \hline \hline
+	  \end{tabular}
+	  \label{tab:SandS}
+	\end{table}
+	It says that error has no normality, meaning that I can't apply ANOVA to this data. I took Kruskal-Wallis test I conducted with the second hypothesis.
+	\begin{table}[h]
+	  \centering
+	  \caption{Kruskal-Wallis test(size and converging speed)}
+	  \begin{tabular}{c}
+	    \hline \hline
+	    $p = 7.692e\mathhyphen -15$
+	    \\ \hline \hline
+	  \end{tabular}
+	  \label{tab:SandS}
+	\end{table}
+	Now we know that large tutor data accelerate EM convergence into the global optimum.
+      \par
+      \indent
+	Now we can conclude that 
+      \par
+%
+  \section{EM algorithm}
+%
+  \section{Source code}
+    \indent
+      \lstinputlisting[caption=pdist.hpp,label=pdist]{pdist.hpp}
+      \lstinputlisting[caption=detail/pdist.hpp,label=dpdist]{detail/pdist.hpp}
+      \lstinputlisting[caption=datastruct.hpp,label=datastruct]{datastruct.hpp}
+      \lstinputlisting[caption=detail/datastruct.hpp,label=ddatastruct]{detail/datastruct.hpp}
+      \lstinputlisting[caption=EMalgorithm.hpp,label=EMalgorithm]{EMalgorithm.hpp}
+      \lstinputlisting[caption=detail/EMalgorithm.hpp,label=dEMalgorithm]{detail/EMalgorithm.hpp}
+    \par
+%
+  \begin{thebibliography}{9}
+    \bibitem{最適化手法} 寒野善博・土谷隆・東京大学工学教程編纂委員会編．東京大学工学教程　基礎系　数学　最適化と変分法．丸善出版，2014，304p
+    \bibitem{構造力学} 前田潤滋・山口謙太郎・中原浩之．建築の構造力学．朝倉書店，2010
+    \bibitem{宮代} 宮代隆平．"整数計画法メモ"．宮代 隆平 の web ページ．(オンライン)，入手先〈http://www.tuat.ac.jp/~miya/ipmemo.html〉，(参照2015-04-03)． 
+  \end{thebibliography}
+%
+\end{document}

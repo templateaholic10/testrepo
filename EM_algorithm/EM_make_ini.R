@@ -11,4 +11,4 @@ for (i in 2:initial_num) {
 }
 
 mydata.frame <- data.frame(mydata)
-write.table( mydata,paste(filepath,"data01/","square_initial.csv",sep=""), sep=",",row=F,col=F,qme="double")
+write.table( mydata,paste(filepath,"data03/","square_initial01.csv",sep=""), sep=",",row=F,col=F,qme="double")
