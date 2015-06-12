@@ -1,0 +1,2 @@
+mu ~ unif(-10,10)
+sigma ~ norm(0,25)
