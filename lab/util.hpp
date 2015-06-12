@@ -56,7 +56,7 @@ namespace util {
     using nresult_of_t = typename nresult_of<Functor, T, n>::type;
 
     // std::arrayの拡張
-    // ルーチェさんの実装を丸パクリしただけです．
+    // --- ここから人様のコピペ
 
     // [1次元]
 
@@ -133,6 +133,8 @@ namespace util {
     {
         return typename common_array_type <TArgs ...>::type { std::forward <TArgs>(args) ... };
     }
+
+    // --- ここまで人様のコピペ
 
     // ・convert_arrayメタ関数
     // multi_array<T1, ...>からmulti_array<T2, ...>を得る．
