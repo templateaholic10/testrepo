@@ -13,11 +13,19 @@
 namespace util {
     // ・repeat関数
     // 文字列strをdelimで区切ってn回osに出力する
-    void repeat(std::ostream &os, const std::string &str, int n, char delim='\0')
+    void repeat(std::ostream &os, const std::string &str, int n)
     {
         for (int i = 0; i < n; i++) {
-            os << str << ((i != n - 1) ? delim : '\0');
+            os << str;
         }
+    }
+
+    void repeat(std::ostream &os, const std::string &str, int n, char delim)
+    {
+        for (int i = 0; i < n-1; i++) {
+            os << str << delim;
+        }
+        os << str;
     }
 
     // ・nresult_ofメタ関数
