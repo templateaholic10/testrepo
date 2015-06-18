@@ -9,15 +9,85 @@
 #include <type_traits>
 #include <utility>
 #include <cstddef>
+#include <tuple>
+#include <boost/optional.hpp>
 
 namespace util {
     // ・repeat関数
     // 文字列strをdelimで区切ってn回osに出力する
-    void repeat(std::ostream &os, const std::string &str, int n, char delim='\0')
+    void repeat(std::ostream &os, const std::string &str, int n)
     {
         for (int i = 0; i < n; i++) {
-            os << str << ((i != n - 1) ? delim : '\0');
+            os << str;
         }
+    }
+
+    void repeat(std::ostream &os, const std::string &str, int n, char delim)
+    {
+        for (int i = 0; i < n - 1; i++) {
+            os << str << delim;
+        }
+        os << str;
+    }
+
+    // ・HSVtoRGB関数
+    // hue \in \set{Z}, saturation = 0, ..., 255, value = 0, ..., 255.
+    boost::optional <std::tuple <int, int, int> > HSVtoRGB(int hue, int saturation, int value)
+    {
+        if (saturation < 0 || saturation > 255) {
+            return boost::none;
+        }
+        if (value < 0 || value > 255) {
+            return boost::none;
+        }
+
+        int    hi, p, q, t;
+        double f;
+
+        hi = (hue / 60) % 6;
+        f  = hue / 60. - static_cast <int>(hue / 60.);
+        p  = static_cast <int>(round(value * (1. - (saturation / 255.))));
+        q  = static_cast <int>(round(value * (1. - (saturation / 255.) * f)));
+        t  = static_cast <int>(round(value * (1. - (saturation / 255.) * (1. - f))));
+
+        int red, green, blue;
+        switch (hi)
+        {
+            case 0:
+                red   = value;
+                green = t;
+                blue  = p;
+                break;
+            case 1:
+                red   = q;
+                green = value;
+                blue  = p;
+                break;
+            case 2:
+                red   = p;
+                green = value;
+                blue  = t;
+                break;
+            case 3:
+                red   = p;
+                green = q;
+                blue  = value;
+                break;
+            case 4:
+                red   = t;
+                green = p;
+                blue  = value;
+                break;
+            case 5:
+                red   = value;
+                green = p;
+                blue  = q;
+                break;
+            default:
+                return boost::none;
+                break;
+        }
+        return std::tuple<int, int, int>(red, green, blue);
     }
 
     // ・nresult_ofメタ関数
@@ -33,7 +103,7 @@ namespace util {
     template <typename Functor, typename T, typename ... Args>
     struct _nresult_of_sub <Functor, T, 0, Args ...>
     {
-        using type = typename std::result_of <Functor(Args...)>::type;
+        using type = typename std::result_of <Functor(Args ...)>::type;
     };
 
     template <typename Functor, typename T, int n>
@@ -53,7 +123,7 @@ namespace util {
 
     // エイリアステンプレート
     template <typename Functor, typename T, int n>
-    using nresult_of_t = typename nresult_of<Functor, T, n>::type;
+    using nresult_of_t = typename nresult_of <Functor, T, n>::type;
 
     // std::arrayの拡張
     // --- ここから人様のコピペ
@@ -441,7 +511,6 @@ namespace util {
             }
         }
     };
-
 }
 
 #endif
