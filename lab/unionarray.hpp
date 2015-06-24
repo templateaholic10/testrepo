@@ -1,14 +1,14 @@
-﻿#ifndef GOODARRAY
-#define GOODARRAY
+﻿#ifndef UNIONARRAY
+#define UNIONARRAY
 
 #include <cmath>
 #include <algorithm>
 #include "protoarray.hpp"
 #include "util.hpp"
 
-namespace goodarray {
+namespace unionarray {
     template <std::size_t length>
-    class Primitivebitarray
+    class Unionbitarray
         : protoarray::Protobitarray <length>
     {
     public:
@@ -16,15 +16,15 @@ namespace goodarray {
         using time_t     = typename protoarray::Protobitarray <length>::time_t;
         using position_t = typename protoarray::Protobitarray <length>::position_t;
     public:
-        constexpr Primitivebitarray();
-        constexpr Primitivebitarray(const std::bitset <length> org_array);
-        constexpr Primitivebitarray(const int org_array);
-        // ~Primitivebitarray()                                  = default;
-        // Primitivebitarray(const Primitivebitarray&)           = default;
-        // Primitivebitarray&operator=(const Primitivebitarray&) = default;
+        constexpr Unionbitarray();
+        constexpr Unionbitarray(const std::bitset <length> org_array);
+        constexpr Unionbitarray(const int org_array);
+        // ~Unionbitarray()                                  = default;
+        // Unionbitarray(const Unionbitarray&)           = default;
+        // Unionbitarray&operator=(const Unionbitarray&) = default;
 
-        // Primitivebitarray(Primitivebitarray&&)           = default;
-        // Primitivebitarray&operator=(Primitivebitarray&&) = default;
+        // Unionbitarray(Unionbitarray&&)           = default;
+        // Unionbitarray&operator=(Unionbitarray&&) = default;
 
         // O(logn)時間．
         constexpr boost::optional <element_t> access(const position_t index) const;
@@ -38,7 +38,7 @@ namespace goodarray {
         constexpr size_t                       size() const;
 
         template <std::size_t length1>
-        friend std::ostream&operator<<(std::ostream &os, const Primitivebitarray <length1> &pb);
+        friend std::ostream&operator<<(std::ostream &os, const Unionbitarray <length1> &pb);
 
     private:
         constexpr void                         build();
@@ -67,9 +67,9 @@ namespace goodarray {
         std::array <std::bitset <block_elemsize>, block_num>           _block_rank1;
     };
 
-    void testPrimitivebitarray();
+    void testUnionbitarray();
 }
 
-#include "detail/goodarray.hpp"
+#include "detail/unionarray.hpp"
 
 #endif

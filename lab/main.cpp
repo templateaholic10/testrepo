@@ -3,7 +3,7 @@
 #include "functor.hpp"
 #include "utiltest.hpp"
 #include "test_simple_svg.hpp"
-#include "goodarray.hpp"
+#include "unionarray.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
 
     // test_simple_svg::test_pinwheel();
 
-    goodarray::testPrimitivebitarray();
+    unionarray::testUnionbitarray();
 
     return 0;
 }

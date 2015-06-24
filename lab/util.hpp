@@ -12,10 +12,47 @@
 #include <tuple>
 #include <bitset>
 #include <boost/optional.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/less_equal.hpp>
+#include <boost/mpl/size_t.hpp>
+#include <boost/mpl/sizeof.hpp>
 
 namespace util {
     // ・epsilon
     constexpr double epsilon = 10e-6;
+
+    // ・bit_containerメタ関数
+    struct none
+    {
+        using type = none;
+    };
+
+    template <std::size_t bit_length>
+    struct bit_container
+    {
+        // ビット長を覆う最小バイト長
+        using bin_length_t       = boost::mpl::size_t <(bit_length - 1) / 8 + 1>;
+        using bin_length_char_t  = boost::mpl::sizeof_ <unsigned char>;
+        using bin_length_short_t = boost::mpl::sizeof_ <unsigned short>;
+        using bin_length_int_t   = boost::mpl::sizeof_ <unsigned int>;
+        using bin_length_long_t  = boost::mpl::sizeof_ <unsigned long>;
+        using type               = typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_char_t>,
+                                                             unsigned char,
+                                                             typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_short_t>,
+                                                                                       unsigned short,
+                                                                                       typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_int_t>,
+                                                                                                                 unsigned int,
+                                                                                                                 typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_long_t>,
+                                                                                                                                           unsigned long,
+                                                                                                                                           none
+                                                                                                                                           >::type
+                                                                                                                 >::type
+                                                                                       >::type
+                                                             >::type;
+    };
+
+    template <std::size_t bit_length>
+    using bit_container_t = typename bit_container <bit_length>::type;
 
     // ・repeat関数
     // 文字列strをdelimで区切ってn回osに出力する
@@ -103,7 +140,7 @@ namespace util {
     {
         T result = container;
         for (size_t i = 0; i < container.size(); i++) {
-            result[i] = container[container.size()-1-i];
+            result[i] = container[container.size() - 1 - i];
         }
 
         return std::move(result);
@@ -114,12 +151,13 @@ namespace util {
     struct Slice
     {
         template <template <int> class T, int n>
-        constexpr static T <j - i> slice(const T <n>& container)
+        constexpr static T <j - i> slice(const T <n> &container)
         {
-            T<j-i> result;
+            T <j - i> result;
             for (size_t k = i; k < j; k++) {
-                result[k-i] = container[k];
+                result[k - i] = container[k];
             }
+
             return std::move(result);
         }
     };
