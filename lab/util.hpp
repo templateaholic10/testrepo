@@ -97,11 +97,14 @@ namespace util {
     }
 
     // ・reverse関数
+    // イテレータがない場合．
     template <class T>
     constexpr T reverse(const T &container)
     {
         T result = container;
-        std::reverse(result.begin(), result.end());
+        for (size_t i = 0; i < container.size(); i++) {
+            result[i] = container[container.size()-1-i];
+        }
 
         return std::move(result);
     }
@@ -228,7 +231,7 @@ namespace util {
     template <typename T, typename ... Args>
     constexpr std::array <T, sizeof ... (Args)> make_array(Args&& ... args)
     {
-        return std::array <T, sizeof ... (Args)> { static_cast <Args &&>(args) ... }
+        return std::array <T, sizeof ... (Args)> { static_cast <Args &&>(args) ... };
     }
 
     // コンパイル時に作成したstd::arrayについてはコンパイル時assert（static_assert）で要素数などをチェック可能．そのためのconstexprなsize関数を定義する．

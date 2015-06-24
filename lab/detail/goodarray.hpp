@@ -35,18 +35,14 @@ namespace goodarray {
         // i番目のブロックの開始線でのrankを格納．
         for (size_t i = 0; i < length; i++) {
             if (i % superblock_size == 0) {
-                lastrank = _superblock_rank1[i / superblock_size] = lastrank + subrank;
-                subrank  = 0;
+                lastrank                               = lastrank + subrank;
+                _superblock_rank1[i / superblock_size] = lastrank;
+                subrank                                = 0;
             }
             if (i % block_size == 0) {
                 _block_rank1[i / block_size] = subrank;
             }
             subrank += _org_array[i];
-        }
-
-        // ルックアップテーブルの作成．
-        for (size_t i = 0; i < table_size; i++) {
-            _lookup_table[i] = std::bitset <table_elemsize>(i).count();
         }
     }
 
@@ -56,64 +52,61 @@ namespace goodarray {
         if (index < 0 || index >= length) {
             return boost::none;
         } else {
-            return rank1(index) - rank(index - 1);
+            return *rank1(index) - *rank1(index - 1);
         }
     }
 
     template <std::size_t length>
     constexpr boost::optional <typename Primitivebitarray <length>::time_t> Primitivebitarray <length>::rank1(const position_t index) const
     {
-        if (index < 0 || index >= length) {
+        if (index <= 0 || index > length) {
             return boost::none;
         } else {
             // どのsuperblockに属しているか（0-origin）．
-            const int superblock_index = index / superblock_size;
+            const int superblock_index = (index - 1) / superblock_size;
+
             // どのblockに属しているか（0-origin）．
-            const int block_index = index / block_size;
-            int       rest_index  = index % block_index;
+            const int block_index = (index - 1) / block_size;
 
-            const auto rest = util::Slice <block_index *block_size, block_index *block_size + rest_index>::slice(_org_array);
+            // 線形探索
+            int rest_rank = 0;
+            for (size_t i = block_index * block_size; i < index; i++) {
+                rest_rank += _org_array[i];
+            }
 
-            return _superblock_rank1[superblock_index] +
-                   _block_rank1[block_index] +
-                   _lookup_table[util::Slice < 0, table_elemsize > ::slice(rest).to_ulong()] +
-                   _lookup_table[util::Slice < table_elemsize, table_elemsize * 2 > ::slice(rest).to_ulong()];
+            return _superblock_rank1[superblock_index].to_ulong() +
+                   _block_rank1[block_index].to_ulong() + rest_rank;
         }
     }
 
     template <std::size_t length>
     constexpr boost::optional <typename Primitivebitarray <length>::time_t> Primitivebitarray <length>::rank(const element_t a, const position_t index) const
     {
-        if (index < 0 || index >= length) {
+        if (index <= 0 || index > length) {
             return boost::none;
         } else if (a == 0) {
-            return index + 1 - rank1(index);
+            return index - *rank1(index);
         } else if (a == 1) {
-            return rank1(index);
+            return *rank1(index);
         } else {
             return boost::none;
         }
     }
 
     template <std::size_t length>
-    constexpr boost::optional <typename Primitivebitarray <length>::position_t> Primitivebitarray <length>::select(const element_t a, const time_t order) const
+    constexpr boost::optional <typename Primitivebitarray <length>::position_t> Primitivebitarray <length>::select1(const time_t order) const
     {
-        if (a != 0 && a != 1) {
-            return boost::none;
-        } else if (order <= 0 || order > *(this->rank(a, length - 1))) {
+        if (order <= 0) {
             return boost::none;
         } else {
             int rest_order = order;
 
             // superblockの二分探索
-            auto superblock_rank = [&](int a, int index) -> int {
-                                       return (a == 0) ? (superblock_size * index + 1 - _superblock_rank1[index]) : (_superblock_rank1[index]);
-                                   };
             int lower_superblock  = 0, upper_superblock = superblock_num;
             int center_superblock = 0;
             for (;; ) {
                 center_superblock = (lower_superblock + upper_superblock) / 2;
-                if (superblock_rank(a, center_superblock) >= order) {
+                if (_superblock_rank1[center_superblock].to_ulong() >= order) {
                     // 前半に入っている場合
                     // orderと一致する場合もこちら
                     upper_superblock = center_superblock;
@@ -126,17 +119,17 @@ namespace goodarray {
                     break;
                 }
             }
-            rest_order -= superblock_rank(a, upper_superblock);
+            rest_order -= _superblock_rank1[upper_superblock].to_ulong();
 
             // blockの二分探索
-            auto block_rank = [&](int a, int index) -> int {
-                                  return (a == 0) ? (index + 1 - _block_rank1[index]) : (_block_rank1[index]);
-                              };
-            int lower_block  = lower_superblock * block_num_in_super, upper_block = std::min(upper_superblock * block_num_in_super, block_num);
+            int lower_block = lower_superblock * block_num_in_super;
+            int tmp         = block_num;
+            int upper_block = std::min(upper_superblock * block_num_in_super, tmp);
+
             int center_block = 0;
             for (;; ) {
                 center_block = (lower_block + upper_block) / 2;
-                if (_block_rank1[center_block] >= rest_order) {
+                if (_block_rank1[center_block].to_ulong() >= rest_order) {
                     // 前半に入っている場合
                     // orderと一致する場合もこちら
                     upper_block = center_block;
@@ -149,56 +142,140 @@ namespace goodarray {
                     break;
                 }
             }
-            rest_order -=  _block_rank1[upper_block];
+            rest_order -=  _block_rank1[upper_block].to_ulong();
 
             // 線形探索
-            int lower = lower_block * block_size;
-            int upper = std::min(upper_block * block_size, length);
-            int index = 0;
+            int  lower     = lower_block * block_size;
+            int  upper     = std::min(upper_block * block_size, length);
+            int  index     = 0;
+            bool finded_tf = false;
             for (index = lower; index < upper; index++) {
                 if (_org_array[index] == 1) {
                     rest_order--;
                     if (rest_order <= 0) {
+                        finded_tf = true;
                         break;
                     }
                 }
             }
+            if (finded_tf) {
+                return index + 1;
+            } else {
+                // インデックスを抜けてしまった．
+                return boost::none;
+            }
+        }
+    }
 
-            return index;
+    template <std::size_t length>
+    constexpr boost::optional <typename Primitivebitarray <length>::position_t> Primitivebitarray <length>::select0(const time_t order) const
+    {
+        if (order <= 0) {
+            return boost::none;
+        } else {
+            int rest_order = order;
+
+            // superblockの二分探索
+            int lower_superblock  = 0, upper_superblock = superblock_num;
+            int center_superblock = 0;
+            for (;; ) {
+                center_superblock = (lower_superblock + upper_superblock) / 2;
+                if (superblock_size * center_superblock - _superblock_rank1[center_superblock].to_ulong() >= order) {
+                    // 前半に入っている場合
+                    // orderと一致する場合もこちら
+                    upper_superblock = center_superblock;
+                } else {
+                    // 後半に入っている場合
+                    lower_superblock = center_superblock;
+                }
+                // 停止条件
+                if (upper_superblock - lower_superblock <= 1) {
+                    break;
+                }
+            }
+            rest_order -= superblock_size * upper_superblock - _superblock_rank1[center_superblock].to_ulong();
+
+            // blockの二分探索
+            int lower_block           = lower_superblock * block_num_in_super;
+            int tmp                   = block_num;
+            int upper_block           = std::min(upper_superblock * block_num_in_super, tmp);
+            int center_block          = 0;
+            int center_block_relative = 0;
+            for (;; ) {
+                center_block          = (lower_block + upper_block) / 2;
+                center_block_relative = center_block - block_num_in_super * upper_superblock;
+                if (block_size * center_block_relative - _block_rank1[center_block].to_ulong() >= rest_order) {
+                    // 前半に入っている場合
+                    // orderと一致する場合もこちら
+                    upper_block = center_block;
+                } else {
+                    // 後半に入っている場合
+                    lower_block = center_block;
+                }
+                // 停止条件
+                if (upper_block - lower_block <= 1) {
+                    break;
+                }
+            }
+            int upper_block_relative = upper_block - block_num_in_super * upper_superblock;
+            rest_order -=  block_size * upper_block_relative - _block_rank1[upper_block].to_ulong();
+
+            // 線形探索
+            int  lower     = lower_block * block_size;
+            int  upper     = std::min(upper_block * block_size, length);
+            int  index     = 0;
+            bool finded_tf = false;
+            for (index = lower; index < upper; index++) {
+                if (_org_array[index] == 0) {
+                    rest_order--;
+                    if (rest_order <= 0) {
+                        finded_tf = true;
+                        break;
+                    }
+                }
+            }
+            if (finded_tf) {
+                return index + 1;
+            } else {
+                // インデックスを抜けてしまった．
+                return boost::none;
+            }
         }
     }
 
     template <std::size_t length>
     constexpr boost::optional <typename Primitivebitarray <length>::position_t> Primitivebitarray <length>::select(const element_t a, const time_t order) const
     {
-        if (order <= 0 || order > *(this->rank(a, length - 1))) {
+        if (a != 0 && a != 1) {
             return boost::none;
+        } else if (a == 0) {
+            return select0(order);
         } else {
-            // superblockの二分探索
-            int lower  = 0, upper = superblock_num;
-            int center = 0;
-            for (;; ) {
-                center = (lower + upper) / 2;
-                if (_superblock_rank1[center] >= order) {
-                    // 前半に入っている場合
-                    // orderと一致する場合もこちら
-                    upper = center;
-                } else if (_superblock_rank1[center] < order) {
-                    // 後半に入っている場合
-                    lower = center;
-                }
-                // 停止条件
-                if (upper - lower <= 1) {
-                    break;
-                }
-            }
+            return select1(order);
         }
+    }
+
+    template <std::size_t length>
+    constexpr size_t Primitivebitarray <length>::size() const
+    {
+        return length;
+    }
+
+    template <std::size_t length>
+    std::ostream&operator<<(std::ostream &os, const Primitivebitarray <length> &pb)
+    {
+        os << util::reverse(pb._org_array);
+
+        return os;
     }
 
     void testPrimitivebitarray()
     {
-        constexpr std::bitset <4> bs(9);
-        constexpr int             n = bs[1];
+        Primitivebitarray <9> pb = Primitivebitarray <9>(44);
+        std::cout << pb << std::endl;
+        std::cout << "access(4) = " << *pb.access(4) << std::endl;
+        std::cout << "rank0(4) = " << *pb.rank(0, 4) << std::endl;
+        std::cout << "select1(2) = " << *pb.select(1, 2) << std::endl;
     }
 }
 

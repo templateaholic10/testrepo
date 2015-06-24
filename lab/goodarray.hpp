@@ -11,6 +11,7 @@ namespace goodarray {
     class Primitivebitarray
         : protoarray::Protobitarray <length>
     {
+    public:
         using element_t  = typename protoarray::Protobitarray <length>::element_t;
         using time_t     = typename protoarray::Protobitarray <length>::time_t;
         using position_t = typename protoarray::Protobitarray <length>::position_t;
@@ -28,11 +29,16 @@ namespace goodarray {
         // o(n)ビットの補助領域を用いてO(1)時間で解答．
         constexpr boost::optional <element_t> access(const position_t index) const;
 
-        // Jacobsonの方法．o(n)ビットの補助領域でO(1)時間．
+        // Jacobsonの方法をシンプルにしたもの．O(logn)時間．
         constexpr boost::optional <time_t> rank(const element_t a, const position_t index) const;
 
         // 2分探索．O(logn)時間．
         constexpr boost::optional <position_t> select(const element_t a, const time_t order) const;
+
+        constexpr size_t                       size() const;
+
+        template <std::size_t length1>
+        friend std::ostream&operator<<(std::ostream &os, const Primitivebitarray <length1> &pb);
 
     private:
         constexpr void                         build();
@@ -40,6 +46,8 @@ namespace goodarray {
         constexpr boost::optional <time_t>     rank1(const position_t index) const;
 
         constexpr boost::optional <position_t> select1(const time_t order) const;
+
+        constexpr boost::optional <position_t> select0(const time_t order) const;
 
         static constexpr size_t superblock_size     = util::power(util::lg(length), 2);
         static constexpr int    superblock_num      = util::iceil(static_cast <double>(length) / superblock_size);
@@ -57,7 +65,6 @@ namespace goodarray {
         const std::bitset <length>                                     _org_array;
         std::array <std::bitset <superblock_elemsize>, superblock_num> _superblock_rank1;
         std::array <std::bitset <block_elemsize>, block_num>           _block_rank1;
-        std::array <std::bitset <table_elemsize>, table_size>          _lookup_table;
     };
 
     void testPrimitivebitarray();

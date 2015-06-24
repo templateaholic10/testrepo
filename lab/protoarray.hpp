@@ -8,29 +8,35 @@
 
 namespace protoarray {
     // バイナリ上の長さnの配列
+    // ビット""列""として見ているので1-origin
     template <std::size_t length>
     class Protobitarray
     {
+    public:
         using element_t  = int;  // ただし2値
         using time_t     = int;
-        using position_t = int;  // ただし0-origin
+        using position_t = int;  // ただし1-origin
     public:
-        Protobitarray();
-        virtual ~Protobitarray()                      = default;
-        Protobitarray(const Protobitarray&)           = delete;
-        Protobitarray&operator=(const Protobitarray&) = delete;
+        // Protobitarray();
+        // virtual ~Protobitarray()                      = default;
+        // Protobitarray(const Protobitarray&)           = delete;
+        // Protobitarray&operator=(const Protobitarray&) = delete;
+        //
+        // Protobitarray(Protobitarray&&)           = delete;
+        // Protobitarray&operator=(Protobitarray&&) = delete;
 
-        Protobitarray(Protobitarray&&)           = delete;
-        Protobitarray&operator=(Protobitarray&&) = delete;
+        // index \nin [1,n]で失敗する．
+        virtual constexpr boost::optional <element_t> access(const position_t index) const = 0;
 
-        // index \nin [0,n)で失敗する．
-        virtual constexpr boost::optional <element_t> access(position_t index) = 0;
+        // index \nin [1,n]で失敗する．
+        virtual constexpr boost::optional <time_t> rank(const element_t a, const position_t index) const = 0;
 
-        // index \nin [0,n)で失敗する．
-        virtual constexpr boost::optional <time_t> rank(element_t a, position_t index) = 0;
+        // order <= 0またはorder > rank(a,length)で失敗する．
+        virtual constexpr boost::optional <position_t> select(const element_t a, const time_t order) const = 0;
 
-        // order <= 0またはorder > rank(a,length-1)で失敗する．
-        virtual constexpr boost::optional <position_t> select(element_t a, time_t order) = 0;
+        virtual constexpr size_t size() const = 0;
+
+        friend std::ostream& operator<<(std::ostream& os, const Protobitarray<length>& pb);
     };
 
     // アルファベット[0, alphasup)上の長さnの配列
@@ -49,11 +55,13 @@ namespace protoarray {
         Protoarray(Protoarray&&)                                     = delete;
         Protoarray                          &operator=(Protoarray&&) = delete;
 
-        virtual boost::optional <element_t>  access(position_t index) = 0;
+        virtual boost::optional <element_t>  access(const position_t index) const = 0;
 
-        virtual boost::optional <time_t>     rank(element_t a, position_t index) = 0;
+        virtual boost::optional <time_t>     rank(const element_t a, const position_t index) const = 0;
+const
+        virtual boost::optional <position_t> select(const element_t a, const time_t order) const = 0;
 
-        virtual boost::optional <position_t> select(element_t a, time_t order) = 0;
+        virtual constexpr size_t size() const = 0;
     };
 }
 
