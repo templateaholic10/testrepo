@@ -32,7 +32,9 @@ int main(int argc, char const *argv[])
     // // convert_arrayのテスト
     // // testconvert_array();
 
-    test_simple_svg::test_pinwheel();
+    // test_simple_svg::test_pinwheel();
+
+
 
     return 0;
 }

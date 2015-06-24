@@ -10,9 +10,13 @@
 #include <utility>
 #include <cstddef>
 #include <tuple>
+#include <bitset>
 #include <boost/optional.hpp>
 
 namespace util {
+    // ・epsilon
+    constexpr double epsilon = 10e-6;
+
     // ・repeat関数
     // 文字列strをdelimで区切ってn回osに出力する
     void repeat(std::ostream &os, const std::string &str, int n)
@@ -29,6 +33,93 @@ namespace util {
         }
         os << str;
     }
+
+    // ・power関数
+    template <typename T>
+    constexpr T power(const T base, int exponent)
+    {
+        T result = base;
+        for (int i = 1; i < exponent; i++) {
+            result *= base;
+        }
+
+        return result;
+    }
+
+    // ・lg関数
+    // ビット長を求める．
+    constexpr int lg(const int n)
+    {
+        int _n  = n;
+        int lgn = 0;
+        while (_n) {
+            lgn++;
+            _n >>= 1;
+        }
+
+        return lgn;
+    }
+
+    // ・ifloor関数
+    constexpr int ifloor(const double d)
+    {
+        if (d > 0) {
+            // 正の場合
+            return static_cast <int>(d);
+        } else {
+            // 負の場合
+            return static_cast <int>(d + epsilon) - 1;
+        }
+    }
+
+    // ・iceil関数
+    constexpr int iceil(const double d)
+    {
+        if (d > 0) {
+            // 正の場合
+            return static_cast <int>(d - epsilon) + 1;
+        } else {
+            // 負の場合
+            return static_cast <int>(d);
+        }
+    }
+
+    // ・iround関数
+    constexpr int iround(const double d)
+    {
+        if (d > 0) {
+            // 正の場合
+            return static_cast <int>(d + 0.5);
+        } else {
+            // 負の場合
+            return static_cast <int>(d - 0.5);
+        }
+    }
+
+    // ・reverse関数
+    template <class T>
+    constexpr T reverse(const T &container)
+    {
+        T result = container;
+        std::reverse(result.begin(), result.end());
+
+        return std::move(result);
+    }
+
+    // ・slice関数
+    template <int i, int j>
+    struct Slice
+    {
+        template <template <int> class T, int n>
+        constexpr static T <j - i> slice(const T <n>& container)
+        {
+            T<j-i> result;
+            for (size_t k = i; k < j; k++) {
+                result[k-i] = container[k];
+            }
+            return std::move(result);
+        }
+    };
 
     // ・HSVtoRGB関数
     // hue \in \set{Z}, saturation = 0, ..., 255, value = 0, ..., 255.
@@ -84,10 +175,12 @@ namespace util {
                 blue  = q;
                 break;
             default:
+
                 return boost::none;
                 break;
         }
-        return std::tuple<int, int, int>(red, green, blue);
+
+        return std::tuple <int, int, int>(red, green, blue);
     }
 
     // ・nresult_ofメタ関数
@@ -135,7 +228,7 @@ namespace util {
     template <typename T, typename ... Args>
     constexpr std::array <T, sizeof ... (Args)> make_array(Args&& ... args)
     {
-        return std::array <T, sizeof ... (Args)> { static_cast <Args &&>(args) ... };
+        return std::array <T, sizeof ... (Args)> { static_cast <Args &&>(args) ... }
     }
 
     // コンパイル時に作成したstd::arrayについてはコンパイル時assert（static_assert）で要素数などをチェック可能．そのためのconstexprなsize関数を定義する．
