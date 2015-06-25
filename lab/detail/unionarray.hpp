@@ -6,21 +6,42 @@
 namespace unionarray {
     template <std::size_t length>
     constexpr Unionbitarray <length>::Unionbitarray()
-        : _org_array(0)
+        : _org_array(util::constexpr_array<block_t, block_num>())
     {
         build();
     }
 
     template <std::size_t length>
-    constexpr Unionbitarray <length>::Unionbitarray(const std::bitset <length> org_array)
+    constexpr Unionbitarray <length>::Unionbitarray(const char org_array[length])
+        : _org_array(util::c_str_to_bin<block_t, block_num>(org_array, length))
+    {
+        build();
+    }
+
+    template <std::size_t length>
+    constexpr Unionbitarray <length>::Unionbitarray(const unsigned char org_array)
         : _org_array(org_array)
     {
         build();
     }
 
     template <std::size_t length>
-    constexpr Unionbitarray <length>::Unionbitarray(const int org_array)
-        : _org_array(util::reverse(std::bitset <length>(org_array)))
+    constexpr Unionbitarray <length>::Unionbitarray(const unsigned short org_array)
+        : _org_array(org_array)
+    {
+        build();
+    }
+
+    template <std::size_t length>
+    constexpr Unionbitarray <length>::Unionbitarray(const unsigned int org_array)
+        : _org_array(org_array)
+    {
+        build();
+    }
+
+    template <std::size_t length>
+    constexpr Unionbitarray <length>::Unionbitarray(const unsigned long org_array)
+        : _org_array(org_array)
     {
         build();
     }
@@ -271,18 +292,13 @@ namespace unionarray {
 
     void testUnionbitarray()
     {
-        // std::cout << sizeof(util::bit_container <8>::type) << std::endl;
-        // std::cout << sizeof(util::bit_container <9>::type) << std::endl;
-        // std::cout << sizeof(util::bit_container <20>::type) << std::endl;
-        // std::cout << boost::mpl::int_ <sizeof(unsigned int)>::value << std::endl;
-        // static_assert(std::is_same<util::bit_container<static_cast<std::size_t>(5)>::type, unsigned char>::value, "bit_container error!");
-        using hoge = util::bit_container<65>;
-        std::cout << hoge::bin_length_t::value << std::endl;
-        std::cout << hoge::bin_length_char_t::value << std::endl;
-        std::cout << hoge::bin_length_short_t::value << std::endl;
-        std::cout << hoge::bin_length_int_t::value << std::endl;
-        std::cout << hoge::bin_length_long_t::value << std::endl;
-        std::cout << sizeof(hoge::type) << std::endl;
+        constexpr const char *str = "0111001001001100";
+        constexpr auto        a   = util::c_str_to_bin <unsigned char, 2>(str, 16);
+        for (int i = 0; i < a.size(); i++) {
+            std::cout << static_cast <unsigned long>(a[i]) << " ";
+        }
+        std::cout << std::endl;
+        util::imprementation_test();
     }
 }
 

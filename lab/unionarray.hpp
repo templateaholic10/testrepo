@@ -17,8 +17,11 @@ namespace unionarray {
         using position_t = typename protoarray::Protobitarray <length>::position_t;
     public:
         constexpr Unionbitarray();
-        constexpr Unionbitarray(const std::bitset <length> org_array);
-        constexpr Unionbitarray(const int org_array);
+        constexpr Unionbitarray(const char org_array[length]);
+        constexpr Unionbitarray(const unsigned char org_array);
+        constexpr Unionbitarray(const unsigned short org_array);
+        constexpr Unionbitarray(const unsigned int org_array);
+        constexpr Unionbitarray(const unsigned long org_array);
         // ~Unionbitarray()                                  = default;
         // Unionbitarray(const Unionbitarray&)           = default;
         // Unionbitarray&operator=(const Unionbitarray&) = default;
@@ -49,22 +52,21 @@ namespace unionarray {
 
         constexpr boost::optional <position_t> select0(const time_t order) const;
 
-        static constexpr size_t superblock_size     = util::power(util::lg(length), 2);
-        static constexpr int    superblock_num      = util::iceil(static_cast <double>(length) / superblock_size);
-        static constexpr size_t superblock_elemsize = util::lg(length);
+        using block_t = util::bit_container_t <util::lg(length)>;
 
-        static constexpr size_t block_size         = util::lg(length);
+        static constexpr size_t block_size         = 8 * sizeof(block_t);
         static constexpr int    block_num          = util::iceil(static_cast <double>(length) / block_size);
-        static constexpr int    block_num_in_super = util::lg(length);
-        static constexpr size_t block_elemsize     = util::lg(util::power(util::lg(length), 2));
+        static constexpr int    block_num_in_super = 8 * sizeof(block_t);
+        using block_rank_t = util::bit_container_t <util::lg(util::power(util::lg(length), 2))>;
 
-        static constexpr size_t table_size     = util::power(2, (util::lg(length) + 1) / 2);
-        static constexpr size_t table_elemsize = (util::lg(length) + 1) / 2;
+        static constexpr size_t superblock_size = block_size * block_num_in_super;
+        static constexpr int    superblock_num  = util::iceil(static_cast <double>(length) / superblock_size);
+        using superblock_rank_t = util::bit_container_t <util::lg(length)>;
 
-        // ビットセットは先頭からインデックスづけする．
-        const std::bitset <length>                                     _org_array;
-        std::array <std::bitset <superblock_elemsize>, superblock_num> _superblock_rank1;
-        std::array <std::bitset <block_elemsize>, block_num>           _block_rank1;
+        // 先頭からインデックスづけする．
+        const util::constexpr_array<block_t, block_num> _org_array;
+        std::array<superblock_rank_t, superblock_num>_superblock_rank1;
+        std::array<block_rank_t, block_num> _block_rank1;
     };
 
     void testUnionbitarray();

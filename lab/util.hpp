@@ -54,6 +54,69 @@ namespace util {
     template <std::size_t bit_length>
     using bit_container_t = typename bit_container <bit_length>::type;
 
+    // ・c_str_to_bin関数
+    // char型の配列からビット列を生成する．
+    // ビット列はblock_num個のblock_tに格納する．
+
+    // コンパイル時配列計算のための独自のarrayクラスを用意．
+    // std::arrayの[]演算子はconstexprでない．
+    template <typename T, std::size_t length>
+    struct constexpr_array
+    {
+        T           _v[length];
+        constexpr T&operator[](int index)
+        {
+            // invalid read/write対策はしていない．
+            return _v[index];
+        }
+
+        constexpr T const&operator[](int index) const
+        {
+            // invalid read対策はしていない．
+            return _v[index];
+        }
+
+        constexpr std::size_t size() const
+        {
+            return length;
+        }
+    };
+
+    template <typename block_t, int block_num>
+    constexpr constexpr_array <block_t, block_num> c_str_to_bin(const char *org_array, std::size_t n)
+    {
+        constexpr std::size_t block_size = 8 * sizeof(block_t);
+
+        constexpr_array <block_t, block_num> result = constexpr_array <block_t, block_num>();
+        for (size_t i = 0; i < n && i < block_size * block_num; i++) {
+            result[i / block_size] <<= 1;
+            if (org_array[i] == '\0') {
+                break;
+            } else if (org_array[i] == '1') {
+                result[i / block_size]++;
+            }
+        }
+
+        return result;
+    }
+
+    // numeric_to_bin関数
+    // numeric型からビット列を生成する．
+    // ビット列はblock_num個のblock_tに格納する．
+    template <typename block_t, int block_num>
+    constexpr constexpr_array <block_t, block_num> numeric_to_bin(const unsigned char org_array)
+    {
+        constexpr std::size_t block_size = 8 * sizeof(block_t);
+
+        constexpr_array <block_t, block_num> result = constexpr_array <block_t, block_num>();
+        // org_arrayを表現できるか，残りのblockがなくなるかすれば終了．
+        for (size_t i = 0; i < block_num; i++) {
+            result[block_num - 1 - i];
+        }
+
+        return result;
+    }
+
     // ・repeat関数
     // 文字列strをdelimで区切ってn回osに出力する
     void repeat(std::ostream &os, const std::string &str, int n)
@@ -69,6 +132,63 @@ namespace util {
             os << str << delim;
         }
         os << str;
+    }
+
+    // ・Repeatクラス
+    class Repeat
+    {
+    public:
+        Repeat(const std::string &str, const int n, const char delim='\0');
+        friend std::ostream&operator<<(std::ostream &os, const Repeat &rep);
+
+    private:
+        const std::string _str;
+        const int         _n;
+        const char        _delim;
+    };
+
+    Repeat::Repeat(const std::string &str, const int n, const char delim)
+        : _str(str), _n(n), _delim(delim)
+    {
+    }
+
+    std::ostream&operator<<(std::ostream &os, const Repeat &rep)
+    {
+        for (int i = 0; i < rep._n; i++) {
+            os << rep._str;
+            if (rep._delim == '\0' && i != rep._n - 1) {
+                os << rep._delim;
+            }
+        }
+
+        return os;
+    }
+
+    // ・imprementation_test関数
+    // 処理系依存の環境をテストする関数．
+    void imprementation_test()
+    {
+        std::cout << Repeat("-", 20) << std::endl;
+        std::cout << "imprementation test" << std::endl;
+
+        std::cout << std::endl;
+
+        std::cout << "size test" << std::endl;
+        std::cout << "sizeof(char): " << sizeof(char) << "[byte]" << std::endl;
+        std::cout << "sizeof(short): " << sizeof(short) << "[byte]" << std::endl;
+        std::cout << "sizeof(int): " << sizeof(int) << "[byte]" << std::endl;
+        std::cout << "sizeof(long): " << sizeof(long) << "[byte]" << std::endl;
+
+        std::cout << std::endl;
+
+        std::cout << "downcast test" << std::endl;
+        unsigned long ul = 981820850679;
+        std::cout << "unsigned long: " << std::bitset<64>(static_cast<unsigned long>(ul)).to_string() << std::endl;
+        std::cout << "unsigned int: " << std::bitset<64>(static_cast<unsigned int>(ul)).to_string() << std::endl;
+        std::cout << "unsigned short: " << std::bitset<64>(static_cast<unsigned short>(ul)).to_string() << std::endl;
+        std::cout << "unsigned char: " << std::bitset<64>(static_cast<unsigned char>(ul)).to_string() << std::endl;
+
+        std::cout << Repeat("-", 20) << std::endl;
     }
 
     // ・power関数
@@ -269,7 +389,7 @@ namespace util {
     template <typename T, typename ... Args>
     constexpr std::array <T, sizeof ... (Args)> make_array(Args&& ... args)
     {
-        return std::array <T, sizeof ... (Args)> { static_cast <Args &&>(args) ... };
+        return std::array <T, sizeof ... (Args)> { static_cast <Args &&>(args) ... }
     }
 
     // コンパイル時に作成したstd::arrayについてはコンパイル時assert（static_assert）で要素数などをチェック可能．そのためのconstexprなsize関数を定義する．
