@@ -7,26 +7,33 @@ namespace constexpr_893 {
     // コンパイル時構築可能なユーザ定義クラス（リテラルクラス）の定義．
     class Simple_class
     {
+        using block_t = int;
+        static constexpr size_t block_num = 4;
+        static constexpr size_t superblock_num = 2;
+        using superblock_rank_t = int;
+        using block_rank_t = int;
     public:
         constexpr Simple_class()
-        : _birthdays(util::constexpr_array<int, 3>())
-        {_birthdays[0] = 4;}
+            : _org_array(util::constexpr_array <block_t, block_num>()), _superblock_rank1(util::constexpr_array<superblock_rank_t, superblock_num>()), _block_rank1(util::constexpr_array<block_rank_t, block_num>())
+        {
+        }
+
         constexpr int akari() const
-        {return _birthdays[0];}
+        {
+            return 0;
+        }
+
     private:
-        util::constexpr_array<int, 3> _birthdays;
+        const util::constexpr_array <block_t, block_num>          _org_array;
+        util::constexpr_array <superblock_rank_t, superblock_num> _superblock_rank1;
+        util::constexpr_array <block_rank_t, block_num>           _block_rank1;
     };
 
     void testSimple_class()
     {
         constexpr Simple_class sc;
-        constexpr auto akari = sc.akari();
+        constexpr auto         akari = sc.akari();
         std::cout << akari << std::endl;
-        unsigned long honya = 981820850679;
-        std::cout << "unsigned char: " << static_cast<unsigned char>(honya) << std::endl;
-        std::cout << "unsigned short: " << static_cast<unsigned char>(honya) << std::endl;
-        std::cout << "unsigned int: " << static_cast<unsigned char>(honya) << std::endl;
-        std::cout << "unsigned long: " << static_cast<unsigned char>(honya) << std::endl;
     }
 }
 

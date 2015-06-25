@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <bitset>
 #include <boost/optional.hpp>
+#include "util.hpp"
 
 namespace protoarray {
     // バイナリ上の長さnの配列
@@ -13,9 +14,11 @@ namespace protoarray {
     class Protobitarray
     {
     public:
-        using element_t  = int;  // ただし2値
-        using time_t     = int;
-        using position_t = int;  // ただし1-origin
+        using length_t = util::bit_container_t<util::lg(length)>;
+        using element_t = int;   // 要素（2値）
+        // lengthが収まる型を用いる．
+        using time_t     = length_t;  // 出現回数
+        using position_t = length_t;  // 出現位置（1-origin）
     public:
         // Protobitarray();
         // virtual ~Protobitarray()                      = default;
@@ -34,9 +37,9 @@ namespace protoarray {
         // order <= 0またはorder > rank(a,length)で失敗する．
         virtual constexpr boost::optional <position_t> select(const element_t a, const time_t order) const = 0;
 
-        virtual constexpr size_t size() const = 0;
+        virtual constexpr size_t                       size() const = 0;
 
-        friend std::ostream& operator<<(std::ostream& os, const Protobitarray<length>& pb);
+        friend std::ostream                           &operator<<(std::ostream &os, const Protobitarray <length> &pb);
     };
 
     // アルファベット[0, alphasup)上の長さnの配列
@@ -52,16 +55,17 @@ namespace protoarray {
         Protoarray(const Protoarray&)           = delete;
         Protoarray&operator=(const Protoarray&) = delete;
 
-        Protoarray(Protoarray&&)                                     = delete;
-        Protoarray                          &operator=(Protoarray&&) = delete;
+        Protoarray(Protoarray&&)                                    = delete;
+        Protoarray                         &operator=(Protoarray&&) = delete;
 
-        virtual boost::optional <element_t>  access(const position_t index) const = 0;
+        virtual boost::optional <element_t> access(const position_t index) const = 0;
 
-        virtual boost::optional <time_t>     rank(const element_t a, const position_t index) const = 0;
-const
+        virtual boost::optional <time_t>    rank(const element_t a, const position_t index) const = 0;
+
+        const
         virtual boost::optional <position_t> select(const element_t a, const time_t order) const = 0;
 
-        virtual constexpr size_t size() const = 0;
+        virtual constexpr size_t             size() const = 0;
     };
 }
 

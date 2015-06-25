@@ -104,14 +104,19 @@ namespace util {
     // numeric型からビット列を生成する．
     // ビット列はblock_num個のblock_tに格納する．
     template <typename block_t, int block_num>
-    constexpr constexpr_array <block_t, block_num> numeric_to_bin(const unsigned char org_array)
+    constexpr constexpr_array <block_t, block_num> numeric_to_bin(const unsigned long org_array)
     {
         constexpr std::size_t block_size = 8 * sizeof(block_t);
 
+        unsigned long source = org_array;
         constexpr_array <block_t, block_num> result = constexpr_array <block_t, block_num>();
         // org_arrayを表現できるか，残りのblockがなくなるかすれば終了．
         for (size_t i = 0; i < block_num; i++) {
-            result[block_num - 1 - i];
+            if (source <= 0) {
+                break;
+            }
+            result[block_num - 1 - i] = static_cast<block_t>(source);
+            source >>= block_size;
         }
 
         return result;
@@ -174,19 +179,19 @@ namespace util {
         std::cout << std::endl;
 
         std::cout << "size test" << std::endl;
-        std::cout << "sizeof(char): " << sizeof(char) << "[byte]" << std::endl;
+        std::cout << "sizeof(char) : " << sizeof(char) << "[byte]" << std::endl;
         std::cout << "sizeof(short): " << sizeof(short) << "[byte]" << std::endl;
-        std::cout << "sizeof(int): " << sizeof(int) << "[byte]" << std::endl;
-        std::cout << "sizeof(long): " << sizeof(long) << "[byte]" << std::endl;
+        std::cout << "sizeof(int)  : " << sizeof(int) << "[byte]" << std::endl;
+        std::cout << "sizeof(long) : " << sizeof(long) << "[byte]" << std::endl;
 
         std::cout << std::endl;
 
         std::cout << "downcast test" << std::endl;
-        unsigned long ul = 981820850679;
-        std::cout << "unsigned long: " << std::bitset<64>(static_cast<unsigned long>(ul)).to_string() << std::endl;
-        std::cout << "unsigned int: " << std::bitset<64>(static_cast<unsigned int>(ul)).to_string() << std::endl;
+        unsigned long ul = 549755813887;
+        std::cout << "unsigned long : " << std::bitset<64>(static_cast<unsigned long>(ul)).to_string() << std::endl;
+        std::cout << "unsigned int  : " << std::bitset<64>(static_cast<unsigned int>(ul)).to_string() << std::endl;
         std::cout << "unsigned short: " << std::bitset<64>(static_cast<unsigned short>(ul)).to_string() << std::endl;
-        std::cout << "unsigned char: " << std::bitset<64>(static_cast<unsigned char>(ul)).to_string() << std::endl;
+        std::cout << "unsigned char : " << std::bitset<64>(static_cast<unsigned char>(ul)).to_string() << std::endl;
 
         std::cout << Repeat("-", 20) << std::endl;
     }
@@ -205,10 +210,11 @@ namespace util {
 
     // ・lg関数
     // ビット長を求める．
-    constexpr int lg(const int n)
+    template <typename Numeric>
+    constexpr Numeric lg(const Numeric n)
     {
-        int _n  = n;
-        int lgn = 0;
+        Numeric _n  = n;
+        Numeric lgn = 0;
         while (_n) {
             lgn++;
             _n >>= 1;
@@ -389,7 +395,7 @@ namespace util {
     template <typename T, typename ... Args>
     constexpr std::array <T, sizeof ... (Args)> make_array(Args&& ... args)
     {
-        return std::array <T, sizeof ... (Args)> { static_cast <Args &&>(args) ... }
+        return std::array <T, sizeof ... (Args)> { static_cast <Args &&>(args) ... };
     }
 
     // コンパイル時に作成したstd::arrayについてはコンパイル時assert（static_assert）で要素数などをチェック可能．そのためのconstexprなsize関数を定義する．
