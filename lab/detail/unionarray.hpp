@@ -273,6 +273,12 @@ namespace unionarray {
     }
 
     template <std::size_t length>
+    constexpr size_t Unionbitarray <length>::alphabet_size() const
+    {
+        return 2;
+    }
+
+    template <std::size_t length>
     std::string Unionbitarray <length>::to_string() const
     {
         std::string result = "";
@@ -378,11 +384,6 @@ namespace unionarray {
         std::cout << std::endl;
 
         // Unionbitarray
-        static_assert(std::is_same <Unionbitarray <257>::block_t, unsigned short>::value, "not unsigned short");
-        static_assert(std::is_same <Unionbitarray <257>::halfblock_t, unsigned char>::value, "not unsigned char");
-        static_assert(Unionbitarray <257>::block_num == 17, "block_num error");
-        static_assert(Unionbitarray <257>::halfblock_num == 34, "halfblock_num error");
-
         constexpr size_t                 length = 16;
         constexpr Unionbitarray <length> ub     = Unionbitarray <length>(29260);
         constexpr size_t                 size   = ub.size();

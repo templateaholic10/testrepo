@@ -12,6 +12,7 @@ namespace unionarray {
     // bit_container_tがnoneのとき，コンパイルエラー．
     template <std::size_t length>
     class Unionbitarray
+    : protoarray::Protobitarray<length>
     {
     public:
         using length_t  = util::container_t <length>;
@@ -39,22 +40,20 @@ namespace unionarray {
         // 2分探索．O(logn)時間．
         constexpr unsigned long select(const element_t a, const time_t order) const;
 
-        constexpr size_t size() const;
-
-        std::string      to_string() const;
-
+        constexpr size_t        alphabet_size() const;
+        constexpr size_t        size() const;
+        std::string             to_string() const;
         constexpr unsigned long invalid_value() const;
-
-        std::string str() const;
-        std::string superblock_rank() const;
-        std::string block_rank() const;
-        std::string lookuptable() const;
+        std::string             str() const;
+        std::string             superblock_rank() const;
+        std::string             block_rank() const;
+        std::string             lookuptable() const;
 
         template <std::size_t length1>
         friend std::ostream&operator<<(std::ostream &os, const Unionbitarray <length1> &pb);
 
     private:
-        constexpr void                     build();
+        constexpr void          build();
 
         constexpr unsigned long rank1(const position_t index) const;
 
@@ -62,7 +61,7 @@ namespace unionarray {
 
         constexpr unsigned long select0(const time_t order) const;
 
-    public:
+    private:
         using block_t = util::bit_container_t <util::lg(length), false>;
 
         static constexpr length_t block_size         = 8 * sizeof(block_t);
@@ -78,13 +77,12 @@ namespace unionarray {
         using halfblock_t = util::half_container_t <block_t, false>;
         static constexpr length_t halfblock_size = 8 * sizeof(halfblock_t);
         // 偶数になるように．つまりblockと範囲が一致するように．
-        static constexpr length_t halfblock_num  = std::is_same<block_t, halfblock_t>::value ? block_num : 2*block_num;
+        static constexpr length_t halfblock_num = std::is_same <block_t, halfblock_t>::value ? block_num : 2 * block_num;
 
         // block_sizeはビット長なので必ず偶数になる点に注意．
         static constexpr util::container_t <util::power(2, halfblock_size)> lookuptable_size = util::power(2, halfblock_size);
         // 最大halfblock_sizeの1が存在するため，halfblock_sizeを表現できる必要がある．
         using lookuptable_elem_t = util::container_t <halfblock_size>;
-
     private:
         // 先頭からインデックスづけする．
         sprout::array <halfblock_t, halfblock_num>           _org_array;
