@@ -11,11 +11,14 @@
 #include <cstddef>
 #include <tuple>
 #include <bitset>
+#include <limits>
 #include <boost/optional.hpp>
-#include <boost/mpl/if.hpp>
 #include <boost/mpl/less_equal.hpp>
 #include <boost/mpl/size_t.hpp>
 #include <boost/mpl/sizeof.hpp>
+#include <boost/mpl/bool.hpp>
+#include <sprout/array.hpp>
+#include <sprout/bitset.hpp>
 
 namespace util {
     // ・epsilon
@@ -27,67 +30,121 @@ namespace util {
         using type = none;
     };
 
-    template <std::size_t bit_length>
+    template <std::size_t bit_length, bool use_none = true>
     struct bit_container
     {
         // ビット長を覆う最小バイト長
-        using bin_length_t       = boost::mpl::size_t <(bit_length - 1) / 8 + 1>;
-        using bin_length_char_t  = boost::mpl::sizeof_ <unsigned char>;
-        using bin_length_short_t = boost::mpl::sizeof_ <unsigned short>;
-        using bin_length_int_t   = boost::mpl::sizeof_ <unsigned int>;
-        using bin_length_long_t  = boost::mpl::sizeof_ <unsigned long>;
-        using type               = typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_char_t>,
-                                                             unsigned char,
-                                                             typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_short_t>,
-                                                                                       unsigned short,
-                                                                                       typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_int_t>,
-                                                                                                                 unsigned int,
-                                                                                                                 typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_long_t>,
-                                                                                                                                           unsigned long,
-                                                                                                                                           none
-                                                                                                                                           >::type
-                                                                                                                 >::type
-                                                                                       >::type
-                                                             >::type;
+        static constexpr size_t bin_length = (bit_length - 1) / 8 + 1;
+
+        using none_type = none;
+
+        using type               = typename std::conditional <bin_length <= sizeof(unsigned char),
+        unsigned char,
+        typename std::conditional<bin_length <= sizeof(unsigned short),
+        unsigned short,
+        typename std::conditional<bin_length <= sizeof(unsigned int),
+        unsigned int,
+        typename std::conditional<bin_length <= sizeof(unsigned long),
+        unsigned long,
+        typename std::conditional<use_none,
+        none,
+        unsigned long
+        >::type
+        >::type
+        >::type
+        >::type
+        >::type;
     };
 
-    template <std::size_t bit_length>
-    using bit_container_t = typename bit_container <bit_length>::type;
+    template <std::size_t bit_length, bool use_none = true>
+    using bit_container_t = typename bit_container <bit_length, use_none>::type;
+
+    // ・containerメタ関数
+    // 処理系依存のような気がする（size_t = unsigned long）．
+    template <unsigned long num, bool use_none = true>
+    struct container
+    {
+        static constexpr size_t max_uchar  = std::numeric_limits<unsigned char>::max();
+        static constexpr size_t max_ushort = std::numeric_limits<unsigned short>::max();
+        static constexpr size_t max_uint   = std::numeric_limits<unsigned int>::max();
+        static constexpr size_t max_ulong  = std::numeric_limits<unsigned long>::max();
+
+        using none_type = none;
+
+        using type               = typename std::conditional <num <= max_uchar,
+        unsigned char,
+        typename std::conditional<num <= max_ushort,
+        unsigned short,
+        typename std::conditional<num <= max_uint,
+        unsigned int,
+        typename std::conditional<num <= max_ulong,
+        unsigned long,
+        typename std::conditional<use_none,
+        none,
+        unsigned long
+        >::type
+        >::type
+        >::type
+        >::type
+        >::type;
+    };
+
+    template <unsigned long num, bool use_none = true>
+    using container_t = typename container <num, use_none>::type;
+
+    // ・half_containerメタ関数
+    // 半分のビット長を持つコンテナを返す．
+    template <class Numeric, bool use_none = true>
+    struct half_container
+    {
+        using none_type = none;
+
+        using type = typename std::conditional <std::is_same <Numeric, char>::value,
+        typename std::conditional <use_none,
+        none,
+        char
+        >::type,
+        typename std::conditional <std::is_same <Numeric, unsigned char>::value,
+        typename std::conditional <use_none,
+        none,
+        unsigned char
+        >::type,
+        typename std::conditional <std::is_same <Numeric, short>::value,
+        char,
+        typename std::conditional <std::is_same <Numeric, unsigned short>::value,
+        unsigned char,
+        typename std::conditional <std::is_same <Numeric, int>::value,
+        short,
+        typename std::conditional <std::is_same <Numeric, unsigned int>::value,
+        unsigned short,
+        typename std::conditional <std::is_same <Numeric, long>::value,
+        int,
+        typename std::conditional <std::is_same <Numeric, unsigned long>::value,
+        unsigned int,
+        none
+        >::type
+        >::type
+        >::type
+        >::type
+        >::type
+        >::type
+        >::type
+        >::type;
+    };
+
+    template <class Numeric, bool use_none = true>
+    using half_container_t = typename half_container<Numeric, use_none>::type;
 
     // ・c_str_to_bin関数
     // char型の配列からビット列を生成する．
     // ビット列はblock_num個のblock_tに格納する．
 
-    // コンパイル時配列計算のための独自のarrayクラスを用意．
-    // std::arrayの[]演算子はconstexprでない．
-    template <typename T, std::size_t length>
-    struct constexpr_array
-    {
-        T           _v[length];
-        constexpr T&operator[](int index)
-        {
-            // invalid read/write対策はしていない．
-            return _v[index];
-        }
-
-        constexpr T const&operator[](int index) const
-        {
-            // invalid read対策はしていない．
-            return _v[index];
-        }
-
-        constexpr std::size_t size() const
-        {
-            return length;
-        }
-    };
-
     template <typename block_t, int block_num>
-    constexpr constexpr_array <block_t, block_num> c_str_to_bin(const char *org_array, std::size_t n)
+    constexpr sprout::array <block_t, block_num> c_str_to_bin(const char *org_array, std::size_t n)
     {
         constexpr std::size_t block_size = 8 * sizeof(block_t);
 
-        constexpr_array <block_t, block_num> result = constexpr_array <block_t, block_num>();
+        sprout::array <block_t, block_num> result = sprout::array <block_t, block_num>();
         for (size_t i = 0; i < n && i < block_size * block_num; i++) {
             result[i / block_size] <<= 1;
             if (org_array[i] == '\0') {
@@ -104,22 +161,108 @@ namespace util {
     // numeric型からビット列を生成する．
     // ビット列はblock_num個のblock_tに格納する．
     template <typename block_t, int block_num>
-    constexpr constexpr_array <block_t, block_num> numeric_to_bin(const unsigned long org_array)
+    constexpr sprout::array <block_t, block_num> numeric_to_bin(const unsigned long org_array)
     {
         constexpr std::size_t block_size = 8 * sizeof(block_t);
 
-        unsigned long source = org_array;
-        constexpr_array <block_t, block_num> result = constexpr_array <block_t, block_num>();
+        unsigned long                      source = org_array;
+        sprout::array <block_t, block_num> result = sprout::array <block_t, block_num>();
         // org_arrayを表現できるか，残りのblockがなくなるかすれば終了．
         for (size_t i = 0; i < block_num; i++) {
             if (source <= 0) {
                 break;
             }
-            result[block_num - 1 - i] = static_cast<block_t>(source);
-            source >>= block_size;
+            result[block_num - 1 - i] = static_cast <block_t>(source);
+            source                  >>= block_size;
         }
 
         return result;
+    }
+
+    // ・rank関数
+    // O(n)時間．小さいbitsetに使用する．
+    template <size_t length>
+    constexpr unsigned long rank(int a, const sprout::bitset<length>& bs, unsigned long index)
+    {
+        unsigned long order = 0;
+        // indexは1-origin，bitsetは0-origin．
+        for (size_t i = 0; i < index && i < length; i++) {
+            if (bs[length - 1 - i] == a) {
+                order++;
+            }
+        }
+        return order;
+    }
+
+    template <size_t length>
+    unsigned long rank(int a, const std::bitset<length>& bs, unsigned long index)
+    {
+        unsigned long order = 0;
+        // indexは1-origin，bitsetは0-origin．
+        for (size_t i = 0; i < index && i < length; i++) {
+            if (bs[length - 1 - i] == a) {
+                order++;
+            }
+        }
+        return order;
+    }
+
+    // ・access関数
+    template <size_t length>
+    constexpr unsigned long access(const sprout::bitset<length>& bs, unsigned long index)
+    {
+        return bs[length - 1 - index];
+    }
+
+    template <size_t length>
+    unsigned long access(const std::bitset<length>& bs, unsigned long index)
+    {
+        return bs[length - 1 - index];
+    }
+
+    // ・select関数
+    // O(n)時間．小さいbitsetに使用する．
+    template <size_t length>
+    constexpr unsigned long select(int a, const sprout::bitset<length>& bs, unsigned long order)
+    {
+        // 0以下の場合
+        if (order <= 0) {
+            return 0;
+        }
+        unsigned long rank = 0;
+        unsigned long index = 0;
+        // indexは1-origin，bitsetは0-origin．
+        for (index = 0; index < length; index++) {
+            if (bs[length - 1 - index] == a) {
+                rank++;
+                if (rank >= order) {
+                    break;
+                }
+            }
+        }
+        return index+1;
+    }
+
+    // O(n)時間．小さいbitsetに使用する．
+    template <size_t length>
+    unsigned long select(int a, const std::bitset<length>& bs, unsigned long order)
+    {
+        // 0以下の場合
+        if (order <= 0) {
+            return 0;
+        }
+        unsigned long rank = 0;
+        unsigned long index = 0;
+        // indexは1-origin，bitsetは0-origin．
+        for (index = 0; index < length; index++) {
+            if (bs[length - 1 - index] == a) {
+                rank++;
+                if (rank >= order) {
+                    break;
+                }
+            }
+        }
+        return index+1;
     }
 
     // ・repeat関数
@@ -188,10 +331,10 @@ namespace util {
 
         std::cout << "downcast test" << std::endl;
         unsigned long ul = 549755813887;
-        std::cout << "unsigned long : " << std::bitset<64>(static_cast<unsigned long>(ul)).to_string() << std::endl;
-        std::cout << "unsigned int  : " << std::bitset<64>(static_cast<unsigned int>(ul)).to_string() << std::endl;
-        std::cout << "unsigned short: " << std::bitset<64>(static_cast<unsigned short>(ul)).to_string() << std::endl;
-        std::cout << "unsigned char : " << std::bitset<64>(static_cast<unsigned char>(ul)).to_string() << std::endl;
+        std::cout << "unsigned long : " << std::bitset <64>(static_cast <unsigned long>(ul)).to_string() << std::endl;
+        std::cout << "unsigned int  : " << std::bitset <64>(static_cast <unsigned int>(ul)).to_string() << std::endl;
+        std::cout << "unsigned short: " << std::bitset <64>(static_cast <unsigned short>(ul)).to_string() << std::endl;
+        std::cout << "unsigned char : " << std::bitset <64>(static_cast <unsigned char>(ul)).to_string() << std::endl;
 
         std::cout << Repeat("-", 20) << std::endl;
     }

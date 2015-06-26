@@ -4,6 +4,7 @@
 #include "utiltest.hpp"
 #include "test_simple_svg.hpp"
 #include "unionarray.hpp"
+#include "test_sprout.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -36,6 +37,8 @@ int main(int argc, char const *argv[])
     // test_simple_svg::test_pinwheel();
 
     unionarray::testUnionbitarray();
+    // constexpr auto hoge = test_sprout::test_sprout<1000>();
+    // std::cout << hoge << std::endl;
 
     return 0;
 }
