@@ -13,7 +13,6 @@
 #include <bitset>
 #include <limits>
 #include <boost/optional.hpp>
-#include <boost/mpl/if.hpp>
 #include <boost/mpl/less_equal.hpp>
 #include <boost/mpl/size_t.hpp>
 #include <boost/mpl/sizeof.hpp>
@@ -35,21 +34,19 @@ namespace util {
     struct bit_container
     {
         // ビット長を覆う最小バイト長
-        using bin_length_t       = boost::mpl::size_t <(bit_length - 1) / 8 + 1>;
-        using bin_length_char_t  = boost::mpl::sizeof_ <unsigned char>;
-        using bin_length_short_t = boost::mpl::sizeof_ <unsigned short>;
-        using bin_length_int_t   = boost::mpl::sizeof_ <unsigned int>;
-        using bin_length_long_t  = boost::mpl::sizeof_ <unsigned long>;
+        static constexpr size_t bin_length = (bit_length - 1) / 8 + 1;
 
-        using type               = typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_char_t>,
+        using none_type = none;
+
+        using type               = typename std::conditional <bin_length <= sizeof(unsigned char),
         unsigned char,
-        typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_short_t>,
+        typename std::conditional<bin_length <= sizeof(unsigned short),
         unsigned short,
-        typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_int_t>,
+        typename std::conditional<bin_length <= sizeof(unsigned int),
         unsigned int,
-        typename boost::mpl::if_ <boost::mpl::less_equal <bin_length_t, bin_length_long_t>,
+        typename std::conditional<bin_length <= sizeof(unsigned long),
         unsigned long,
-        typename boost::mpl::if_ <boost::mpl::bool_<use_none>,
+        typename std::conditional<use_none,
         none,
         unsigned long
         >::type
@@ -67,21 +64,22 @@ namespace util {
     template <unsigned long num, bool use_none = true>
     struct container
     {
-        using num_t       = boost::mpl::size_t <num>;
-        using max_char_t  = boost::mpl::size_t <std::numeric_limits<unsigned char>::max()>;
-        using max_short_t = boost::mpl::size_t <std::numeric_limits<unsigned short>::max()>;
-        using max_int_t   = boost::mpl::size_t <std::numeric_limits<unsigned int>::max()>;
-        using max_long_t  = boost::mpl::size_t <std::numeric_limits<unsigned long>::max()>;
+        static constexpr size_t max_uchar  = std::numeric_limits<unsigned char>::max();
+        static constexpr size_t max_ushort = std::numeric_limits<unsigned short>::max();
+        static constexpr size_t max_uint   = std::numeric_limits<unsigned int>::max();
+        static constexpr size_t max_ulong  = std::numeric_limits<unsigned long>::max();
 
-        using type               = typename boost::mpl::if_ <boost::mpl::less_equal <num_t, max_char_t>,
+        using none_type = none;
+
+        using type               = typename std::conditional <num <= max_uchar,
         unsigned char,
-        typename boost::mpl::if_ <boost::mpl::less_equal <num_t, max_short_t>,
+        typename std::conditional<num <= max_ushort,
         unsigned short,
-        typename boost::mpl::if_ <boost::mpl::less_equal <num_t, max_int_t>,
+        typename std::conditional<num <= max_uint,
         unsigned int,
-        typename boost::mpl::if_ <boost::mpl::less_equal <num_t, max_long_t>,
+        typename std::conditional<num <= max_ulong,
         unsigned long,
-        typename boost::mpl::if_ <boost::mpl::bool_<use_none>,
+        typename std::conditional<use_none,
         none,
         unsigned long
         >::type
@@ -99,30 +97,29 @@ namespace util {
     template <class Numeric, bool use_none = true>
     struct half_container
     {
-        template <typename TF, typename whenT, typename whenF>
-        using if_ = boost::mpl::if_ <TF, whenT, whenF>;
+        using none_type = none;
 
-        using type = typename if_ <std::is_same <Numeric, char>,
-        typename if_ <boost::mpl::bool_<use_none>,
+        using type = typename std::conditional <std::is_same <Numeric, char>::value,
+        typename std::conditional <use_none,
         none,
         char
         >::type,
-        typename if_ <std::is_same <Numeric, unsigned char>,
-        typename if_ <boost::mpl::bool_<use_none>,
+        typename std::conditional <std::is_same <Numeric, unsigned char>::value,
+        typename std::conditional <use_none,
         none,
         unsigned char
         >::type,
-        typename if_ <std::is_same <Numeric, short>,
+        typename std::conditional <std::is_same <Numeric, short>::value,
         char,
-        typename if_ <std::is_same <Numeric, unsigned short>,
+        typename std::conditional <std::is_same <Numeric, unsigned short>::value,
         unsigned char,
-        typename if_ <std::is_same <Numeric, int>,
+        typename std::conditional <std::is_same <Numeric, int>::value,
         short,
-        typename if_ <std::is_same <Numeric, unsigned int>,
+        typename std::conditional <std::is_same <Numeric, unsigned int>::value,
         unsigned short,
-        typename if_ <std::is_same <Numeric, long>,
+        typename std::conditional <std::is_same <Numeric, long>::value,
         int,
-        typename if_ <std::is_same <Numeric, unsigned long>,
+        typename std::conditional <std::is_same <Numeric, unsigned long>::value,
         unsigned int,
         none
         >::type

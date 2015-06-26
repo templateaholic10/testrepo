@@ -416,7 +416,7 @@ namespace unionarray {
         for (size_t i = 1; i <= length2; i++) {
             std::cout << "select1(" << i << ") = " << ub2.select(1, i) << std::endl;
         }
-        // constexpr size_t sele = ub2.select1(4);
+        constexpr size_t sele = ub2.select(1, 4);
     }
 }
 
