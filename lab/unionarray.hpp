@@ -30,11 +30,11 @@ namespace unionarray {
         // Unionbitarray(Unionbitarray&&)           = default;
         // Unionbitarray&operator=(Unionbitarray&&) = default;
 
-        // // O(1)時間．
-        // constexpr unsigned long access(const position_t index) const;
-        //
-        // // Jacobsonの方法．O(1)時間．
-        // constexpr unsigned long rank(const element_t a, const position_t index) const;
+        // O(1)時間．
+        constexpr unsigned long access(const position_t index) const;
+
+        // Jacobsonの方法．O(1)時間．
+        constexpr unsigned long rank(const element_t a, const position_t index) const;
 
         // // 2分探索．O(logn)時間．
         // constexpr unsigned long select(const element_t a, const time_t order) const;
@@ -53,14 +53,14 @@ namespace unionarray {
         template <std::size_t length1>
         friend std::ostream&operator<<(std::ostream &os, const Unionbitarray <length1> &pb);
 
-        constexpr unsigned long rank1(const position_t index) const;
-
     private:
         constexpr void                     build();
 
-        //
-        // constexpr boost::optional <position_t> select1(const time_t order) const;
-        //
+        constexpr unsigned long rank1(const position_t index) const;
+
+
+        // constexpr unsigned long select1(const time_t order) const;
+
         // constexpr boost::optional <position_t> select0(const time_t order) const;
 
     public:

@@ -19,6 +19,7 @@
 #include <boost/mpl/sizeof.hpp>
 #include <boost/mpl/bool.hpp>
 #include <sprout/array.hpp>
+#include <sprout/bitset.hpp>
 
 namespace util {
     // ・epsilon
@@ -179,6 +180,92 @@ namespace util {
         }
 
         return result;
+    }
+
+    // ・rank関数
+    // O(n)時間．小さいbitsetに使用する．
+    template <size_t length>
+    constexpr unsigned long rank(int a, const sprout::bitset<length>& bs, unsigned long index)
+    {
+        unsigned long order = 0;
+        // indexは1-origin，bitsetは0-origin．
+        for (size_t i = 0; i < index && i < length; i++) {
+            if (bs[length - 1 - i] == a) {
+                order++;
+            }
+        }
+        return order;
+    }
+
+    template <size_t length>
+    unsigned long rank(int a, const std::bitset<length>& bs, unsigned long index)
+    {
+        unsigned long order = 0;
+        // indexは1-origin，bitsetは0-origin．
+        for (size_t i = 0; i < index && i < length; i++) {
+            if (bs[length - 1 - i] == a) {
+                order++;
+            }
+        }
+        return order;
+    }
+
+    // ・access関数
+    template <size_t length>
+    constexpr unsigned long access(const sprout::bitset<length>& bs, unsigned long index)
+    {
+        return bs[length - 1 - index];
+    }
+
+    template <size_t length>
+    unsigned long access(const std::bitset<length>& bs, unsigned long index)
+    {
+        return bs[length - 1 - index];
+    }
+
+    // ・select関数
+    // O(n)時間．小さいbitsetに使用する．
+    template <size_t length>
+    constexpr unsigned long select(int a, const sprout::bitset<length>& bs, unsigned long order)
+    {
+        // 0以下の場合
+        if (order <= 0) {
+            return 0;
+        }
+        unsigned long rank = 0;
+        unsigned long index = 0;
+        // indexは1-origin，bitsetは0-origin．
+        for (index = 0; index < length; index++) {
+            if (bs[length - 1 - index] == a) {
+                rank++;
+                if (rank >= order) {
+                    break;
+                }
+            }
+        }
+        return index+1;
+    }
+
+    // O(n)時間．小さいbitsetに使用する．
+    template <size_t length>
+    unsigned long select(int a, const std::bitset<length>& bs, unsigned long order)
+    {
+        // 0以下の場合
+        if (order <= 0) {
+            return 0;
+        }
+        unsigned long rank = 0;
+        unsigned long index = 0;
+        // indexは1-origin，bitsetは0-origin．
+        for (index = 0; index < length; index++) {
+            if (bs[length - 1 - index] == a) {
+                rank++;
+                if (rank >= order) {
+                    break;
+                }
+            }
+        }
+        return index+1;
     }
 
     // ・repeat関数

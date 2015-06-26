@@ -55,21 +55,19 @@ namespace unionarray {
         }
     }
 
-    // template <std::size_t length>
-    // constexpr boost::optional <typename Unionbitarray <length>::element_t> Unionbitarray <length>::access(const position_t index) const
-    // {
-    //     if (index < 0 || index >= length) {
-    //         return boost::none;
-    //     } else {
-    //         return *rank1(index) - *rank1(index - 1);
-    //     }
-    // }
+    template <std::size_t length>
+    constexpr unsigned long Unionbitarray <length>::access(const position_t index) const
+    {
+        return rank1(index) - rank1(index - 1);
+    }
 
     template <std::size_t length>
     constexpr unsigned long Unionbitarray <length>::rank1(const position_t index) const
     {
-        if (index <= 0 || index > length) {
-            return invalid_value();
+        if (index <= 0) {
+            return 0;
+        } else if (index > length) {
+            return rank1(length);
         } else {
             // どのsuperblockに属しているか（0-origin）．
             const position_t superblock_index = (index - 1) / superblock_size;
@@ -110,25 +108,23 @@ namespace unionarray {
         }
     }
 
+    template <std::size_t length>
+    constexpr unsigned long Unionbitarray <length>::rank(const element_t a, const position_t index) const
+    {
+        if (a == 0) {
+            return index - rank1(index);
+        } else if (a == 1) {
+            return rank1(index);
+        } else {
+            return invalid_value();
+        }
+    }
+
     // template <std::size_t length>
-    // constexpr boost::optional <typename Unionbitarray <length>::time_t> Unionbitarray <length>::rank(const element_t a, const position_t index) const
-    // {
-    //     if (index <= 0 || index > length) {
-    //         return boost::none;
-    //     } else if (a == 0) {
-    //         return index - *rank1(index);
-    //     } else if (a == 1) {
-    //         return *rank1(index);
-    //     } else {
-    //         return boost::none;
-    //     }
-    // }
-    //
-    // template <std::size_t length>
-    // constexpr boost::optional <typename Unionbitarray <length>::position_t> Unionbitarray <length>::select1(const time_t order) const
+    // constexpr unsigned long Unionbitarray <length>::select1(const time_t order) const
     // {
     //     if (order <= 0) {
-    //         return boost::none;
+    //         return 0;
     //     } else {
     //         time_t rest_order = order;
     //
@@ -176,11 +172,42 @@ namespace unionarray {
     //         rest_order -=  _block_rank1[upper_block];
     //
     //         // 線形探索
-    //         position_t  lower     = lower_block * block_size;
+    //         if (std::is_same <block_t, halfblock_t>::value) {
+    //             sprout::bitset<halfblock_size> halfblock = _org_array[upper_block];
+    //             rest_rank       += _lookuptable[rest_halfblock];
+    //         } else {
+    //             if (rest_index < halfblock_size) {
+    //                 // (halfblock_size - rest_index)だけシフト後の前半のみ．
+    //                 halfblock_t rest_halfblock = _org_array[2 * block_index];
+    //                 rest_halfblock >>= halfblock_size - rest_index;
+    //                 rest_rank       += _lookuptable[rest_halfblock];
+    //             } else {
+    //                 // シフト前の前半と(block_size - rest_index)だけシフト後の後半のrankの和．
+    //                 // 前半
+    //                 rest_rank += _lookuptable[_org_array[2 * block_index]];
+    //                 // 後半
+    //                 halfblock_t rest_halfblock = _org_array[2 * block_index + 1];
+    //                 rest_halfblock >>= block_size - rest_index;
+    //                 rest_rank       += _lookuptable[rest_halfblock];
+    //             }
+    //         }
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //         position_t lower = lower_block * block_size;
     //         // min
-    //         position_t  upper     = (upper_block * block_size < length) ? (upper_block * block_size) : length;
-    //         position_t  index     = 0;
-    //         bool finded_tf = false;
+    //         position_t upper     = (upper_block * block_size < length) ? (upper_block * block_size) : length;
+    //         position_t index     = 0;
+    //         bool       finded_tf = false;
     //         for (index = lower; index < upper; index++) {
     //             if (_org_array[index] == 1) {
     //                 rest_order--;
@@ -194,11 +221,11 @@ namespace unionarray {
     //             return index + 1;
     //         } else {
     //             // インデックスを抜けてしまった．
-    //             return boost::none;
+    //             return length + 1;
     //         }
     //     }
     // }
-    //
+
     // template <std::size_t length>
     // constexpr boost::optional <typename Unionbitarray <length>::position_t> Unionbitarray <length>::select0(const time_t order) const
     // {
@@ -405,26 +432,32 @@ namespace unionarray {
         static_assert(Unionbitarray <257>::block_num == 17, "block_num error");
         static_assert(Unionbitarray <257>::halfblock_num == 34, "halfblock_num error");
 
-        constexpr size_t length = 16;
-        constexpr Unionbitarray <length> ub   = Unionbitarray <length>(29260);
-        constexpr size_t             size = ub.size();
+        constexpr size_t                 length = 16;
+        constexpr Unionbitarray <length> ub     = Unionbitarray <length>(29260);
+        constexpr size_t                 size   = ub.size();
         std::cout << ub.str() << std::endl;
         std::cout << ub.superblock_rank() << std::endl;
         std::cout << ub.block_rank() << std::endl;
         std::cout << ub.lookuptable() << std::endl;
         for (size_t i = 1; i <= length; i++) {
-            std::cout << "rank1(" << i << ") = " << ub.rank1(i) << std::endl;
+            std::cout << "rank1(" << i << ") = " << ub.rank(1, i) << std::endl;
         }
 
-        constexpr size_t length2 = 40;
-        constexpr Unionbitarray <length2> ub2   = Unionbitarray <length2>("1110010010011001000101010100000111110111");
-        constexpr size_t             size2 = ub2.size();
+        constexpr size_t                  length2 = 40;
+        constexpr Unionbitarray <length2> ub2     = Unionbitarray <length2>("1110010010011001000101010100000111110111");
+        constexpr size_t                  size2   = ub2.size();
         std::cout << ub2.str() << std::endl;
         // std::cout << ub2.superblock_rank() << std::endl;
         // std::cout << ub2.block_rank() << std::endl;
         // std::cout << ub2.lookuptable() << std::endl;
         for (size_t i = 1; i <= length2; i++) {
-            std::cout << "rank1(" << i << ") = " << ub2.rank1(i) << std::endl;
+            std::cout << "rank0(" << i << ") = " << ub2.rank(0, i) << std::endl;
+        }
+        for (size_t i = 1; i <= length2; i++) {
+            std::cout << "rank1(" << i << ") = " << ub2.rank(1, i) << std::endl;
+        }
+        for (size_t i = 1; i <= length2; i++) {
+            std::cout << "access(" << i << ") = " << ub2.access(i) << std::endl;
         }
     }
 }
