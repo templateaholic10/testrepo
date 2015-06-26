@@ -1,36 +1,55 @@
-﻿#ifndef DETAIL_UNIONARRAY
-#define DETAIL_UNIONARRAY
+﻿#ifndef DETAIL_WAVELETMATRIX
+#define DETAIL_WAVELETMATRIX
 
-#include "../unionarray.hpp"
+#include "../waveletmatrix.hpp"
 
-namespace unionarray {
-    template <std::size_t length>
-    constexpr Unionbitarray <length>::Unionbitarray()
-        : _org_array(sprout::array <halfblock_t, halfblock_num>()), _superblock_rank1(sprout::array <superblock_rank_t, superblock_num>()), _block_rank1(sprout::array <block_rank_t, block_num>()), _lookuptable(
-            sprout::array <lookuptable_elem_t, lookuptable_size>())
+namespace waveletmatrix {
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr Waveletmatrix <alphabet_num, length>::Waveletmatrix()
+        : _org_array(sprout::array <element_t, length>()), _bitmatrix(sprout::array <unionbitarray::Unionbitarray <length>, matrix_depth>()), _partition(sprout::array <length_t, matrix_depth>())
     {
         build();
     }
 
-    template <std::size_t length>
-    constexpr Unionbitarray <length>::Unionbitarray(const char org_array[length])
-        : _org_array(util::c_str_to_bin <halfblock_t, halfblock_num>(org_array, length)), _superblock_rank1(sprout::array <superblock_rank_t, superblock_num>()), _block_rank1(sprout::array <block_rank_t, block_num>()), _lookuptable(
-            sprout::array <lookuptable_elem_t, lookuptable_size>())
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr Waveletmatrix <alphabet_num, length>::Waveletmatrix(const char org_array[length])
+        : _org_array(util::c_str_to_array <element_t, length>(org_array)), _bitmatrix(sprout::array <unionbitarray::Unionbitarray <length>, matrix_depth>()), _partition(sprout::array <length_t, matrix_depth>())
     {
         build();
     }
 
-    template <std::size_t length>
-    constexpr Unionbitarray <length>::Unionbitarray(const unsigned long org_array)
-        : _org_array(util::numeric_to_bin <halfblock_t, halfblock_num>(org_array)), _superblock_rank1(sprout::array <superblock_rank_t, superblock_num>()), _block_rank1(sprout::array <block_rank_t, block_num>()), _lookuptable(
-            sprout::array <lookuptable_elem_t, lookuptable_size>())
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr Waveletmatrix <alphabet_num, length>::Waveletmatrix(const sprout::array<unsigned long, length>& org_array)
+        : _org_array(org_array), _bitmatrix(sprout::array <unionbitarray::Unionbitarray <length>, matrix_depth>()), _partition(sprout::array <length_t, matrix_depth>())
     {
         build();
     }
 
-    template <std::size_t length>
-    constexpr void Unionbitarray <length>::build()
+    template <std::size_t alphabet_num, std::size_t length>
+    Waveletmatrix <alphabet_num, length>::Waveletmatrix(const std::array<unsigned long, length>& org_array)
+        : _org_array(org_array), _bitmatrix(sprout::array <unionbitarray::Unionbitarray <length>, matrix_depth>()), _partition(sprout::array <length_t, matrix_depth>())
     {
+        build();
+    }
+
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr void Waveletmatrix <alphabet_num, length>::build()
+    {
+        // bitsetではビットを下から数える点に注意．
+        sprout::array<sprout::bitset<alphabet_size>, length> bits = _org_array;
+        sprout::array<alphabet_t, length> permutation = util::linspace<alphabet_t, length>(0);
+        for (size_t i = 0; i < matrix_depth; i++) {
+            // i+1番目のビットを並べる．
+            _bitmatrix[i].set(util::extract_bit(_org_array, i+1, true));
+            // i+1番目のビットでソート．
+        }
+
+
+
+
+
+
+
         // ブロックランク，スーパーブロックランクの作成．
         time_t lastrank = 0;
         time_t subrank  = 0;
@@ -55,14 +74,14 @@ namespace unionarray {
         }
     }
 
-    template <std::size_t length>
-    constexpr unsigned long Unionbitarray <length>::access(const position_t index) const
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr unsigned long Waveletmatrix <alphabet_num, length>::access(const position_t index) const
     {
         return rank1(index) - rank1(index - 1);
     }
 
-    template <std::size_t length>
-    constexpr unsigned long Unionbitarray <length>::rank1(const position_t index) const
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr unsigned long Waveletmatrix <alphabet_num, length>::rank1(const position_t index) const
     {
         if (index <= 0) {
             return 0;
@@ -108,8 +127,8 @@ namespace unionarray {
         }
     }
 
-    template <std::size_t length>
-    constexpr unsigned long Unionbitarray <length>::rank(const element_t a, const position_t index) const
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr unsigned long Waveletmatrix <alphabet_num, length>::rank(const element_t a, const position_t index) const
     {
         if (a == 0) {
             return index - rank1(index);
@@ -120,8 +139,8 @@ namespace unionarray {
         }
     }
 
-    template <std::size_t length>
-    constexpr unsigned long Unionbitarray <length>::select1(const time_t order) const
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr unsigned long Waveletmatrix <alphabet_num, length>::select1(const time_t order) const
     {
         if (order <= 0) {
             return 0;
@@ -185,8 +204,8 @@ namespace unionarray {
         }
     }
 
-    template <std::size_t length>
-    constexpr unsigned long Unionbitarray <length>::select0(const time_t order) const
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr unsigned long Waveletmatrix <alphabet_num, length>::select0(const time_t order) const
     {
         if (order <= 0) {
             return 0;
@@ -254,8 +273,8 @@ namespace unionarray {
         }
     }
 
-    template <std::size_t length>
-    constexpr unsigned long Unionbitarray <length>::select(const element_t a, const time_t order) const
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr unsigned long Waveletmatrix <alphabet_num, length>::select(const element_t a, const time_t order) const
     {
         if (a == 0) {
             return select0(order);
@@ -266,20 +285,20 @@ namespace unionarray {
         }
     }
 
-    template <std::size_t length>
-    constexpr size_t Unionbitarray <length>::size() const
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr size_t Waveletmatrix <alphabet_num, length>::size() const
     {
         return length;
     }
 
-    template <std::size_t length>
-    constexpr size_t Unionbitarray <length>::alphabet_size() const
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr size_t Waveletmatrix <alphabet_num, length>::alphabet_size() const
     {
         return 2;
     }
 
-    template <std::size_t length>
-    std::string Unionbitarray <length>::to_string() const
+    template <std::size_t alphabet_num, std::size_t length>
+    std::string Waveletmatrix <alphabet_num, length>::to_string() const
     {
         std::string result = "";
         for (size_t i = 0; i < block_num; i++) {
@@ -289,14 +308,14 @@ namespace unionarray {
         return result;
     }
 
-    template <std::size_t length>
-    constexpr unsigned long Unionbitarray <length>::invalid_value() const
+    template <std::size_t alphabet_num, std::size_t length>
+    constexpr unsigned long Waveletmatrix <alphabet_num, length>::invalid_value() const
     {
         return std::numeric_limits <length_t>::max();
     }
 
-    template <std::size_t length>
-    std::string Unionbitarray <length>::str() const
+    template <std::size_t alphabet_num, std::size_t length>
+    std::string Waveletmatrix <alphabet_num, length>::str() const
     {
         std::string result = "";
         result += to_string() + '\n';
@@ -321,8 +340,8 @@ namespace unionarray {
         return result;
     }
 
-    template <std::size_t length>
-    std::string Unionbitarray <length>::superblock_rank() const
+    template <std::size_t alphabet_num, std::size_t length>
+    std::string Waveletmatrix <alphabet_num, length>::superblock_rank() const
     {
         std::string result = "";
         for (auto rank : _superblock_rank1) {
@@ -332,8 +351,8 @@ namespace unionarray {
         return result;
     }
 
-    template <std::size_t length>
-    std::string Unionbitarray <length>::block_rank() const
+    template <std::size_t alphabet_num, std::size_t length>
+    std::string Waveletmatrix <alphabet_num, length>::block_rank() const
     {
         std::string result = "";
         for (auto rank : _block_rank1) {
@@ -343,8 +362,8 @@ namespace unionarray {
         return result;
     }
 
-    template <std::size_t length>
-    std::string Unionbitarray <length>::lookuptable() const
+    template <std::size_t alphabet_num, std::size_t length>
+    std::string Waveletmatrix <alphabet_num, length>::lookuptable() const
     {
         std::string result = "";
         for (size_t i = 0; i < lookuptable_size; i++) {
@@ -354,15 +373,15 @@ namespace unionarray {
         return result;
     }
 
-    template <std::size_t length>
-    std::ostream&operator<<(std::ostream &os, const Unionbitarray <length> &pb)
+    template <std::size_t alphabet_num, std::size_t length>
+    std::ostream&operator<<(std::ostream &os, const Waveletmatrix <alphabet_num, length> &pb)
     {
         os << pb.to_string();
 
         return os;
     }
 
-    void testUnionbitarray()
+    void testWaveletmatrix()
     {
         // 文字列
         constexpr const char *str = "0000000000000000000000000111111111111111111111111111111111111111";
@@ -383,9 +402,9 @@ namespace unionarray {
         }
         std::cout << std::endl;
 
-        // Unionbitarray
+        // Waveletmatrix
         constexpr size_t                 length = 16;
-        constexpr Unionbitarray <length> ub     = Unionbitarray <length>(29260);
+        constexpr Waveletmatrix <length> ub     = Waveletmatrix <length>(29260);
         constexpr size_t                 size   = ub.size();
         std::cout << ub.str() << std::endl;
         std::cout << ub.superblock_rank() << std::endl;
@@ -396,7 +415,7 @@ namespace unionarray {
         }
 
         constexpr size_t                  length2 = 40;
-        constexpr Unionbitarray <length2> ub2     = Unionbitarray <length2>("1110010010011001000101010100000111110111");
+        constexpr Waveletmatrix <length2> ub2     = Waveletmatrix <length2>("1110010010011001000101010100000111110111");
         constexpr size_t                  size2   = ub2.size();
         std::cout << ub2.str() << std::endl;
         // std::cout << ub2.superblock_rank() << std::endl;

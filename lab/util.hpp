@@ -38,59 +38,59 @@ namespace util {
 
         using none_type = none;
 
-        using type               = typename std::conditional <bin_length <= sizeof(unsigned char),
-        unsigned char,
-        typename std::conditional<bin_length <= sizeof(unsigned short),
-        unsigned short,
-        typename std::conditional<bin_length <= sizeof(unsigned int),
-        unsigned int,
-        typename std::conditional<bin_length <= sizeof(unsigned long),
-        unsigned long,
-        typename std::conditional<use_none,
-        none,
-        unsigned long
-        >::type
-        >::type
-        >::type
-        >::type
-        >::type;
+        using type = typename std::conditional <bin_length <= sizeof(unsigned char),
+                                                unsigned char,
+                                                typename std::conditional <bin_length <= sizeof(unsigned short),
+                                                                           unsigned short,
+                                                                           typename std::conditional <bin_length <= sizeof(unsigned int),
+                                                                                                      unsigned int,
+                                                                                                      typename std::conditional <bin_length <= sizeof(unsigned long),
+                                                                                                                                 unsigned long,
+                                                                                                                                 typename std::conditional <use_none,
+                                                                                                                                                            none,
+                                                                                                                                                            unsigned long
+                                                                                                                                                            >::type
+                                                                                                                                 >::type
+                                                                                                      >::type
+                                                                           >::type
+                                                >::type;
     };
 
     template <std::size_t bit_length, bool use_none = true>
-    using bit_container_t = typename bit_container <bit_length, use_none>::type;
+    using bit_container_t                           = typename bit_container <bit_length, use_none>::type;
 
     // ・containerメタ関数
     // 処理系依存のような気がする（size_t = unsigned long）．
     template <unsigned long num, bool use_none = true>
     struct container
     {
-        static constexpr size_t max_uchar  = std::numeric_limits<unsigned char>::max();
-        static constexpr size_t max_ushort = std::numeric_limits<unsigned short>::max();
-        static constexpr size_t max_uint   = std::numeric_limits<unsigned int>::max();
-        static constexpr size_t max_ulong  = std::numeric_limits<unsigned long>::max();
+        static constexpr size_t max_uchar  = std::numeric_limits <unsigned char>::max();
+        static constexpr size_t max_ushort = std::numeric_limits <unsigned short>::max();
+        static constexpr size_t max_uint   = std::numeric_limits <unsigned int>::max();
+        static constexpr size_t max_ulong  = std::numeric_limits <unsigned long>::max();
 
         using none_type = none;
 
-        using type               = typename std::conditional <num <= max_uchar,
-        unsigned char,
-        typename std::conditional<num <= max_ushort,
-        unsigned short,
-        typename std::conditional<num <= max_uint,
-        unsigned int,
-        typename std::conditional<num <= max_ulong,
-        unsigned long,
-        typename std::conditional<use_none,
-        none,
-        unsigned long
-        >::type
-        >::type
-        >::type
-        >::type
-        >::type;
+        using type = typename std::conditional <num <= max_uchar,
+                                                unsigned char,
+                                                typename std::conditional <num <= max_ushort,
+                                                                           unsigned short,
+                                                                           typename std::conditional <num <= max_uint,
+                                                                                                      unsigned int,
+                                                                                                      typename std::conditional <num <= max_ulong,
+                                                                                                                                 unsigned long,
+                                                                                                                                 typename std::conditional <use_none,
+                                                                                                                                                            none,
+                                                                                                                                                            unsigned long
+                                                                                                                                                            >::type
+                                                                                                                                 >::type
+                                                                                                      >::type
+                                                                           >::type
+                                                >::type;
     };
 
     template <unsigned long num, bool use_none = true>
-    using container_t = typename container <num, use_none>::type;
+    using container_t                          = typename container <num, use_none>::type;
 
     // ・half_containerメタ関数
     // 半分のビット長を持つコンテナを返す．
@@ -100,47 +100,88 @@ namespace util {
         using none_type = none;
 
         using type = typename std::conditional <std::is_same <Numeric, char>::value,
-        typename std::conditional <use_none,
-        none,
-        char
-        >::type,
-        typename std::conditional <std::is_same <Numeric, unsigned char>::value,
-        typename std::conditional <use_none,
-        none,
-        unsigned char
-        >::type,
-        typename std::conditional <std::is_same <Numeric, short>::value,
-        char,
-        typename std::conditional <std::is_same <Numeric, unsigned short>::value,
-        unsigned char,
-        typename std::conditional <std::is_same <Numeric, int>::value,
-        short,
-        typename std::conditional <std::is_same <Numeric, unsigned int>::value,
-        unsigned short,
-        typename std::conditional <std::is_same <Numeric, long>::value,
-        int,
-        typename std::conditional <std::is_same <Numeric, unsigned long>::value,
-        unsigned int,
-        none
-        >::type
-        >::type
-        >::type
-        >::type
-        >::type
-        >::type
-        >::type
-        >::type;
+                                                typename std::conditional <use_none,
+                                                                           none,
+                                                                           char
+                                                                           >::type,
+                                                typename std::conditional <std::is_same <Numeric, unsigned char>::value,
+                                                                           typename std::conditional <use_none,
+                                                                                                      none,
+                                                                                                      unsigned char
+                                                                                                      >::type,
+                                                                           typename std::conditional <std::is_same <Numeric, short>::value,
+                                                                                                      char,
+                                                                                                      typename std::conditional <std::is_same <Numeric, unsigned short>::value,
+                                                                                                                                 unsigned char,
+                                                                                                                                 typename std::conditional <std::is_same <Numeric, int>::value,
+                                                                                                                                                            short,
+                                                                                                                                                            typename std::conditional <std::is_same <Numeric, unsigned int>::value,
+                                                                                                                                                                                       unsigned short,
+                                                                                                                                                                                       typename std::conditional <std::is_same <Numeric,
+                                                                                                                                                                                                                                long>::value,
+                                                                                                                                                                                                                  int,
+                                                                                                                                                                                                                  typename std::conditional <std
+                                                                                                                                                                                                                                             ::
+                                                                                                                                                                                                                                             is_same
+                                                                                                                                                                                                                                             <
+                                                                                                                                                                                                                                                 Numeric,
+                                                                                                                                                                                                                                                 unsigned
+                                                                                                                                                                                                                                                 long>
+                                                                                                                                                                                                                                             ::
+                                                                                                                                                                                                                                             value,
+                                                                                                                                                                                                                                             unsigned
+                                                                                                                                                                                                                                             int,
+                                                                                                                                                                                                                                             none
+                                                                                                                                                                                                                                             >::
+                                                                                                                                                                                                                  type
+                                                                                                                                                                                                                  >::type
+                                                                                                                                                                                       >::type
+                                                                                                                                                            >::type
+                                                                                                                                 >::type
+                                                                                                      >::type
+                                                                           >::type
+                                                >::type;
     };
 
     template <class Numeric, bool use_none = true>
-    using half_container_t = typename half_container<Numeric, use_none>::type;
+    using half_container_t                 = typename half_container <Numeric, use_none>::type;
 
-    // ・c_str_to_bin関数
-    // char型の配列からビット列を生成する．
+    // ・linspace関数
+    template <typename Numeric, size_t length>
+    constexpr sprout::array <Numeric, length> linspace(Numeric start, Numeric difference = 1)
+    {
+        sprout::array <Numeric, length> result = sprout::array <Numeric, length>();
+        result[0] = start;
+        for (size_t i = 1; i < length; i++) {
+            result[i] = result[i - 1] + difference;
+        }
+
+        return result;
+    }
+
+    // ・c_str_to_array関数
+    // char型の配列から0-9からなる配列を生成する．
+    // 非数が出現したら終了して残りを0で埋める．
+    template <typename Numeric, size_t length>
+    constexpr sprout::array <Numeric, length> c_str_to_array(const char *org_array)
+    {
+        sprout::array <Numeric, length> result = sprout::array <Numeric, length>();
+        for (size_t i = 0; i < length; i++) {
+            if (std::isdigit(org_array[i])) {
+                result[i] = org_array[i] - '0';
+            } else {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    // ・c_str_to_block_bitseq関数
+    // char型の配列からブロックビット列を生成する．
     // ビット列はblock_num個のblock_tに格納する．
-
     template <typename block_t, int block_num>
-    constexpr sprout::array <block_t, block_num> c_str_to_bin(const char *org_array, std::size_t n)
+    constexpr sprout::array <block_t, block_num> c_str_to_block_bitseq(const char *org_array, std::size_t n)
     {
         constexpr std::size_t block_size = 8 * sizeof(block_t);
 
@@ -157,11 +198,11 @@ namespace util {
         return result;
     }
 
-    // numeric_to_bin関数
-    // numeric型からビット列を生成する．
+    // ・numeric_to_block_bitseq関数
+    // numeric型からブロックビット列を生成する．
     // ビット列はblock_num個のblock_tに格納する．
     template <typename block_t, int block_num>
-    constexpr sprout::array <block_t, block_num> numeric_to_bin(const unsigned long org_array)
+    constexpr sprout::array <block_t, block_num> numeric_to_block_bitseq(const unsigned long org_array)
     {
         constexpr std::size_t block_size = 8 * sizeof(block_t);
 
@@ -179,10 +220,50 @@ namespace util {
         return result;
     }
 
+    // ・array_to_block_bitseq関数
+    // 配列からブロックビット列を生成する．
+    // ビット列はblock_num個のblock_tに格納する．
+    template <typename block_t, int block_num>
+    constexpr sprout::array <block_t, block_num> array_to_block_bitseq(const sprout::array <unsigned char, 8 *sizeof(block_t) *block_num> org_array)
+    {
+        constexpr std::size_t block_size = 8 * sizeof(block_t);
+
+        sprout::array <block_t, block_num> result = sprout::array <block_t, block_num>();
+        for (size_t i = 0; i < block_num; i++) {
+            for (size_t j = 0; j < block_size; j++) {
+                if (org_array[block_size * i + j] == 1) {
+                    result[i]++;
+                }
+                result[i] <<= 1;
+            }
+        }
+
+        return result;
+    }
+
+    // ・bitset_to_block_bitseq関数
+    // bitsetからブロックビット列を生成する．
+    // ビット列はblock_num個のblock_tに格納する．
+    template <typename block_t, int block_num>
+    constexpr sprout::array <block_t, block_num> bitset_to_block_bitseq(const sprout::bitset <8 *sizeof(block_t) *block_num> org_array)
+    {
+        constexpr std::size_t block_size = 8 * sizeof(block_t);
+
+        sprout::array <block_t, block_num> result = sprout::array <block_t, block_num>();
+        for (size_t i = 0; i < block_num; i++) {
+            for (size_t j = 0; j < block_size; j++) {
+                result[i]  += org_array[block_size * i + j];
+                result[i] <<= 1;
+            }
+        }
+
+        return result;
+    }
+
     // ・rank関数
     // O(n)時間．小さいbitsetに使用する．
     template <size_t length>
-    constexpr unsigned long rank(int a, const sprout::bitset<length>& bs, unsigned long index)
+    constexpr unsigned long rank(int a, const sprout::bitset <length> &bs, unsigned long index)
     {
         unsigned long order = 0;
         // indexは1-origin，bitsetは0-origin．
@@ -191,11 +272,12 @@ namespace util {
                 order++;
             }
         }
+
         return order;
     }
 
     template <size_t length>
-    unsigned long rank(int a, const std::bitset<length>& bs, unsigned long index)
+    unsigned long rank(int a, const std::bitset <length> &bs, unsigned long index)
     {
         unsigned long order = 0;
         // indexは1-origin，bitsetは0-origin．
@@ -204,18 +286,19 @@ namespace util {
                 order++;
             }
         }
+
         return order;
     }
 
     // ・access関数
     template <size_t length>
-    constexpr unsigned long access(const sprout::bitset<length>& bs, unsigned long index)
+    constexpr unsigned long access(const sprout::bitset <length> &bs, unsigned long index)
     {
         return bs[length - 1 - index];
     }
 
     template <size_t length>
-    unsigned long access(const std::bitset<length>& bs, unsigned long index)
+    unsigned long access(const std::bitset <length> &bs, unsigned long index)
     {
         return bs[length - 1 - index];
     }
@@ -223,13 +306,13 @@ namespace util {
     // ・select関数
     // O(n)時間．小さいbitsetに使用する．
     template <size_t length>
-    constexpr unsigned long select(int a, const sprout::bitset<length>& bs, unsigned long order)
+    constexpr unsigned long select(int a, const sprout::bitset <length> &bs, unsigned long order)
     {
         // 0以下の場合
         if (order <= 0) {
             return 0;
         }
-        unsigned long rank = 0;
+        unsigned long rank  = 0;
         unsigned long index = 0;
         // indexは1-origin，bitsetは0-origin．
         for (index = 0; index < length; index++) {
@@ -240,18 +323,19 @@ namespace util {
                 }
             }
         }
-        return index+1;
+
+        return index + 1;
     }
 
     // O(n)時間．小さいbitsetに使用する．
     template <size_t length>
-    unsigned long select(int a, const std::bitset<length>& bs, unsigned long order)
+    unsigned long select(int a, const std::bitset <length> &bs, unsigned long order)
     {
         // 0以下の場合
         if (order <= 0) {
             return 0;
         }
-        unsigned long rank = 0;
+        unsigned long rank  = 0;
         unsigned long index = 0;
         // indexは1-origin，bitsetは0-origin．
         for (index = 0; index < length; index++) {
@@ -262,7 +346,8 @@ namespace util {
                 }
             }
         }
-        return index+1;
+
+        return index + 1;
     }
 
     // ・repeat関数
@@ -400,6 +485,111 @@ namespace util {
             // 負の場合
             return static_cast <int>(d - 0.5);
         }
+    }
+
+    // ・extract_digit関数
+    // 整数列のn桁目を抽出して整数列を作る．
+    template <typename Numeric, size_t length>
+    std::array <Numeric, length> extract_digit(const std::array <Numeric, length> &org_array, const size_t radix, const size_t digit)
+    {
+        std::array <Numeric, length> result = std::array <Numeric, length>();
+        if (digit == 0) {
+            return result;
+        }
+
+        for (size_t i = 0; i < length; i++) {
+            result[i] = (org_array[i] / power(radix, digit - 1)) % power(radix, digit);
+        }
+
+        return result;
+    }
+
+    template <typename Numeric, size_t length>
+    constexpr sprout::array <Numeric, length> extract_digit(const sprout::array <Numeric, length> &org_array, const size_t radix, const size_t digit)
+    {
+        sprout::array <Numeric, length> result = std::array <Numeric, length>();
+        if (digit == 0) {
+            return result;
+        }
+
+        for (size_t i = 0; i < length; i++) {
+            result[i] = (org_array[i] / power(radix, digit - 1)) % power(radix, digit);
+        }
+
+        return result;
+    }
+
+    // ・extract_bit関数
+    // extract_digit関数の2進数版．
+    // テンプレート関数を部分特殊化させろ（おこ）
+    template <typename Numeric, size_t length>
+    std::bitset <length> extract_bit(const std::array <Numeric, length> &org_array, const size_t digit, const bool from_top=false)
+    {
+        std::bitset <length> result = std::bitset <length>();
+        if (digit == 0) {
+            return result;
+        }
+
+        // ビットシフトは既存の領域を利用するためコピーしなければならない．
+        for (size_t i = 0; i < length; i++) {
+            Numeric buffer_for_bitshift = org_array[i];
+            buffer_for_bitshift >>= (from_top) ? (8*sizeof(Numeric) - digit) : (digit - 1);
+            result[i]             = buffer_for_bitshift & 1;
+        }
+
+        return result;
+    }
+
+    template <typename Numeric, size_t length>
+    std::bitset <length> extract_bit(std::array <Numeric, length> &&org_array, const size_t digit, const bool from_top=false)
+    {
+        std::bitset <length> result = std::bitset <length>();
+        if (digit == 0) {
+            return result;
+        }
+
+        // 右辺値の場合は破壊してよい．
+        for (size_t i = 0; i < length; i++) {
+            org_array[i] >>= (from_top) ? (8*sizeof(Numeric) - digit) : (digit - 1);
+            result[i]      = org_array[i] & 1;
+        }
+
+        return result;
+    }
+
+    template <typename Numeric, size_t length>
+    constexpr sprout::bitset <length> extract_bit(const sprout::array <Numeric, length> &org_array, const size_t digit, const bool from_top=false)
+    {
+        sprout::bitset <length> result = std::bitset <length>();
+        if (digit == 0) {
+            return result;
+        }
+
+        // ビットシフトは既存の領域を利用するためコピーしなければならない．
+        for (size_t i = 0; i < length; i++) {
+            Numeric buffer_for_bitshift = org_array[i];
+            buffer_for_bitshift >>= (from_top) ? (8*sizeof(Numeric) - digit) : (digit - 1);
+            result[i]             = buffer_for_bitshift & 1;
+        }
+
+        return result;
+    }
+
+    template <typename Numeric, size_t length>
+    constexpr sprout::bitset <length> extract_bit(sprout::array <Numeric, length> &&org_array, const size_t digit, const bool from_top=false)
+    {
+        sprout::bitset <length> result = std::bitset <length>();
+        if (digit == 0) {
+            return result;
+        }
+
+        // 右辺値の場合は破壊してよい．
+        for (size_t i = 0; i < length; i++) {
+            org_array[i] >>= (from_top) ? (8*sizeof(Numeric) - digit) : (digit - 1);
+            result[i]      = org_array[i] & 1;
+        }
+
+        return result;
     }
 
     // ・reverse関数
@@ -914,6 +1104,26 @@ namespace util {
             }
         }
     };
+
+    // ・typename_of関数
+    // typeid.name出力をデマングルする．
+    // 野良C++erさんのコード．
+    #include <cxxabi.h>
+
+    // __cxa_demangleがmallocして返すためメモリリークがある．
+    char* demangle(const char *demangled)
+    {
+      int status;
+      return abi::__cxa_demangle(demangled, 0, 0, &status);
+    }
+
+    // Tの型名を取得．
+    template<typename T>
+    char* typename_of()
+    {
+      return demangle( typeid(T).name() );
+    }
+
 }
 
 #endif

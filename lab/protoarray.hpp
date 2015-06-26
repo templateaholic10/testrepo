@@ -60,7 +60,7 @@ namespace protoarray {
     };
 
     // アルファベット[0, alphabet_num)上の長さnの配列
-    template <int alphabet_num, std::size_t length>
+    template <std::size_t alphabet_num, std::size_t length>
     class Protoarray
     {
         using length_t   = util::container_t <length>;
@@ -70,6 +70,10 @@ namespace protoarray {
         using position_t = length_t;
     public:
         constexpr Protoarray()
+        {
+        }
+        
+        constexpr Protoarray(const char org_array[length])
         {
         }
 
