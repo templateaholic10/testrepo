@@ -36,8 +36,8 @@ namespace unionarray {
         // Jacobsonの方法．O(1)時間．
         constexpr unsigned long rank(const element_t a, const position_t index) const;
 
-        // // 2分探索．O(logn)時間．
-        // constexpr unsigned long select(const element_t a, const time_t order) const;
+        // 2分探索．O(logn)時間．
+        constexpr unsigned long select(const element_t a, const time_t order) const;
 
         constexpr size_t size() const;
 
@@ -58,10 +58,9 @@ namespace unionarray {
 
         constexpr unsigned long rank1(const position_t index) const;
 
+        constexpr unsigned long select1(const time_t order) const;
 
-        // constexpr unsigned long select1(const time_t order) const;
-
-        // constexpr boost::optional <position_t> select0(const time_t order) const;
+        constexpr unsigned long select0(const time_t order) const;
 
     public:
         using block_t = util::bit_container_t <util::lg(length), false>;
