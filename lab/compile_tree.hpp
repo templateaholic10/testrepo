@@ -336,6 +336,20 @@ namespace tree {
             using root   = Node <_Paren, 1>;
         };
 
+        template <class T>
+        struct Dot;
+
+        template <class Paren_>
+        struct Dot<Graph<Paren_>>
+        {
+        };
+
+        template <class Graph_>
+        std::ostream&operator<<(std::ostream &os, const Dot<Graph_> &dot)
+        {
+            return os;
+        }
+
         void test_graph()
         {
             std::cout << util::Repeat("-", 20) << std::endl;
