@@ -5,6 +5,7 @@
 #include "test_simple_svg.hpp"
 #include "unionbitarray.hpp"
 #include "test_sprout.hpp"
+#include "compile_tree.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -36,9 +37,13 @@ int main(int argc, char const *argv[])
 
     // test_simple_svg::test_pinwheel();
 
-    unionbitarray::testUnionbitarray();
+    // unionbitarray::testUnionbitarray();
     // constexpr auto hoge = test_sprout::test_sprout<1000>();
     // std::cout << hoge << std::endl;
+    // constexpr auto str = sprout::to_string("((())()())");
+    // constexpr auto bitseq = util::paren_to_bitseq(str);
+    // std::cout << bitseq.to_string() << std::endl;
+    tree::shape::test_graph();
 
     return 0;
 }

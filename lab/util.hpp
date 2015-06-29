@@ -19,10 +19,68 @@
 #include <boost/mpl/bool.hpp>
 #include <sprout/array.hpp>
 #include <sprout/bitset.hpp>
+#include <sprout/string.hpp>
 
 namespace util {
     // ・epsilon
     constexpr double epsilon = 10e-6;
+
+    // ・bit_sum関数
+    // バイナリにおける1の数を返す関数．
+    constexpr int BITS_COUNT_TABLE[256] = {
+        0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+        4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
+    };
+
+    // 上限は64ビットなのでintで十分．
+    template <typename Numeric>
+    constexpr int bit_sum(Numeric bits)
+    {
+        int num  = 0;
+
+        for (int i=0 ; i<sizeof(bits) ; i++ ) {
+            num += BITS_COUNT_TABLE[((unsigned char*)&bits)[i]];
+        }
+
+        return num;
+    }
+
+    template <typename Numeric>
+    constexpr int bit_sum2(Numeric bits)
+    {
+        int num  = 0;
+        for ( ; bits != 0 ; bits &= bits - 1 ) {
+            num++;
+        }
+        return num;
+    }
+
+    // ・paren_to_bitseq関数
+    template <size_t length>
+    constexpr sprout::bitset<length> paren_to_bitseq(sprout::basic_string<char, length> paren)
+    {
+        sprout::bitset<length> result = 0;
+        for (size_t i = 0; i < length; i++) {
+            if (paren[i] == ')') {
+                result.set(i);
+            }
+        }
+        return result;
+    }
 
     // ・bit_containerメタ関数
     struct none
@@ -368,6 +426,8 @@ namespace util {
     }
 
     // ・Repeatクラス
+    // std::cout << Repeat("gfn", "2") << std::endl;
+    // のように使う．
     class Repeat
     {
     public:
