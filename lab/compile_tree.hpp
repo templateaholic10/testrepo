@@ -47,6 +47,12 @@ namespace paren {
         static constexpr size_t value = 0;
     };
 
+    template <size_t index>
+    struct _idendity
+    {
+        static constexpr size_t value = index;
+    };
+
     template <unsigned long bit_expression, size_t length_, size_t index>
     struct AT <Paren <bit_expression, length_>, index>
     {
@@ -108,29 +114,112 @@ namespace paren {
         static constexpr size_t value = _FINDCLOSE <_Paren, open_index, 1>::value;
     };
 
-    // 括弧表現における最初の子を返すメタ関数．
-    template <typename T, size_t open_index>
-    struct FIRSTCHILD;
+    // 閉括弧のインデックスに対応する開括弧のインデックスを返すメタ関数．
+    // indexは1-originとする．
+    template <typename T, size_t now_index, size_t right_excess>
+    struct _FINDOPEN;
 
-    template <unsigned long bit_expression, size_t length_, size_t open_index>
-    struct FIRSTCHILD <Paren <bit_expression, length_>, open_index>
+    template <unsigned long bit_expression, size_t length_, size_t now_index, size_t right_excess>
+    struct _FINDOPEN <Paren <bit_expression, length_>, now_index, right_excess>
     {
         using _Paren = Paren <bit_expression, length_>;
-        static_assert(AT <_Paren, open_index>::value == 0, "not open at index.");
-        // index+1の括弧が開のとき，最初の子．
-        // index+1の括弧が閉のとき，子は存在しない．
+        static constexpr size_t value = std::conditional <
+            AT <_Paren, now_index - 1>::value == 0,
+            _FINDOPEN <
+                _Paren,
+                now_index - 1,
+                right_excess - 1
+                >,
+            _FINDOPEN <
+                _Paren,
+                now_index - 1,
+                right_excess + 1
+                >
+            >::type::value;
+    };
+
+    template <unsigned long bit_expression, size_t length_, size_t now_index>
+    struct _FINDOPEN <Paren <bit_expression, length_>, now_index, 0>
+    {
+        using _Paren = Paren <bit_expression, length_>;
+        static constexpr size_t value = now_index;
+    };
+
+    // 閉括弧に対応する開括弧のインデックスを返すメタ関数．
+    template <typename T, size_t close_index>
+    struct FINDOPEN;
+
+    template <unsigned long bit_expression, size_t length_, size_t close_index>
+    struct FINDOPEN <Paren <bit_expression, length_>, close_index>
+    {
+        using _Paren = Paren <bit_expression, length_>;
+        static_assert(AT <_Paren, close_index>::value == 1, "not close at index.");
+        static constexpr size_t value = _FINDOPEN <_Paren, close_index, 1>::value;
+    };
+
+    // 最もきつく括る括弧を返すメタ関数．
+    template <typename T, size_t index>
+    struct ENCLOSE;
+
+    template <unsigned long bit_expression, size_t length_, size_t index>
+    struct ENCLOSE <Paren <bit_expression, length_>, index>
+    {
+        using _Paren = Paren <bit_expression, length_>;
+        using at     = AT <_Paren, index>;
+        static constexpr size_t open_index = std::conditional <
+            at::value == 0,
+            _idendity <index>,
+            FINDOPEN <_Paren, index>
+            >::type::value;
+        // 括弧が開になるまで繰り返す．
+        static constexpr size_t value = std::conditional <
+                                        0 < open_index && open_index <= length_,
+        typename std::conditional <
+            AT <_Paren, open_index - 1>::value == 0,
+            _idendity <open_index - 1>,
+            ENCLOSE <_Paren, open_index - 1>
+            >::type,
+        _zero >
+        ::type::value;
+    };
+
+    // エイリアステンプレート．
+    template <typename T, size_t index>
+    using PARENT = ENCLOSE <T, index>;
+
+    // 括弧表現における最初の子を返すメタ関数．
+    template <typename T, size_t index>
+    struct FIRSTCHILD;
+
+    template <unsigned long bit_expression, size_t length_, size_t index>
+    struct FIRSTCHILD <Paren <bit_expression, length_>, index>
+    {
+        using _Paren = Paren <bit_expression, length_>;
+        using at     = AT <_Paren, index>;
+        static constexpr size_t open_index = std::conditional <
+            at::value == 0,
+            _idendity <index>,
+            FINDOPEN <_Paren, index>
+            >::type::value;
+        // open_index+1の括弧が開のとき，最初の子．
+        // open_index+1の括弧が閉のとき，子は存在しない．
         static constexpr size_t value = (AT <_Paren, open_index + 1>::value == 0) ? open_index + 1 : 0;
     };
 
     // 括弧表現における次の兄弟を返すメタ関数．
-    template <typename T, size_t open_index>
+    template <typename T, size_t index>
     struct NEXTSIBLING;
 
-    template <unsigned long bit_expression, size_t length_, size_t open_index>
-    struct NEXTSIBLING <Paren <bit_expression, length_>, open_index>
+    template <unsigned long bit_expression, size_t length_, size_t index>
+    struct NEXTSIBLING <Paren <bit_expression, length_>, index>
     {
         using _Paren = Paren <bit_expression, length_>;
-        static_assert(AT <_Paren, open_index>::value == 0, "not open at index.");
+        using at     = AT <_Paren, index>;
+        static constexpr size_t open_index = std::conditional <
+            at::value == 0,
+            _idendity <index>,
+            FINDOPEN <_Paren, index>
+            >::type::value;
         // FINDCLOSE+1の括弧が開のとき，次の兄弟．
         // FINDCLOSE+1の括弧が閉のとき，次の兄弟は存在しない．
         static constexpr size_t _find_close = FINDCLOSE <_Paren, open_index>::value;
@@ -167,8 +256,9 @@ namespace paren {
         std::cout << AT <paren, 13>::value << std::endl;
         std::cout << AT <paren, 14>::value << std::endl;
 
-        constexpr size_t index = 4;
+        constexpr size_t index = 1;
         std::cout << "AT " << index << ": " << AT <paren, index>::value << std::endl;
+        std::cout << "PARENT " << index << ": " << PARENT <paren, index>::value << std::endl;
         std::cout << "FIRSTCHILD " << index << ": " << FIRSTCHILD <paren, index>::value << std::endl;
         std::cout << "NEXTSIBLING " << index << ": " << NEXTSIBLING <paren, index>::value << std::endl;
         std::cout << AT <paren, 15>::value << std::endl;
@@ -197,28 +287,41 @@ namespace tree {
         {
             using _Paren = paren::Paren <bit_expression, length_>;
             static constexpr size_t id = index;
-            // DFSの順．
-            struct FIRSTCHILD
+            struct PARENT
             {
                 static constexpr size_t first_child = paren::FIRSTCHILD <_Paren, index>::value;
                 using type = typename std::conditional <
-                      first_child != 0,
-                      // FIRSTCHILDが存在するとき
-                      Node <_Paren, first_child>,
-                      // 存在しないとき
-                      Node_none
-                      >::type;
+                          first_child != 0,
+                          // FIRSTCHILDが存在するとき
+                          Node <_Paren, first_child>,
+                          // 存在しないとき
+                          Node_none
+                          >::type;
             };
+
+            // DFSの順．
+            struct FIRSTCHILD
+            {
+                static constexpr size_t _first_child = paren::FIRSTCHILD <_Paren, index>::value;
+                using type = typename std::conditional <
+                          _first_child != 0,
+                          // FIRSTCHILDが存在するとき
+                          Node <_Paren, _first_child>,
+                          // 存在しないとき
+                          Node_none
+                          >::type;
+            };
+
             struct NEXTSIBLING
             {
-                static constexpr size_t next_sibling = paren::NEXTSIBLING <_Paren, index>::value;
+                static constexpr size_t _next_sibling = paren::NEXTSIBLING <_Paren, index>::value;
                 using type = typename std::conditional <
-                      next_sibling != 0,
-                      // NEXTSIBLINGが存在するとき
-                      Node <_Paren, next_sibling>,
-                      // 存在しないとき
-                      Node_none
-                      >::type;
+                          _next_sibling != 0,
+                          // NEXTSIBLINGが存在するとき
+                          Node <_Paren, _next_sibling>,
+                          // 存在しないとき
+                          Node_none
+                          >::type;
             };
         };
 
@@ -227,23 +330,23 @@ namespace tree {
         struct Graph;
 
         template <unsigned long bit_expression, size_t length_>
-        struct Graph <paren::Paren <bit_expression, length_>>
+        struct Graph <paren::Paren <bit_expression, length_> >
         {
             using _Paren = paren::Paren <bit_expression, length_>;
-            using root = Node <_Paren, 1>;
+            using root   = Node <_Paren, 1>;
         };
 
         void test_graph()
         {
             std::cout << util::Repeat("-", 20) << std::endl;
             std::cout << "Tree representations test" << std::endl;
-            constexpr auto   str     = sprout::to_string("(()(()()(())))");
+            constexpr auto str = sprout::to_string("(()(()()(())))");
             std::cout << str.c_str() << std::endl;
-            constexpr auto   rev_str = sprout::fixed::reverse(str);
+            constexpr auto rev_str = sprout::fixed::reverse(str);
             // Paren型．
             using paren = paren::Paren <util::paren_to_bitseq(rev_str).to_ulong(), str.size()>;
             // Graph型．
-            using graph = Graph<paren>;
+            using graph = Graph <paren>;
             std::cout << util::Repeat("-", 20) << std::endl;
         }
     }

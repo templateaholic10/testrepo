@@ -43,6 +43,7 @@ int main(int argc, char const *argv[])
     // constexpr auto str = sprout::to_string("((())()())");
     // constexpr auto bitseq = util::paren_to_bitseq(str);
     // std::cout << bitseq.to_string() << std::endl;
+    paren::test_paren();
     tree::shape::test_graph();
 
     return 0;
