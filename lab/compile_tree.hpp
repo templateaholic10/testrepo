@@ -2,7 +2,8 @@
 #define COMPILE_TREE
 
 #include <iostream>
-#include <boost/mpl/bitwise.hpp>
+// #include <boost/mpl/bitwise.hpp>
+#include <boost/mpl/apply.hpp>
 #include <sprout/numeric/iota.hpp>
 #include <sprout/algorithm/fixed/reverse.hpp>
 #include "util.hpp"
@@ -48,7 +49,7 @@ namespace paren {
     };
 
     template <size_t index>
-    struct _idendity
+    struct _identity
     {
         static constexpr size_t value = index;
     };
@@ -168,7 +169,7 @@ namespace paren {
         using at     = AT <_Paren, index>;
         static constexpr size_t open_index = std::conditional <
             at::value == 0,
-            _idendity <index>,
+            _identity <index>,
             FINDOPEN <_Paren, index>
             >::type::value;
         // 括弧が開になるまで繰り返す．
@@ -176,7 +177,7 @@ namespace paren {
                                         0 < open_index && open_index <= length_,
         typename std::conditional <
             AT <_Paren, open_index - 1>::value == 0,
-            _idendity <open_index - 1>,
+            _identity <open_index - 1>,
             ENCLOSE <_Paren, open_index - 1>
             >::type,
         _zero >
@@ -198,7 +199,7 @@ namespace paren {
         using at     = AT <_Paren, index>;
         static constexpr size_t open_index = std::conditional <
             at::value == 0,
-            _idendity <index>,
+            _identity <index>,
             FINDOPEN <_Paren, index>
             >::type::value;
         // open_index+1の括弧が開のとき，最初の子．
@@ -217,13 +218,47 @@ namespace paren {
         using at     = AT <_Paren, index>;
         static constexpr size_t open_index = std::conditional <
             at::value == 0,
-            _idendity <index>,
+            _identity <index>,
             FINDOPEN <_Paren, index>
             >::type::value;
         // FINDCLOSE+1の括弧が開のとき，次の兄弟．
         // FINDCLOSE+1の括弧が閉のとき，次の兄弟は存在しない．
         static constexpr size_t _find_close = FINDCLOSE <_Paren, open_index>::value;
         static constexpr size_t value       = (_find_close < length_ && AT <_Paren, _find_close + 1>::value == 0) ? _find_close + 1 : 0;
+    };
+
+    // 括弧表現における子の数を返すメタ関数．
+    template <typename T, size_t now_index, size_t sum>
+    struct _CHILDRENNUM;
+
+    template <unsigned long bit_expression, size_t length_, size_t now_open_index, size_t sum>
+    struct _CHILDRENNUM <Paren <bit_expression, length_>, now_open_index, sum>
+    {
+        using _Paren = Paren <bit_expression, length_>;
+        // 次の兄弟が存在するとき，再帰．
+        static constexpr size_t _next_sibling = NEXTSIBLING <_Paren, now_open_index>::value;
+        static constexpr size_t value       = std::conditional<
+            _next_sibling != 0,
+            _CHILDRENNUM<_Paren, _next_sibling, sum+1>,
+            _identity<sum>
+            >::type::value;
+    };
+
+    template <typename T, size_t index>
+    struct CHILDRENNUM;
+
+    template <unsigned long bit_expression, size_t length_, size_t index>
+    struct CHILDRENNUM <Paren <bit_expression, length_>, index>
+    {
+        using _Paren = Paren <bit_expression, length_>;
+        // FINDCLOSE+1の括弧が開のとき，次の兄弟．
+        // FINDCLOSE+1の括弧が閉のとき，次の兄弟は存在しない．
+        static constexpr size_t _first_child = FIRSTCHILD <_Paren, index>::value;
+        static constexpr size_t value       = std::conditional<
+            _first_child != 0,
+            _CHILDRENNUM<_Paren, _first_child, 1>,
+            _zero
+            >::type::value;
     };
 
     void test_paren()
@@ -238,23 +273,6 @@ namespace paren {
 
         using paren = Paren <compressed, len>;
         std::cout << "Paren: " << str.c_str() << std::endl;
-
-        // std::cout << util::bit_sum2(compressed) << std::endl;
-        //
-        std::cout << AT <paren, 1>::value << std::endl;
-        std::cout << AT <paren, 2>::value << std::endl;
-        std::cout << AT <paren, 3>::value << std::endl;
-        std::cout << AT <paren, 4>::value << std::endl;
-        std::cout << AT <paren, 5>::value << std::endl;
-        std::cout << AT <paren, 6>::value << std::endl;
-        std::cout << AT <paren, 7>::value << std::endl;
-        std::cout << AT <paren, 8>::value << std::endl;
-        std::cout << AT <paren, 9>::value << std::endl;
-        std::cout << AT <paren, 10>::value << std::endl;
-        std::cout << AT <paren, 11>::value << std::endl;
-        std::cout << AT <paren, 12>::value << std::endl;
-        std::cout << AT <paren, 13>::value << std::endl;
-        std::cout << AT <paren, 14>::value << std::endl;
 
         constexpr size_t index = 1;
         std::cout << "AT " << index << ": " << AT <paren, index>::value << std::endl;
@@ -282,6 +300,8 @@ namespace tree {
         template <typename T, size_t index>
         struct Node;
 
+        // Nodeはメタデータ．
+        // 複数のメタ関数をローカルな構造体として含む．
         template <unsigned long bit_expression, size_t length_, size_t index>
         struct Node <paren::Paren <bit_expression, length_>, index>
         {
@@ -289,17 +309,16 @@ namespace tree {
             static constexpr size_t id = index;
             struct PARENT
             {
-                static constexpr size_t first_child = paren::FIRSTCHILD <_Paren, index>::value;
+                static constexpr size_t first_child = paren::PARENT <_Paren, index>::value;
                 using type = typename std::conditional <
                           first_child != 0,
-                          // FIRSTCHILDが存在するとき
+                          // PARENTが存在するとき
                           Node <_Paren, first_child>,
                           // 存在しないとき
                           Node_none
                           >::type;
             };
 
-            // DFSの順．
             struct FIRSTCHILD
             {
                 static constexpr size_t _first_child = paren::FIRSTCHILD <_Paren, index>::value;
@@ -323,29 +342,59 @@ namespace tree {
                           Node_none
                           >::type;
             };
+
+            struct CHILDRENNUM
+            {
+                static constexpr size_t value = paren::CHILDRENNUM <_Paren, index>::value;
+            };
         };
 
         // 木形のグラフ表現．
         template <typename T>
-        struct Graph;
+        struct Tree;
 
         template <unsigned long bit_expression, size_t length_>
-        struct Graph <paren::Paren <bit_expression, length_> >
+        struct Tree <paren::Paren <bit_expression, length_> >
         {
             using _Paren = paren::Paren <bit_expression, length_>;
-            using root   = Node <_Paren, 1>;
+            static constexpr size_t V_size = length_ / 2;
+            struct ROOT
+            {
+                using type = Node <_Paren, 1>;
+            };
+        };
+
+        // Graphを深さ優先探索して，各Nodeにメタ関数Fを作用させる2階メタ関数．
+
+        template <class F, class T>
+        struct _DFS;
+
+        template <class F, class Paren_, size_t index>
+        struct _DFS <F, Node <Paren_, index> >
+            : boost::mpl::apply <F, Node <Paren_, index> >
+        {
+        };
+
+
+        template <class F, class T>
+        struct DFS;
+
+        // 当然Fは型でなければならないので，メタ関数クラスでラップするかテンプレートパラメータにプレースホルダを指定する．
+        template <class F, class Paren_>
+        struct DFS <F, Graph <Paren_> >
+        {
         };
 
         template <class T>
         struct Dot;
 
         template <class Paren_>
-        struct Dot<Graph<Paren_>>
+        struct Dot <Graph <Paren_> >
         {
         };
 
         template <class Graph_>
-        std::ostream&operator<<(std::ostream &os, const Dot<Graph_> &dot)
+        std::ostream&operator<<(std::ostream &os, const Dot <Graph_> &dot)
         {
             return os;
         }
@@ -364,6 +413,70 @@ namespace tree {
             std::cout << util::Repeat("-", 20) << std::endl;
         }
     }
+
+    // 木形のグラフ表現．
+    // インスタンス化して使うのを目的とする．
+    // 部分特殊化テンプレートがデフォルトパラメータを持てなかったので，しかたなくshape::Node以外の第一テンプレートパラメータでも特殊化可能にしてある．
+    template <class Node_, size_t index_in_paren = Node_::id, size_t children_num_ = Node_::CHILDRENNUM::value>
+    class Node
+    {
+    public:
+        // 以下コンパイル時に決まるメンバ．
+        static constexpr size_t children_num = children_num_;
+    public:
+        constexpr Node(size_t id);
+    public:
+        // 以下インスタンス化時に決まるメンバ．
+        const size_t id;
+        const size_t parent;
+        const sprout::array<size_t, children_num> children;
+    };
+
+    // 親がいない場合．
+    template <class Node_, size_t children_num_>
+    class Node<Node_, 0, children_num_>
+    {
+    public:
+        // 以下コンパイル時に決まるメンバ．
+        static constexpr size_t children_num = children_num_;
+    public:
+        constexpr Node(size_t id);
+    public:
+        // 以下インスタンス化時に決まるメンバ．
+        const size_t id;
+        const sprout::array<size_t, children_num> children;
+    };
+
+    // 子がいない場合．
+    template <class Node_, size_t index_in_paren>
+    class Node<Node_, index_in_paren, 0>
+    {
+    public:
+        // 以下コンパイル時に決まるメンバ．
+        static constexpr size_t children_num = 0;
+    public:
+        constexpr Node(size_t id);
+    public:
+        // 以下インスタンス化時に決まるメンバ．
+        const size_t id;
+        const size_t parent;
+    };
+
+    template <typename T, typename value_type>
+    class Tree;
+
+    template <class Paren_, typename value_type>
+    class Tree <shape::Tree <Paren_>, value_type>
+    {
+    private:
+        using Tree_ = shape::Tree<Paren_>;
+        static constexpr size_t V_size = Tree_::V_size;
+    public:
+        // 根のインデックスは常に0．
+        constexpr Tree(const sprout::array <value_type, V_size>& values);
+
+        Node<>
+    };
 }
 
 #endif
