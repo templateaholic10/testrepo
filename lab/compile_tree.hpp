@@ -207,6 +207,29 @@ namespace paren {
         static constexpr size_t value = (AT <_Paren, open_index + 1>::value == 0) ? open_index + 1 : 0;
     };
 
+    // 括弧表現における最初の子を返すメタ関数．
+    template <typename T, size_t index>
+    struct LASTCHILD;
+
+    template <unsigned long bit_expression, size_t length_, size_t index>
+    struct LASTCHILD <Paren <bit_expression, length_>, index>
+    {
+        using _Paren = Paren <bit_expression, length_>;
+        using at     = AT <_Paren, index>;
+        static constexpr size_t close_index = std::conditional <
+            at::value == 0,
+            FINDCLOSE <_Paren, index>,
+            _identity <index>
+            >::type::value;
+        // close_index-1の括弧が開のとき，子は存在しない．
+        // close_index-1の括弧が閉のとき，対応する開括弧が子．
+        static constexpr size_t value = std::conditional <
+            AT <_Paren, close_index - 1>::value == 0,
+            _zero,
+            FINDOPEN <_Paren, close_index - 1>
+            >::type::value;
+    };
+
     // 括弧表現における次の兄弟を返すメタ関数．
     template <typename T, size_t index>
     struct NEXTSIBLING;
@@ -216,15 +239,37 @@ namespace paren {
     {
         using _Paren = Paren <bit_expression, length_>;
         using at     = AT <_Paren, index>;
+        static constexpr size_t close_index = std::conditional <
+            at::value == 0,
+            FINDCLOSE <_Paren, index>,
+            _identity <index>
+            >::type::value;
+        // close_index+1の括弧が開のとき，次の兄弟．
+        // close_index+1の括弧が閉のとき，次の兄弟は存在しない．
+        static constexpr size_t value = (close_index < length_ && AT <_Paren, close_index + 1>::value == 0) ? close_index + 1 : 0;
+    };
+
+    // 括弧表現における前の兄弟を返すメタ関数．
+    template <typename T, size_t index>
+    struct PREVSIBLING;
+
+    template <unsigned long bit_expression, size_t length_, size_t index>
+    struct PREVSIBLING <Paren <bit_expression, length_>, index>
+    {
+        using _Paren = Paren <bit_expression, length_>;
+        using at     = AT <_Paren, index>;
         static constexpr size_t open_index = std::conditional <
             at::value == 0,
             _identity <index>,
             FINDOPEN <_Paren, index>
             >::type::value;
-        // FINDCLOSE+1の括弧が開のとき，次の兄弟．
-        // FINDCLOSE+1の括弧が閉のとき，次の兄弟は存在しない．
-        static constexpr size_t _find_close = FINDCLOSE <_Paren, open_index>::value;
-        static constexpr size_t value       = (_find_close < length_ && AT <_Paren, _find_close + 1>::value == 0) ? _find_close + 1 : 0;
+        // open_index-1の括弧が開のとき，前の兄弟は存在しない．
+        // open_index-1の括弧が閉のとき，対応する開括弧が前の兄弟．
+        static constexpr size_t value = std::conditional <
+            AT <_Paren, open_index - 1>::value == 0,
+            _zero,
+            FINDOPEN <_Paren, open_index - 1>
+            >::type::value;
     };
 
     // 括弧表現における子の数を返すメタ関数．
@@ -237,10 +282,10 @@ namespace paren {
         using _Paren = Paren <bit_expression, length_>;
         // 次の兄弟が存在するとき，再帰．
         static constexpr size_t _next_sibling = NEXTSIBLING <_Paren, now_open_index>::value;
-        static constexpr size_t value       = std::conditional<
+        static constexpr size_t value         = std::conditional <
             _next_sibling != 0,
-            _CHILDRENNUM<_Paren, _next_sibling, sum+1>,
-            _identity<sum>
+            _CHILDRENNUM <_Paren, _next_sibling, sum + 1>,
+            _identity <sum>
             >::type::value;
     };
 
@@ -254,11 +299,24 @@ namespace paren {
         // FINDCLOSE+1の括弧が開のとき，次の兄弟．
         // FINDCLOSE+1の括弧が閉のとき，次の兄弟は存在しない．
         static constexpr size_t _first_child = FIRSTCHILD <_Paren, index>::value;
-        static constexpr size_t value       = std::conditional<
+        static constexpr size_t value        = std::conditional <
             _first_child != 0,
-            _CHILDRENNUM<_Paren, _first_child, 1>,
+            _CHILDRENNUM <_Paren, _first_child, 1>,
             _zero
             >::type::value;
+    };
+
+    // Parenかどうかを判定するメタ関数．
+    template <typename T>
+    struct is_Paren
+    {
+        static constexpr bool value = false;
+    };
+
+    template <unsigned long bit_expression, size_t length_>
+    struct is_Paren <Paren <bit_expression, length_> >
+    {
+        static constexpr bool value = true;
     };
 
     void test_paren()
@@ -290,116 +348,92 @@ namespace tree {
     namespace shape {
         // 木形のグラフ表現．
 
-        // 木グラフにおける存在しないノードのプレースホルダ．
-        struct Node_none
-        {
-        };
-
         // 木グラフのノード．
-        // indexは括弧表現における開括弧のインデックス．
-        template <typename T, size_t index>
-        struct Node;
-
         // Nodeはメタデータ．
         // 複数のメタ関数をローカルな構造体として含む．
-        template <unsigned long bit_expression, size_t length_, size_t index>
-        struct Node <paren::Paren <bit_expression, length_>, index>
+        template <class Paren_, size_t index, class Ignored = void>
+        struct Node
         {
-            using _Paren = paren::Paren <bit_expression, length_>;
             static constexpr size_t id = index;
             struct PARENT
             {
-                static constexpr size_t first_child = paren::PARENT <_Paren, index>::value;
-                using type = typename std::conditional <
-                          first_child != 0,
-                          // PARENTが存在するとき
-                          Node <_Paren, first_child>,
-                          // 存在しないとき
-                          Node_none
-                          >::type;
+                using type = Node <Paren_, paren::PARENT <Paren_, index>::value>;
             };
 
             struct FIRSTCHILD
             {
-                static constexpr size_t _first_child = paren::FIRSTCHILD <_Paren, index>::value;
-                using type = typename std::conditional <
-                          _first_child != 0,
-                          // FIRSTCHILDが存在するとき
-                          Node <_Paren, _first_child>,
-                          // 存在しないとき
-                          Node_none
-                          >::type;
+                using type = Node <Paren_, paren::FIRSTCHILD <Paren_, index>::value>;
+            };
+
+            struct LASTCHILD
+            {
+                using type = Node <Paren_, paren::LASTCHILD <Paren_, index>::value>;
             };
 
             struct NEXTSIBLING
             {
-                static constexpr size_t _next_sibling = paren::NEXTSIBLING <_Paren, index>::value;
-                using type = typename std::conditional <
-                          _next_sibling != 0,
-                          // NEXTSIBLINGが存在するとき
-                          Node <_Paren, _next_sibling>,
-                          // 存在しないとき
-                          Node_none
-                          >::type;
+                using type = Node <Paren_, paren::NEXTSIBLING <Paren_, index>::value>;
+            };
+
+            struct PREVSIBLING
+            {
+                using type = Node <Paren_, paren::PREVSIBLING <Paren_, index>::value>;
             };
 
             struct CHILDRENNUM
             {
-                static constexpr size_t value = paren::CHILDRENNUM <_Paren, index>::value;
+                static constexpr size_t value = paren::CHILDRENNUM <Paren_, index>::value;
+            };
+        };
+
+        // indexがアクセス範囲外の時の特殊化．
+        template <class Paren_, size_t index>
+        struct Node < Paren_, index, typename std::enable_if <index <= 0 || Paren_::length <index>::type>
+        {
+            static constexpr size_t id = 0;
+            struct PARENT
+            {
+                using type = Node <Paren_, index>;
+            };
+
+            struct FIRSTCHILD
+            {
+                using type = Node <Paren_, index>;
+            };
+
+            struct LASTCHILD
+            {
+                using type = Node <Paren_, index>;
+            };
+
+            struct NEXTSIBLING
+            {
+                using type = Node <Paren_, index>;
+            };
+
+            struct PREVSIBLING
+            {
+                using type = Node <Paren_, index>;
+            };
+
+            struct CHILDRENNUM
+            {
+                static constexpr size_t value = 0;
             };
         };
 
         // 木形のグラフ表現．
-        template <typename T>
-        struct Tree;
-
-        template <unsigned long bit_expression, size_t length_>
-        struct Tree <paren::Paren <bit_expression, length_> >
+        template <class Paren_>
+        struct Tree
         {
-            using _Paren = paren::Paren <bit_expression, length_>;
-            static constexpr size_t V_size = length_ / 2;
+            static constexpr size_t V_size = Paren_::length / 2;
             struct ROOT
             {
-                using type = Node <_Paren, 1>;
+                using type = Node <Paren_, 1>;
             };
         };
 
-        // Graphを深さ優先探索して，各Nodeにメタ関数Fを作用させる2階メタ関数．
-
-        template <class F, class T>
-        struct _DFS;
-
-        template <class F, class Paren_, size_t index>
-        struct _DFS <F, Node <Paren_, index> >
-            : boost::mpl::apply <F, Node <Paren_, index> >
-        {
-        };
-
-
-        template <class F, class T>
-        struct DFS;
-
-        // 当然Fは型でなければならないので，メタ関数クラスでラップするかテンプレートパラメータにプレースホルダを指定する．
-        template <class F, class Paren_>
-        struct DFS <F, Graph <Paren_> >
-        {
-        };
-
-        template <class T>
-        struct Dot;
-
-        template <class Paren_>
-        struct Dot <Graph <Paren_> >
-        {
-        };
-
-        template <class Graph_>
-        std::ostream&operator<<(std::ostream &os, const Dot <Graph_> &dot)
-        {
-            return os;
-        }
-
-        void test_graph()
+        void test_treeshape()
         {
             std::cout << util::Repeat("-", 20) << std::endl;
             std::cout << "Tree representations test" << std::endl;
@@ -408,8 +442,14 @@ namespace tree {
             constexpr auto rev_str = sprout::fixed::reverse(str);
             // Paren型．
             using paren = paren::Paren <util::paren_to_bitseq(rev_str).to_ulong(), str.size()>;
-            // Graph型．
-            using graph = Graph <paren>;
+            // Tree型．
+            using graph = Tree <paren>;
+            constexpr size_t root             = graph::ROOT::type::id;
+            constexpr size_t root_firstchild  = graph::ROOT::type::FIRSTCHILD::type::id;
+            constexpr size_t root_childrennum = graph::ROOT::type::CHILDRENNUM::value;
+            std::cout << "root: " << root << std::endl;
+            std::cout << "root_firstchild: " << root_firstchild << std::endl;
+            std::cout << "root_childrennum: " << root_childrennum << std::endl;
             std::cout << util::Repeat("-", 20) << std::endl;
         }
     }
@@ -427,14 +467,14 @@ namespace tree {
         constexpr Node(size_t id);
     public:
         // 以下インスタンス化時に決まるメンバ．
-        const size_t id;
-        const size_t parent;
-        const sprout::array<size_t, children_num> children;
+        const size_t                               id;
+        const size_t                               parent;
+        const sprout::array <size_t, children_num> children;
     };
 
     // 親がいない場合．
     template <class Node_, size_t children_num_>
-    class Node<Node_, 0, children_num_>
+    class Node <Node_, 0, children_num_>
     {
     public:
         // 以下コンパイル時に決まるメンバ．
@@ -443,13 +483,13 @@ namespace tree {
         constexpr Node(size_t id);
     public:
         // 以下インスタンス化時に決まるメンバ．
-        const size_t id;
-        const sprout::array<size_t, children_num> children;
+        const size_t                               id;
+        const sprout::array <size_t, children_num> children;
     };
 
     // 子がいない場合．
     template <class Node_, size_t index_in_paren>
-    class Node<Node_, index_in_paren, 0>
+    class Node <Node_, index_in_paren, 0>
     {
     public:
         // 以下コンパイル時に決まるメンバ．
@@ -469,14 +509,24 @@ namespace tree {
     class Tree <shape::Tree <Paren_>, value_type>
     {
     private:
-        using Tree_ = shape::Tree<Paren_>;
+        using Tree_ = shape::Tree <Paren_>;
         static constexpr size_t V_size = Tree_::V_size;
     public:
         // 根のインデックスは常に0．
-        constexpr Tree(const sprout::array <value_type, V_size>& values);
-
-        Node<>
+        constexpr Tree(const sprout::array <value_type, V_size> &values);
     };
+
+    template <class F, class T>
+    struct DFS;
+
+    template <class T>
+    struct Dot;
+
+    template <class Graph_>
+    std::ostream&operator<<(std::ostream &os, const Dot <Graph_> &dot)
+    {
+        return os;
+    }
 }
 
 #endif
