@@ -16,7 +16,7 @@ namespace tree {
         struct Tree
         {
             // 木の形状におけるノード数と要素の数が一致．
-            static_assert(Shape_::V_size == boost::mpl::size<Elements_>::value, "shape and element are not consistent");
+            static_assert(tree::shape::V_SIZE<Shape_>::value == boost::mpl::size<Elements_>::value, "shape and element are not consistent");
             using shape = Shape_;
             using elements = Elements_;
         };
@@ -34,7 +34,8 @@ namespace tree {
         template <class Tree_, typename element>
         struct FIND
         {
-            static constexpr size_t value = boost::mpl::find<typename Tree_::elements, element>::type::pos::value + 1;
+            static constexpr size_t _pre_value = boost::mpl::find<typename Tree_::elements, element>::type::pos::value;
+            static constexpr size_t value = (_pre_value != boost::mpl::size<typename Tree_::elements>::value) ? _pre_value+1 : 0;
         };
 
         // 直系であるか判定する関数．
@@ -69,8 +70,8 @@ namespace tree {
             // 遅延評価最高．
             static constexpr size_t ancestor_id = FIND<Tree_, Ancestor>::value;
             static constexpr size_t descendent_id = FIND<Tree_, Descendent>::value;
-            using ancestor_node = typename Tree_::AT_AS_GRAPH<ancestor_id>;
-            using descendent_node = typename Tree_::template AT_AS_GRAPH<descendent_id>;
+            using ancestor_node =  tree::shape::AT_AS_GRAPH<Tree_, ancestor_id>;
+            using descendent_node =  tree::shape::AT_AS_GRAPH<Tree_, descendent_id>;
             static constexpr size_t value = std::conditional<
                 ancestor_id != 0 && descendent_id != 0,
                 _DIRECTLINE<typename ancestor_node::type, typename descendent_node::type, 0>,
@@ -103,6 +104,9 @@ namespace tree {
 
             std::cout << "FIND Akari: " << FIND<meta_tree, Akari>::value << std::endl;
             std::cout << "FIND int: " << FIND<meta_tree, int>::value << std::endl;
+            std::cout << boost::mpl::find<elements, Akari>::type::pos::value << std::endl;
+            std::cout << boost::mpl::find<elements, int>::type::pos::value << std::endl;
+            std::cout << boost::mpl::size<elements>::value << std::endl;
             std::cout << "DIRECTLINE Human, Otaku: " << DIRECTLINE<meta_tree, Human, Otaku>::value << std::endl;
             std::cout << "DIRECTLINE Akari, Otaku: " << DIRECTLINE<meta_tree, Akari, Otaku>::value << std::endl;
             std::cout << "DIRECTLINE int, Otaku: " << DIRECTLINE<meta_tree, Akari, Otaku>::value << std::endl;
