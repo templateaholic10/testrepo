@@ -88,51 +88,58 @@ namespace tree {
         template <class Paren_>
         struct Tree
         {
-            static constexpr size_t V_size = Paren_::length / 2;
+            using paren = Paren_;
+        };
 
-            // 括弧インデックスに対応するノードを返すメタ関数．
-            template <size_t index>
-            struct AT_AS_PAREN
-            {
-                using type = Node <Paren_, index>;
-            };
+        // 括弧インデックスに対応するノードを返すメタ関数．
+        template <class Tree_, size_t index>
+        struct AT_AS_PAREN
+        {
+            using type = Node <typename Tree_::paren, index>;
+        };
 
-            // 根ノードを返すメタ関数．
-            struct ROOT
-                : AT_AS_PAREN <1>
-            {
-            };
+        // 根ノードを返すメタ関数．
+        template <class Tree_>
+        struct ROOT
+            : AT_AS_PAREN <Tree_, 1>
+        {
+        };
 
-            // グラフインデックスに対応するノードを返すメタ関数．
-            template <size_t index>
-            struct AT_AS_GRAPH
-            {
-                using type = Node <Paren_, tree::shape::paren::SELECT <Paren_, index>::value>;
-            };
+        // グラフインデックスに対応するノードを返すメタ関数．
+        template <class Tree_, size_t index>
+        struct AT_AS_GRAPH
+        {
+            using type = Node <typename Tree_::paren, tree::shape::paren::SELECT <typename Tree_::paren, index>::value>;
+        };
+
+        template <class Tree_>
+        struct V_SIZE
+        {
+            static constexpr size_t value = Tree_::paren::length / 2;
         };
 
         void test_treeshape()
         {
-            std::cout << util::Repeat("-", 20) << std::endl;
-            std::cout << "Tree representations test" << std::endl;
-            constexpr auto str = sprout::to_string("(()(()()(())))");
-            std::cout << str.c_str() << std::endl;
-            constexpr auto rev_str = sprout::fixed::reverse(str);
-            // Paren型．
-            using paren = paren::Paren <util::paren_to_bitseq(rev_str).to_ulong(), str.size()>;
-            // Tree型．
-            using graph = Tree <paren>;
-            constexpr size_t root             = graph::ROOT::type::id;
-            constexpr size_t root_firstchild  = graph::ROOT::type::FIRSTCHILD::type::id;
-            constexpr size_t root_childrennum = graph::ROOT::type::CHILDRENNUM::value;
-            constexpr size_t _4_as_paren  = graph::AT_AS_PAREN<4>::type::id;
-            constexpr size_t _4_as_graph = graph::AT_AS_GRAPH<4>::type::id;
-            std::cout << "root: " << root << std::endl;
-            std::cout << "root_firstchild: " << root_firstchild << std::endl;
-            std::cout << "root_childrennum: " << root_childrennum << std::endl;
-            std::cout << "4 as paren: " << _4_as_paren << std::endl;
-            std::cout << "4 as graph: " << _4_as_graph << std::endl;
-            std::cout << util::Repeat("-", 20) << std::endl;
+            // std::cout << util::Repeat("-", 20) << std::endl;
+            // std::cout << "Tree representations test" << std::endl;
+            // constexpr auto str = sprout::to_string("(()(()()(())))");
+            // std::cout << str.c_str() << std::endl;
+            // constexpr auto rev_str = sprout::fixed::reverse(str);
+            // // Paren型．
+            // using paren = paren::Paren <util::paren_to_bitseq(rev_str).to_ulong(), str.size()>;
+            // // Tree型．
+            // using graph = Tree <paren>;
+            // constexpr size_t root             = graph::ROOT::type::id;
+            // constexpr size_t root_firstchild  = graph::ROOT::type::FIRSTCHILD::type::id;
+            // constexpr size_t root_childrennum = graph::ROOT::type::CHILDRENNUM::value;
+            // constexpr size_t _4_as_paren  = graph::AT_AS_PAREN<4>::type::id;
+            // constexpr size_t _4_as_graph = graph::AT_AS_GRAPH<4>::type::id;
+            // std::cout << "root: " << root << std::endl;
+            // std::cout << "root_firstchild: " << root_firstchild << std::endl;
+            // std::cout << "root_childrennum: " << root_childrennum << std::endl;
+            // std::cout << "4 as paren: " << _4_as_paren << std::endl;
+            // std::cout << "4 as graph: " << _4_as_graph << std::endl;
+            // std::cout << util::Repeat("-", 20) << std::endl;
         }
     }
 
