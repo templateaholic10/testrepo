@@ -12,6 +12,7 @@ namespace tree {
     namespace typetree {
 
         // メタデータ木．
+        // 同じメタデータが複数回現れることはない．
         template <class Shape_, class Elements_>
         struct Tree
         {
@@ -41,6 +42,7 @@ namespace tree {
         // 直系であるか判定する関数．
         // 直系のとき，距離を返す．
         // 直系でないとき，0を返す．
+        // 自分自身の場合は直系と扱わない．
         template <class Now_node, class Descendent_node, size_t distance, size_t Now_node_id = Now_node::id>
         struct _DIRECTLINE
         {
@@ -70,8 +72,8 @@ namespace tree {
             // 遅延評価最高．
             static constexpr size_t ancestor_id = FIND<Tree_, Ancestor>::value;
             static constexpr size_t descendent_id = FIND<Tree_, Descendent>::value;
-            using ancestor_node =  tree::shape::AT_AS_GRAPH<Tree_, ancestor_id>;
-            using descendent_node =  tree::shape::AT_AS_GRAPH<Tree_, descendent_id>;
+            using ancestor_node =  tree::shape::AT_AS_GRAPH<typename Tree_::shape, ancestor_id>;
+            using descendent_node =  tree::shape::AT_AS_GRAPH<typename Tree_::shape, descendent_id>;
             static constexpr size_t value = std::conditional<
                 ancestor_id != 0 && descendent_id != 0,
                 _DIRECTLINE<typename ancestor_node::type, typename descendent_node::type, 0>,
