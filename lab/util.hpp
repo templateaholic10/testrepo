@@ -20,6 +20,7 @@
 #include <sprout/array.hpp>
 #include <sprout/bitset.hpp>
 #include <sprout/string.hpp>
+#include <sprout/algorithm/fixed/reverse.hpp>
 
 namespace util {
     // ・epsilon
@@ -47,38 +48,204 @@ namespace util {
     };
 
     // 上限は64ビットなのでintで十分．
-    template <typename Numeric>
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
     constexpr int bit_sum(Numeric bits)
     {
-        int num  = 0;
+        int num = 0;
 
-        for (int i=0 ; i<sizeof(bits) ; i++ ) {
-            num += BITS_COUNT_TABLE[((unsigned char*)&bits)[i]];
+        for (int i = 0; i < sizeof(bits); i++) {
+            num += BITS_COUNT_TABLE[((unsigned char *) &bits)[i]];
         }
 
         return num;
     }
 
-    template <typename Numeric>
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
     constexpr int bit_sum2(Numeric bits)
     {
-        int num  = 0;
-        for ( ; bits != 0 ; bits &= bits - 1 ) {
+        int num = 0;
+        for (; bits != 0; bits &= bits - 1) {
             num++;
         }
+
         return num;
+    }
+
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
+    constexpr Numeric bit_roll(Numeric bits)
+    {
+        size_t bit_length = 8*sizeof(Numeric);
+        Numeric result = 0;
+        for (size_t i = 0; i < bit_length; i++) {
+            result <<= 1;
+            result += (bits & 1);
+            bits >>= 1;
+        }
+        return result;
+    }
+
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
+    constexpr Numeric bit_roll(Numeric bits, size_t bit_length)
+    {
+        size_t numeric_size = 8 * sizeof(Numeric);
+        if (bit_length > numeric_size) {
+            bit_length = numeric_size;
+        }
+        Numeric result = 0;
+        for (size_t i = 0; i < bit_length; i++) {
+            result <<= 1;
+            result += (bits & 1);
+            bits >>= 1;
+        }
+        return result;
+    }
+
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
+    constexpr size_t rank1(Numeric bits, size_t index)
+    {
+        size_t bit_length = 8 * sizeof(Numeric);
+
+        return (index <= 0)
+               ? 0
+               : ((bit_length < index)
+                  ? bit_sum2(bits)
+                  : util::bit_sum2(bits >> (bit_length - index))
+                  );
+    }
+
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
+    constexpr size_t rank1(Numeric bits, size_t index, size_t bit_length)
+    {
+        size_t numeric_size = 8 * sizeof(Numeric);
+        if (bit_length > numeric_size) {
+            bit_length = numeric_size;
+        }
+        bits <<= (numeric_size - bit_length);
+
+        return rank1(bits, index);
+    }
+
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
+    constexpr size_t rank0(Numeric bits, size_t index)
+    {
+        size_t bit_length = 8 * sizeof(Numeric);
+
+        return (index <= 0)
+               ? 0
+               : ((bit_length < index)
+                  ? bit_length - rank1(bits, index)
+                  : index - rank1(bits, index)
+                  );
+    }
+
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
+    constexpr size_t rank0(Numeric bits, size_t index, size_t bit_length)
+    {
+        return (index <= 0)
+               ? 0
+               : ((bit_length < index)
+                  ? bit_length - rank1(bits, index, bit_length)
+                  : index - rank1(bits, index, bit_length)
+                  );
+    }
+
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
+    constexpr size_t select1(Numeric bits, size_t order)
+    {
+        if (order <= 0) {
+            return 0;
+        }
+        size_t bit_length = 8 * sizeof(Numeric);
+        bits = bit_roll(bits, bit_length);
+
+        size_t index = 0;
+        size_t sum   = 0;
+        for (; index < bit_length; index++) {
+            if (sum >= order) {
+                break;
+            }
+            sum   += (bits & 1);
+            bits >>= 1;
+        }
+
+        return (sum < order) ? 0 : index;
+    }
+
+    template <typename Numeric>
+    constexpr size_t select1(Numeric bits, size_t order, size_t bit_length)
+    {
+        if (order <= 0) {
+            return 0;
+        }
+        bits = bit_roll(bits, bit_length);
+
+        size_t index = 0;
+        size_t sum   = 0;
+        for (; index < bit_length; index++) {
+            if (sum >= order) {
+                break;
+            }
+            sum   += (bits & 1);
+            bits >>= 1;
+        }
+
+        return (sum < order) ? 0 : index;
+    }
+
+    template <typename Numeric, typename std::enable_if <std::is_unsigned <Numeric>::value>::type * = nullptr>
+    constexpr size_t select0(Numeric bits, size_t order)
+    {
+        if (order <= 0) {
+            return 0;
+        }
+        size_t bit_length = 8 * sizeof(Numeric);
+        bits = bit_roll(bits, bit_length);
+
+        size_t index = 0;
+        size_t sum   = 0;
+        for (; index < bit_length; index++) {
+            if (sum >= order) {
+                break;
+            }
+            sum   += 1 - (bits & 1);
+            bits >>= 1;
+        }
+
+        return (sum < order) ? 0 : index;
+    }
+
+    template <typename Numeric>
+    constexpr size_t select0(Numeric bits, size_t order, size_t bit_length)
+    {
+        if (order <= 0) {
+            return 0;
+        }
+        bits = bit_roll(bits, bit_length);
+
+        size_t index = 0;
+        size_t sum   = 0;
+        for (; index < bit_length; index++) {
+            if (sum >= order) {
+                break;
+            }
+            sum   += 1 - (bits & 1);
+            bits >>= 1;
+        }
+
+        return (sum < order) ? 0 : index;
     }
 
     // ・paren_to_bitseq関数
     template <size_t length>
-    constexpr sprout::bitset<length> paren_to_bitseq(sprout::basic_string<char, length> paren)
+    constexpr sprout::bitset <length> paren_to_bitseq(sprout::basic_string <char, length> paren)
     {
-        sprout::bitset<length> result = 0;
+        sprout::bitset <length> result = 0;
         for (size_t i = 0; i < length; i++) {
             if (paren[i] == ')') {
                 result.set(i);
             }
         }
+
         return result;
     }
 
@@ -206,7 +373,7 @@ namespace util {
 
     // ・linspace関数
     template <typename Numeric, size_t length>
-    constexpr sprout::array <Numeric, length> linspace(Numeric start, Numeric difference = 1)
+    constexpr sprout::array <Numeric, length> linspace(Numeric start, Numeric difference=1)
     {
         sprout::array <Numeric, length> result = sprout::array <Numeric, length>();
         result[0] = start;
@@ -593,7 +760,7 @@ namespace util {
         // ビットシフトは既存の領域を利用するためコピーしなければならない．
         for (size_t i = 0; i < length; i++) {
             Numeric buffer_for_bitshift = org_array[i];
-            buffer_for_bitshift >>= (from_top) ? (8*sizeof(Numeric) - digit) : (digit - 1);
+            buffer_for_bitshift >>= (from_top) ? (8 * sizeof(Numeric) - digit) : (digit - 1);
             result[i]             = buffer_for_bitshift & 1;
         }
 
@@ -610,7 +777,7 @@ namespace util {
 
         // 右辺値の場合は破壊してよい．
         for (size_t i = 0; i < length; i++) {
-            org_array[i] >>= (from_top) ? (8*sizeof(Numeric) - digit) : (digit - 1);
+            org_array[i] >>= (from_top) ? (8 * sizeof(Numeric) - digit) : (digit - 1);
             result[i]      = org_array[i] & 1;
         }
 
@@ -628,7 +795,7 @@ namespace util {
         // ビットシフトは既存の領域を利用するためコピーしなければならない．
         for (size_t i = 0; i < length; i++) {
             Numeric buffer_for_bitshift = org_array[i];
-            buffer_for_bitshift >>= (from_top) ? (8*sizeof(Numeric) - digit) : (digit - 1);
+            buffer_for_bitshift >>= (from_top) ? (8 * sizeof(Numeric) - digit) : (digit - 1);
             result[i]             = buffer_for_bitshift & 1;
         }
 
@@ -645,7 +812,7 @@ namespace util {
 
         // 右辺値の場合は破壊してよい．
         for (size_t i = 0; i < length; i++) {
-            org_array[i] >>= (from_top) ? (8*sizeof(Numeric) - digit) : (digit - 1);
+            org_array[i] >>= (from_top) ? (8 * sizeof(Numeric) - digit) : (digit - 1);
             result[i]      = org_array[i] & 1;
         }
 
@@ -1171,19 +1338,19 @@ namespace util {
     #include <cxxabi.h>
 
     // __cxa_demangleがmallocして返すためメモリリークがある．
-    char* demangle(const char *demangled)
+    char *demangle(const char *demangled)
     {
-      int status;
-      return abi::__cxa_demangle(demangled, 0, 0, &status);
+        int status;
+
+        return abi::__cxa_demangle(demangled, 0, 0, &status);
     }
 
     // Tの型名を取得．
-    template<typename T>
-    char* typename_of()
+    template <typename T>
+    char *typename_of()
     {
-      return demangle( typeid(T).name() );
+        return demangle(typeid(T).name() );
     }
-
 }
 
 #endif

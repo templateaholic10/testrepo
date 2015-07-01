@@ -5,7 +5,7 @@
 #include "test_simple_svg.hpp"
 #include "unionbitarray.hpp"
 #include "test_sprout.hpp"
-#include "compile_tree.hpp"
+#include "treeshape_paren.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -43,8 +43,7 @@ int main(int argc, char const *argv[])
     // constexpr auto str = sprout::to_string("((())()())");
     // constexpr auto bitseq = util::paren_to_bitseq(str);
     // std::cout << bitseq.to_string() << std::endl;
-    paren::test_paren();
-    tree::shape::test_treeshape();
+    tree::shape::paren::test_paren();
 
     return 0;
 }
