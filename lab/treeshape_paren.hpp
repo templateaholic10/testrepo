@@ -355,15 +355,6 @@ namespace tree {
                 std::cout << "NEXTSIBLING " << index << ": " << NEXTSIBLING <paren, index>::value << std::endl;
                 std::cout << "RANK0 " << index << ": " << util::rank0(compressed, index, len) << std::endl;
                 std::cout << "SELECT0 " << index << ": " << util::select0(compressed, index, len) << std::endl;
-
-                for (size_t i = 0; i <= len; i++) {
-                    std::cout << "RANK0 " << i << ": " << util::rank0(compressed, i, len) << std::endl;
-                }
-                for (size_t i = 0; i <= len; i++) {
-                    std::cout << "SELECT0 " << i << ": " << util::select0(compressed, i, len) << std::endl;
-                }
-                std::cout << std::bitset<len>(compressed).to_string() << std::endl;
-                std::cout << std::bitset<len>(util::bit_roll(compressed, len)).to_string() << std::endl;
             }
         }
     }

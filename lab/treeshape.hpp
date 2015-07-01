@@ -90,15 +90,24 @@ namespace tree {
         {
             static constexpr size_t V_size = Paren_::length / 2;
 
+            // 括弧インデックスに対応するノードを返すメタ関数．
             template <size_t index>
-            struct AT
+            struct AT_AS_PAREN
             {
                 using type = Node <Paren_, index>;
             };
 
+            // 根ノードを返すメタ関数．
             struct ROOT
-            : AT<1>
+                : AT_AS_PAREN <1>
             {
+            };
+
+            // グラフインデックスに対応するノードを返すメタ関数．
+            template <size_t index>
+            struct AT_AS_GRAPH
+            {
+                using type = Node <Paren_, tree::shape::paren::SELECT <Paren_, index>::value>;
             };
         };
 
@@ -116,9 +125,13 @@ namespace tree {
             constexpr size_t root             = graph::ROOT::type::id;
             constexpr size_t root_firstchild  = graph::ROOT::type::FIRSTCHILD::type::id;
             constexpr size_t root_childrennum = graph::ROOT::type::CHILDRENNUM::value;
+            constexpr size_t _4_as_paren  = graph::AT_AS_PAREN<4>::type::id;
+            constexpr size_t _4_as_graph = graph::AT_AS_GRAPH<4>::type::id;
             std::cout << "root: " << root << std::endl;
             std::cout << "root_firstchild: " << root_firstchild << std::endl;
             std::cout << "root_childrennum: " << root_childrennum << std::endl;
+            std::cout << "4 as paren: " << _4_as_paren << std::endl;
+            std::cout << "4 as graph: " << _4_as_graph << std::endl;
             std::cout << util::Repeat("-", 20) << std::endl;
         }
     }

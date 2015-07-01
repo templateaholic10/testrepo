@@ -4,7 +4,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/find.hpp>
-#include "treeshape_paren.hpp"
+#include "treeshape.hpp"
 
 // 木構造に関する名前空間
 namespace tree {
@@ -40,7 +40,7 @@ namespace tree {
         // 直系であるか判定する関数．
         // 直系のとき，距離を返す．
         // 直系でないとき，0を返す．
-        template <class Now_node, class Descendent_node, size_t distance, size_t Now_node_id = Now_node::id, size_t Descendent_node_id = Descendent_node::id>
+        template <class Now_node, class Descendent_node, size_t distance, size_t Now_node_id = Now_node::id>
         struct _DIRECTLINE
         {
             // 遅延評価，最高．
@@ -57,8 +57,8 @@ namespace tree {
                 >::type::value;
         };
 
-        template <class Now_node, class Descendent_node, size_t distance, size_t Descendent_node_id>
-        struct _DIRECTLINE<Now_node, Descendent_node, distance, 0, Descendent_node_id>
+        template <class Now_node, class Descendent_node, size_t distance>
+        struct _DIRECTLINE<Now_node, Descendent_node, distance, 0>
         {
             static constexpr size_t value = 0;
         };
@@ -66,8 +66,49 @@ namespace tree {
         template <class Tree_, typename Ancestor, typename Descendent>
         struct DIRECTLINE
         {
-            static constexpr size_t value =
+            // 遅延評価最高．
+            static constexpr size_t ancestor_id = FIND<Tree_, Ancestor>::value;
+            static constexpr size_t descendent_id = FIND<Tree_, Descendent>::value;
+            using ancestor_node = typename Tree_::AT_AS_GRAPH<ancestor_id>;
+            using descendent_node = typename Tree_::template AT_AS_GRAPH<descendent_id>;
+            static constexpr size_t value = std::conditional<
+                ancestor_id != 0 && descendent_id != 0,
+                _DIRECTLINE<typename ancestor_node::type, typename descendent_node::type, 0>,
+                std::integral_constant<size_t, 0>
+                >::type::value;
         };
+
+        void test_typetree()
+        {
+            struct Human {};
+            struct My_daughter {};
+            struct Akari {};
+            struct Other {};
+            struct Normal {};
+            struct Otaku {};
+
+            std::cout << util::Repeat("-", 20) << std::endl;
+            std::cout << "Typetree test" << std::endl;
+            constexpr auto str = sprout::to_string("((())(()()))");
+            std::cout << str.c_str() << std::endl;
+            constexpr auto rev_str = sprout::fixed::reverse(str);
+            // Paren型．
+            using paren = tree::shape::paren::Paren <util::paren_to_bitseq(rev_str).to_ulong(), str.size()>;
+            // Tree型．
+            using tree = tree::shape::Tree <paren>;
+            // メタシーケンス．
+            using elements = boost::mpl::vector<Human, My_daughter, Akari, Other, Normal, Otaku>;
+            // メタデータ木．
+            using meta_tree = Tree<tree, elements>;
+
+            std::cout << "FIND Akari: " << FIND<meta_tree, Akari>::value << std::endl;
+            std::cout << "FIND int: " << FIND<meta_tree, int>::value << std::endl;
+            std::cout << "DIRECTLINE Human, Otaku: " << DIRECTLINE<meta_tree, Human, Otaku>::value << std::endl;
+            std::cout << "DIRECTLINE Akari, Otaku: " << DIRECTLINE<meta_tree, Akari, Otaku>::value << std::endl;
+            std::cout << "DIRECTLINE int, Otaku: " << DIRECTLINE<meta_tree, Akari, Otaku>::value << std::endl;
+
+            std::cout << util::Repeat("-", 20) << std::endl;
+        }
     }
 }
 
