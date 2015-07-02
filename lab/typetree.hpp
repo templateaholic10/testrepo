@@ -6,6 +6,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/find.hpp>
 #include "treeshape.hpp"
+#include "metadata.hpp"
 
 // 木構造に関する名前空間
 namespace tree {
@@ -83,12 +84,11 @@ namespace tree {
         };
 
         // ノードに対応するメタデータの出力専用のオブジェクト．
-        template <class Node_, class Elements_, class Ignored = void>
+        template <class Node_, class Elements_>
         class Out;
 
-        // SFINAEによりElementsはランダムアクセス可能なメタシーケンスに限定．
         template <class Paren_, size_t index, class Elements_>
-        class Out <tree::shape::Node <Paren_, index>, Elements_, typename boost::mpl::at <Elements_, std::integral_constant <size_t, 0> >::type>
+        class Out <tree::shape::Node <Paren_, index>, Elements_>
         {
         private:
             using _Node = tree::shape::Node <Paren_, index>;
@@ -99,7 +99,7 @@ namespace tree {
 
             static std::string to_string()
             {
-                return util::typename_of <boost::mpl::at <Elements_, std::integral_constant <size_t, _Node::graph_id> > >();
+                return util::typename_of <typename boost::mpl::at <Elements_, std::integral_constant <size_t, _Node::graph_id - 1> >::type>();
             }
         };
 
@@ -112,22 +112,21 @@ namespace tree {
         }
 
         // 兄弟の出力専用のオブジェクト．
-        template <class Node_, class Elements_, class Ignored = void>
+        template <class Node_, class Elements_>
         class Sibling_Out;
 
-        // SFINAEによりElementsはランダムアクセス可能なメタシーケンスに限定．
         template <class Paren_, size_t index, class Elements_>
-        class Sibling_Out <tree::shape::Node <Paren_, index>, Elements_, typename boost::mpl::at <Elements_, std::integral_constant <size_t, 0> >::type>
+        class Sibling_Out <tree::shape::Node <Paren_, index>, Elements_>
         {
         private:
             using _Node = tree::shape::Node <Paren_, index>;
         public:
-            constexpr Sibling_Out(const char delim=',')
+            constexpr Sibling_Out(const std::string &delim=", ")
                 : _delim(delim)
             {
             }
 
-            static std::string to_string(const char delim=' ')
+            static std::string to_string(const std::string &delim=", ")
             {
                 using next_sibling = typename _Node::NEXTSIBLING;
                 std::string result = "";
@@ -138,7 +137,7 @@ namespace tree {
                 return std::move(result);
             }
 
-            const char _delim;
+            const std::string _delim;
         };
 
         template <class Node_, class Elements_>
@@ -150,22 +149,22 @@ namespace tree {
         }
 
         // 子の出力専用のオブジェクト．
-        template <class Node_, class Elements_, class Ignored = void>
+        template <class Node_, class Elements_>
         class Children_Out;
 
         // SFINAEによりElementsはランダムアクセス可能なメタシーケンスに限定．
         template <class Paren_, size_t index, class Elements_>
-        class Children_Out <tree::shape::Node <Paren_, index>, Elements_, typename boost::mpl::at <Elements_, std::integral_constant <size_t, 0> >::type>
+        class Children_Out <tree::shape::Node <Paren_, index>, Elements_>
         {
         private:
             using _Node = tree::shape::Node <Paren_, index>;
         public:
-            constexpr Children_Out(const char delim=',')
+            constexpr Children_Out(const std::string &delim=", ")
                 : _delim(delim)
             {
             }
 
-            static std::string to_string(const char delim=' ')
+            static std::string to_string(const std::string &delim=", ")
             {
                 using first_child = typename _Node::FIRSTCHILD;
                 std::string result = "";
@@ -176,7 +175,7 @@ namespace tree {
                 return std::move(result);
             }
 
-            const char _delim;
+            const std::string _delim;
         };
 
         template <class Node_, class Elements_>
@@ -188,31 +187,30 @@ namespace tree {
         }
 
         // 兄弟の出力専用のオブジェクト．
-        template <class Node_, class Elements_, class Ignored = int>
+        template <class Node_, class Elements_>
         class List_Out;
 
         // SFINAEによりElementsはランダムアクセス可能なメタシーケンスに限定．
         template <class Paren_, size_t index, class Elements_>
-        class List_Out <tree::shape::Node <Paren_, index>, Elements_, typename boost::mpl::at <Elements_, std::integral_constant <size_t, 0> >::type>
+        class List_Out <tree::shape::Node <Paren_, index>, Elements_>
         {
         private:
             using _Node = tree::shape::Node <Paren_, index>;
         public:
-            List_Out(const std::string &edge_marker=" -> ", const char delim=',')
+            List_Out(const std::string &edge_marker=" -> ", const std::string &delim=", ")
                 : _edge_marker(edge_marker), _delim(delim)
             {
             }
 
-            static std::string to_string(const std::string &edge_marker=" -> ", const char delim=' ')
+            static std::string to_string(const std::string &edge_marker=" -> ", const std::string &delim=", ")
             {
-                using first_child = typename _Node::FIRSTCHILD;
-                std::string result = Out <_Node, Elements_>::to_string() + edge_marker + Children_Out <typename first_child::type, Elements_>::to_string();
+                std::string result = Out <_Node, Elements_>::to_string() + edge_marker + Children_Out <_Node, Elements_>::to_string();
 
                 return std::move(result);
             }
 
             const std::string _edge_marker;
-            const char        _delim;
+            const std::string _delim;
         };
 
         template <class Node_, class Elements_>
@@ -228,31 +226,51 @@ namespace tree {
         class _Tree_Out;
 
         // 再帰を用いるので停止条件に注意．
-        // SFINAEによりElementsはランダムアクセス可能なメタシーケンスに限定．
         template <class Shape_, class Elements_, size_t index>
-        class _Tree_Out <Tree <Shape_, Elements_>, index >
+        class _Tree_Out <Tree <Shape_, Elements_>, index>
         {
         private:
             using _Tree = Tree <Shape_, Elements_>;
+            static constexpr size_t next_index = (1 <= index && index < _Tree::v_size) ? index + 1 : 0;
         public:
-            constexpr _Tree_Out(const std::string &edge_marker=" -> ", const char delim=',')
+            constexpr _Tree_Out(const std::string &edge_marker=" -> ", const std::string &delim=", ")
                 : _edge_marker(edge_marker), _delim(delim)
             {
             }
 
-            static std::string to_string(const std::string &edge_marker=" -> ", const char delim=',')
+            static std::string to_string(const std::string &edge_marker=" -> ", const std::string &delim=", ")
             {
-                using this_node = typename tree::shape::AT_AS_GRAPH<typename _Tree::Shape, index>;
-                std::string result = "";
-                if (this_node::type::graph_id <= _Tree::v_size) {
-                    result += List_Out <typename this_node::type, Elements_>::to_string(edge_marker, delim) + '\n' + _Tree_Out<_Tree, index+1>::to_string(edge_marker, delim);
-                }
+                using this_node = typename tree::shape::AT_AS_GRAPH <typename _Tree::Shape, index>;
+                std::string result = List_Out <typename this_node::type, Elements_>::to_string(edge_marker, delim) + '\n' + _Tree_Out <_Tree, next_index>::to_string(edge_marker, delim);
 
                 return std::move(result);
             }
 
             const std::string _edge_marker;
-            const char        _delim;
+            const std::string _delim;
+        };
+
+        // 再帰を用いるので停止条件に注意．
+        template <class Shape_, class Elements_>
+        class _Tree_Out <Tree <Shape_, Elements_>, 0>
+        {
+        private:
+            using _Tree = Tree <Shape_, Elements_>;
+        public:
+            constexpr _Tree_Out(const std::string &edge_marker=" -> ", const std::string &delim=", ")
+                : _edge_marker(edge_marker), _delim(delim)
+            {
+            }
+
+            static std::string to_string(const std::string &edge_marker=" -> ", const std::string &delim=", ")
+            {
+                std::string result = "";
+
+                return std::move(result);
+            }
+
+            const std::string _edge_marker;
+            const std::string _delim;
         };
 
         // 兄弟の出力専用のオブジェクト．
@@ -266,20 +284,20 @@ namespace tree {
         private:
             using _Tree = Tree <Shape_, Elements_>;
         public:
-            constexpr Tree_Out(const std::string &edge_marker=" -> ", const char delim=',')
+            constexpr Tree_Out(const std::string &edge_marker=" -> ", const std::string &delim=", ")
                 : _edge_marker(edge_marker), _delim(delim)
             {
             }
 
-            static std::string to_string(const std::string &edge_marker=" -> ", const char delim=',')
+            static std::string to_string(const std::string &edge_marker=" -> ", const std::string &delim=", ")
             {
-                std::string result = _Tree_Out<_Tree, 1>::to_string(edge_marker, delim);
+                std::string result = _Tree_Out <_Tree, 1>::to_string(edge_marker, delim);
 
                 return std::move(result);
             }
 
             const std::string _edge_marker;
-            const char        _delim;
+            const std::string _delim;
         };
 
         template <class Shape_, class Elements_>
@@ -292,44 +310,46 @@ namespace tree {
 
         void test_typetree()
         {
-            struct Human { };
-
-            struct My_daughter { };
-
-            struct Akari { };
-
-            struct Other { };
-
-            struct Normal { };
-
-            struct Otaku { };
-
             std::cout << util::Repeat("-", 20) << std::endl;
             std::cout << "Typetree test" << std::endl;
-            constexpr auto str = sprout::to_string("((())(()()))");
-            std::cout << str.c_str() << std::endl;
-            constexpr auto rev_str = sprout::fixed::reverse(str);
+
+            std::cout << "ex1. オブジェクト型の従属関係を定義する" << std::endl;
+            constexpr auto str1 = animal::p_seq;
+            std::cout << str1.c_str() << std::endl;
             // Paren型．
-            using _Paren = tree::shape::paren::Paren <util::paren_to_bitseq(rev_str).to_ulong(), str.size()>;
+            using _Paren1 = tree::shape::paren::Paren <util::paren_to_bitseq(sprout::fixed::reverse(str1)).to_ulong(), str1.size()>;
             // Tree型．
-            using _Tree = tree::shape::Tree <_Paren>;
-            // メタシーケンス．
-            using _Elements = boost::mpl::vector <Human, My_daughter, Akari, Other, Normal, Otaku>;
+            using _Tree1 = tree::shape::Tree <_Paren1>;
             // メタデータ木．
-            using _Meta_Tree = Tree <_Tree, _Elements>;
+            using _Meta_Tree1 = Tree <_Tree1, animal::Elements>;
 
             std::cout << "[adjucency list expression]" << std::endl;
-            std::cout << Tree_Out<_Meta_Tree>(" | ", ':') << std::endl;
-            using hoge = boost::mpl::at <_Elements, std::integral_constant <size_t, 0> >::type;
+            std::cout << Tree_Out <_Meta_Tree1>() << std::endl;
 
-            std::cout << "FIND Akari: " << FIND <_Meta_Tree, Akari>::value << std::endl;
-            std::cout << "FIND int: " << FIND <_Meta_Tree, int>::value << std::endl;
-            std::cout << boost::mpl::find <_Elements, Akari>::type::pos::value << std::endl;
-            std::cout << boost::mpl::find <_Elements, int>::type::pos::value << std::endl;
-            std::cout << boost::mpl::size <_Elements>::value << std::endl;
-            std::cout << "DIRECTLINE Human, Otaku: " << DIRECTLINE <_Meta_Tree, Human, Otaku>::value << std::endl;
-            std::cout << "DIRECTLINE Akari, Otaku: " << DIRECTLINE <_Meta_Tree, Akari, Otaku>::value << std::endl;
-            std::cout << "DIRECTLINE int, Otaku: " << DIRECTLINE <_Meta_Tree, Akari, Otaku>::value << std::endl;
+            std::cout << "FIND(animal::Akari): " << FIND <_Meta_Tree1, animal::Akari>::value << std::endl;
+            std::cout << "FIND(int): " << FIND <_Meta_Tree1, int>::value << std::endl;
+            std::cout << "DIRECTLINE(animal::Animal, animal::Man): " << DIRECTLINE <_Meta_Tree1, animal::Animal, animal::Man>::value << std::endl;
+            std::cout << "DIRECTLINE(Human, Otaku): " << DIRECTLINE <_Meta_Tree1, animal::Human, animal::Otaku>::value << std::endl;
+
+            std::cout << std::endl;
+
+            std::cout << "ex2. 派生型の関係を参照する" << std::endl;
+            constexpr auto str2 = derivation::p_seq;
+            std::cout << str2.c_str() << std::endl;
+            // Paren型．
+            using _Paren2 = tree::shape::paren::Paren <util::paren_to_bitseq(sprout::fixed::reverse(str2)).to_ulong(), str2.size()>;
+            // Tree型．
+            using _Tree2 = tree::shape::Tree <_Paren2>;
+            // メタデータ木．
+            using _Meta_Tree2 = Tree <_Tree2, derivation::Elements>;
+
+            std::cout << "[adjucency list expression]" << std::endl;
+            std::cout << Tree_Out <_Meta_Tree2>() << std::endl;
+
+            std::cout << "FIND(int * const): " << FIND <_Meta_Tree2, int *const>::value << std::endl;
+            std::cout << "FIND(const int * const): " << FIND <_Meta_Tree2, const int *const>::value << std::endl;
+            std::cout << "DIRECTLINE(int *, int * const *): " << DIRECTLINE <_Meta_Tree2, int *, int *const *>::value << std::endl;
+            std::cout << "DIRECTLINE(int *, int (*)[]): " << DIRECTLINE <_Meta_Tree2, int *, int(*)[]>::value << std::endl;
 
             std::cout << util::Repeat("-", 20) << std::endl;
         }
