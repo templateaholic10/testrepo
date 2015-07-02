@@ -12,6 +12,7 @@
 #include <tuple>
 #include <bitset>
 #include <limits>
+#include <boost/type.hpp>
 #include <boost/optional.hpp>
 #include <boost/mpl/less_equal.hpp>
 #include <boost/mpl/size_t.hpp>
@@ -1346,10 +1347,19 @@ namespace util {
     }
 
     // Tの型名を取得．
+    // 参照型を区別しない．
     template <typename T>
     char *typename_of()
     {
         return demangle(typeid(T).name() );
+    }
+
+    // Tの型名を取得．
+    // 参照型を区別するが，boost::type<>の中に表示されるので冗長．
+    template <typename T>
+    char *typename_of_detail()
+    {
+        return demangle(typeid(boost::type<T>).name() );
     }
 }
 

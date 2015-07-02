@@ -74,8 +74,8 @@ namespace tree {
             // 遅延評価最高．
             static constexpr size_t ancestor_id   = FIND <Tree_, Ancestor>::value;
             static constexpr size_t descendent_id = FIND <Tree_, Descendent>::value;
-            using ancestor_node   =  tree::shape::AT_AS_GRAPH <typename Tree_::Shape, ancestor_id>;
-            using descendent_node =  tree::shape::AT_AS_GRAPH <typename Tree_::Shape, descendent_id>;
+            using ancestor_node   =  tree::shape::AT <typename Tree_::Shape, ancestor_id>;
+            using descendent_node =  tree::shape::AT <typename Tree_::Shape, descendent_id>;
             static constexpr size_t value = std::conditional <
                 ancestor_id != 0 && descendent_id != 0,
                 _DIRECTLINE <typename ancestor_node::type, typename descendent_node::type, 0>,
@@ -99,7 +99,7 @@ namespace tree {
 
             static std::string to_string()
             {
-                return util::typename_of <typename boost::mpl::at <Elements_, std::integral_constant <size_t, _Node::graph_id - 1> >::type>();
+                return util::typename_of <typename boost::mpl::at <Elements_, std::integral_constant <size_t, _Node::id - 1> >::type>();
             }
         };
 
@@ -130,7 +130,7 @@ namespace tree {
             {
                 using next_sibling = typename _Node::NEXTSIBLING;
                 std::string result = "";
-                if (next_sibling::type::graph_id != 0) {
+                if (next_sibling::type::id != 0) {
                     result += Out <typename next_sibling::type, Elements_>::to_string() + delim + Sibling_Out <typename next_sibling::type, Elements_>::to_string();
                 }
 
@@ -168,7 +168,7 @@ namespace tree {
             {
                 using first_child = typename _Node::FIRSTCHILD;
                 std::string result = "";
-                if (first_child::type::graph_id != 0) {
+                if (first_child::type::id != 0) {
                     result += Out <typename first_child::type, Elements_>::to_string() + delim + Sibling_Out <typename first_child::type, Elements_>::to_string();
                 }
 
@@ -240,7 +240,7 @@ namespace tree {
 
             static std::string to_string(const std::string &edge_marker=" -> ", const std::string &delim=", ")
             {
-                using this_node = typename tree::shape::AT_AS_GRAPH <typename _Tree::Shape, index>;
+                using this_node = typename tree::shape::AT <typename _Tree::Shape, index>;
                 std::string result = List_Out <typename this_node::type, Elements_>::to_string(edge_marker, delim) + '\n' + _Tree_Out <_Tree, next_index>::to_string(edge_marker, delim);
 
                 return std::move(result);
@@ -319,9 +319,9 @@ namespace tree {
             // Paren型．
             using _Paren1 = tree::shape::paren::Paren <util::paren_to_bitseq(sprout::fixed::reverse(str1)).to_ulong(), str1.size()>;
             // Tree型．
-            using _Tree1 = tree::shape::Tree <_Paren1>;
+            using _TreeShape1 = tree::shape::TreeShape <_Paren1>;
             // メタデータ木．
-            using _Meta_Tree1 = Tree <_Tree1, animal::Elements>;
+            using _Meta_Tree1 = Tree <_TreeShape1, animal::Elements>;
 
             std::cout << "[adjucency list expression]" << std::endl;
             std::cout << Tree_Out <_Meta_Tree1>() << std::endl;
@@ -329,7 +329,7 @@ namespace tree {
             std::cout << "FIND(animal::Akari): " << FIND <_Meta_Tree1, animal::Akari>::value << std::endl;
             std::cout << "FIND(int): " << FIND <_Meta_Tree1, int>::value << std::endl;
             std::cout << "DIRECTLINE(animal::Animal, animal::Man): " << DIRECTLINE <_Meta_Tree1, animal::Animal, animal::Man>::value << std::endl;
-            std::cout << "DIRECTLINE(Human, Otaku): " << DIRECTLINE <_Meta_Tree1, animal::Human, animal::Otaku>::value << std::endl;
+            std::cout << "DIRECTLINE(animal::Human, animal::Otaku): " << DIRECTLINE <_Meta_Tree1, animal::Human, animal::Otaku>::value << std::endl;
 
             std::cout << std::endl;
 
@@ -339,9 +339,9 @@ namespace tree {
             // Paren型．
             using _Paren2 = tree::shape::paren::Paren <util::paren_to_bitseq(sprout::fixed::reverse(str2)).to_ulong(), str2.size()>;
             // Tree型．
-            using _Tree2 = tree::shape::Tree <_Paren2>;
+            using _TreeShape2 = tree::shape::TreeShape <_Paren2>;
             // メタデータ木．
-            using _Meta_Tree2 = Tree <_Tree2, derivation::Elements>;
+            using _Meta_Tree2 = Tree <_TreeShape2, derivation::Elements>;
 
             std::cout << "[adjucency list expression]" << std::endl;
             std::cout << Tree_Out <_Meta_Tree2>() << std::endl;

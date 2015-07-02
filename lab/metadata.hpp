@@ -6,19 +6,12 @@
 
 namespace animal {
     struct Animal { };
-
     struct Human { };
-
     struct Kameoka { };
-
     struct Akari { };
-
     struct non_Kameoka { };
-
     struct Man { };
-
     struct Woman { };
-
     struct Otaku { };
 
     // 要素メタデータ
