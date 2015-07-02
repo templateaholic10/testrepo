@@ -16,7 +16,8 @@ namespace tree {
         template <class Paren_, size_t index, class Ignored = void>
         struct Node
         {
-            static constexpr size_t id = index;
+            static constexpr size_t id       = index;
+            static constexpr size_t graph_id = tree::shape::paren::RANK <Paren_, index>::value;
             struct PARENT
             {
                 using type = Node <Paren_, paren::PARENT <Paren_, index>::value>;
@@ -50,9 +51,10 @@ namespace tree {
 
         // indexがアクセス範囲外の時の特殊化．
         template <class Paren_, size_t index>
-        struct Node < Paren_, index, typename std::enable_if <index <= 0 || Paren_::length <index>::type>
+        struct Node < Paren_, index, typename std::enable_if <index <= 0 || Paren_::length < index >::type>
         {
-            static constexpr size_t id = 0;
+            static constexpr size_t id       = 0;
+            static constexpr size_t graph_id = 0;
             struct PARENT
             {
                 using type = Node <Paren_, index>;
