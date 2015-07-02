@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <array>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/list.hpp>
+#include <boost/mpl/at.hpp>
 #include "../util.hpp"
 
 namespace sfinae {
@@ -52,6 +55,20 @@ namespace sfinae {
         static constexpr bool value = true;
     };
 
+    // ランダムアクセス可能か判定するメタ関数．
+    template <class T, class Ignored = void>
+    struct is_RandomAccess
+    {
+        static constexpr bool value = false;
+    };
+
+    // ランダムアクセス可能か判定するメタ関数．
+    template <class T>
+    struct is_RandomAccess<T, typename ignored<typename boost::mpl::at_c<T, 0>::type>::type>
+    {
+        static constexpr bool value = true;
+    };
+
     // 関数テンプレートの場合
     // オーバーロードとSFINAEを組み合わせる．
     // SFINAEに失敗するとオーバーロードの候補から除外する．
@@ -80,6 +97,13 @@ namespace sfinae {
         // Integral_array<double, 5> d;
         std::cout << "std::array<int, 3> is STL? : " << is_STL<std::array<int, 3>>::value << std::endl;
         std::cout << "int is STL? : " << is_STL<int>::value << std::endl;
+
+        using v = boost::mpl::vector<char, short, int, long>;
+        using v_type = boost::mpl::at_c<v, 0>::type;
+        std::cout << "vector is random access? : " << is_RandomAccess<v>::value << std::endl;
+        using lst = boost::mpl::list<char, short, int, long>;
+        using lst_type = boost::mpl::at_c<lst, 0>::type;
+        std::cout << "list is random access? : " << is_RandomAccess<lst>::value << std::endl;
 
         long l = 5;
         std::string str = "hoge";
