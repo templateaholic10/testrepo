@@ -6,15 +6,16 @@
 #include <sstream>
 #include <string>
 #include <array>
+#include <vector>
 #include <utility>
 #include <cstddef>
 #include <tuple>
+#include <map>
 #include <bitset>
 #include <boost/type.hpp>
 #include <boost/optional.hpp>
 
 namespace util {
-
     // ・repeat関数
     // 文字列strをdelimで区切ってn回osに出力する
     void repeat(std::ostream &os, const std::string &str, int n)
@@ -63,6 +64,59 @@ namespace util {
 
         return os;
     }
+
+    // ・split関数
+    std::vector <std::string> split(const std::string &str, const char delim=' ')
+    {
+        std::vector <std::string> result;
+        std::string               word;
+        for (char ch : str) {
+            if (ch == delim) {
+                if (word != "") {
+                    result.push_back(word);
+                }
+                word = "";
+            } else {
+                word += ch;
+            }
+        }
+        if (word != "") {
+            result.push_back(word);
+        }
+
+        return std::move(result);
+    }
+
+    // ・配列つきenum
+    // __VA_ARGS__は関数マクロの可変長引数を提供する．
+    // 関数マクロ定義中の#演算子は変数名を文字列リテラルとしたものを表す．
+    // つまり#演算子のついた変数は再評価されない．
+    // インスタンスを作らないので，mapは必要なときに構築する．
+    // classnameでラップしているのでスコープなしenumを用いる．
+#define named_enum(classname, ...)                           \
+    class classname                                          \
+    {                                                        \
+    public:                                                  \
+        enum _enum { __VA_ARGS__ };                          \
+    public:                                                  \
+        static std::string to_string(int index)              \
+        {                                                    \
+            static std::map <int, std::string> _name;        \
+            if (_name.empty()) {                             \
+                auto elems = util::split(#__VA_ARGS__, ','); \
+                int  key   = 0;                              \
+                for (auto elem : elems) {                    \
+                    auto tmp = util::split(elem, '=');       \
+                    if (tmp.size() > 1) {                    \
+                        key = std::stoi(tmp[1]);             \
+                    }                                        \
+                    _name[key] = std::string(tmp[0]);        \
+                    key++;                                   \
+                }                                            \
+            }                                                \
+            return _name[index];                             \
+        }                                                    \
+    };
 
     // ・imprementation_test関数
     // 処理系依存の環境をテストする関数．
@@ -188,20 +242,22 @@ namespace util {
         std::ostringstream oss;
         oss << std::setfill('0');
         oss << "#";
-        oss << std::setw(2) << std::hex << static_cast<unsigned int>(red);
-        oss << std::setw(2) << std::hex << static_cast<unsigned int>(green);
-        oss << std::setw(2) << std::hex << static_cast<unsigned int>(blue);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(red);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(green);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(blue);
+
         return oss.str();
     }
 
-    std::string color_encode(const std::array<unsigned char, 3>& rgb)
+    std::string color_encode(const std::array <unsigned char, 3> &rgb)
     {
         std::ostringstream oss;
         oss << std::setfill('0');
         oss << "#";
-        oss << std::setw(2) << std::hex << static_cast<unsigned int>(rgb[0]);
-        oss << std::setw(2) << std::hex << static_cast<unsigned int>(rgb[1]);
-        oss << std::setw(2) << std::hex << static_cast<unsigned int>(rgb[2]);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(rgb[0]);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(rgb[1]);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(rgb[2]);
+
         return oss.str();
     }
 
@@ -232,7 +288,7 @@ namespace util {
     template <typename T>
     char *typename_of_detail()
     {
-        return demangle(typeid(boost::type<T>).name() );
+        return demangle(typeid(boost::type <T> ).name() );
     }
 }
 

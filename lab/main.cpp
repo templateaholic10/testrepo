@@ -3,9 +3,11 @@
 #include "functor.hpp"
 #include "utiltest.hpp"
 #include "test_simple_svg.hpp"
-#include "unionbitarray.hpp"
+// #include "unionbitarray.hpp"
 #include "test_sprout.hpp"
 // #include "typetree.hpp"
+
+named_enum(RGB, R, G, B);
 
 int main(int argc, char const *argv[])
 {
@@ -44,9 +46,11 @@ int main(int argc, char const *argv[])
     // constexpr auto bitseq = util::paren_to_bitseq(str);
     // std::cout << bitseq.to_string() << std::endl;
     // tree::typetree::test_typetree();
-    using RGB = std::array<unsigned char, 3>;
-    RGB rgb = RGB({255, 0, 0});
-    std::cout << util::color_encode(rgb) << std::endl;
+    // using RGB = std::array<unsigned char, 3>;
+    // RGB rgb = RGB({255, 0, 0});
+    // std::cout << util::color_encode(rgb) << std::endl;
+
+    std::cout << RGB::to_string(RGB::R) << RGB::R << std::endl;
 
     return 0;
 }
