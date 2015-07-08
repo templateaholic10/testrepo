@@ -2,6 +2,8 @@
 #define UTIL
 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <array>
 #include <iterator>
@@ -909,6 +911,29 @@ namespace util {
         }
 
         return std::tuple <int, int, int>(red, green, blue);
+    }
+
+    // ・color_encode関数
+    std::string color_encode(const unsigned char red, const unsigned char green, const unsigned char blue)
+    {
+        std::ostringstream oss;
+        oss << std::setfill('0');
+        oss << "#";
+        oss << std::setw(2) << std::hex << static_cast<unsigned int>(red);
+        oss << std::setw(2) << std::hex << static_cast<unsigned int>(green);
+        oss << std::setw(2) << std::hex << static_cast<unsigned int>(blue);
+        return oss.str();
+    }
+
+    std::string color_encode(const std::array<unsigned char, 3>& rgb)
+    {
+        std::ostringstream oss;
+        oss << std::setfill('0');
+        oss << "#";
+        oss << std::setw(2) << std::hex << static_cast<unsigned int>(rgb[0]);
+        oss << std::setw(2) << std::hex << static_cast<unsigned int>(rgb[1]);
+        oss << std::setw(2) << std::hex << static_cast<unsigned int>(rgb[2]);
+        return oss.str();
     }
 
     // ・nresult_ofメタ関数

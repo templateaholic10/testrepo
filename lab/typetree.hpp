@@ -5,6 +5,7 @@
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/find.hpp>
+#include "graph_config.hpp"
 #include "treeshape.hpp"
 #include "metadata.hpp"
 
@@ -152,7 +153,6 @@ namespace tree {
         template <class Node_, class Elements_>
         class Children_Out;
 
-        // SFINAEによりElementsはランダムアクセス可能なメタシーケンスに限定．
         template <class Paren_, size_t index, class Elements_>
         class Children_Out <tree::shape::Node <Paren_, index>, Elements_>
         {
@@ -190,7 +190,6 @@ namespace tree {
         template <class Node_, class Elements_>
         class List_Out;
 
-        // SFINAEによりElementsはランダムアクセス可能なメタシーケンスに限定．
         template <class Paren_, size_t index, class Elements_>
         class List_Out <tree::shape::Node <Paren_, index>, Elements_>
         {
@@ -277,7 +276,6 @@ namespace tree {
         template <class Tree_>
         class Tree_Out;
 
-        // SFINAEによりElementsはランダムアクセス可能なメタシーケンスに限定．
         template <class Shape_, class Elements_>
         class Tree_Out <Tree <Shape_, Elements_> >
         {
@@ -296,6 +294,7 @@ namespace tree {
                 return std::move(result);
             }
 
+            static constexpr graph::Expression expression = graph::Expression::adjacency_list;
             const std::string _edge_marker;
             const std::string _delim;
         };

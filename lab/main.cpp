@@ -5,7 +5,7 @@
 #include "test_simple_svg.hpp"
 #include "unionbitarray.hpp"
 #include "test_sprout.hpp"
-#include "typetree.hpp"
+// #include "typetree.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -43,7 +43,10 @@ int main(int argc, char const *argv[])
     // constexpr auto str = sprout::to_string("((())()())");
     // constexpr auto bitseq = util::paren_to_bitseq(str);
     // std::cout << bitseq.to_string() << std::endl;
-    tree::typetree::test_typetree();
+    // tree::typetree::test_typetree();
+    using RGB = std::array<unsigned char, 3>;
+    RGB rgb = RGB({255, 0, 0});
+    std::cout << util::color_encode(rgb) << std::endl;
 
     return 0;
 }
