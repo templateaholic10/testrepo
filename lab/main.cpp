@@ -50,7 +50,7 @@ int main(int argc, char const *argv[])
     // RGB rgb = RGB({255, 0, 0});
     // std::cout << util::color_encode(rgb) << std::endl;
 
-    std::cout << RGB::to_string(RGB::R) << RGB::R << std::endl;
+    std::cout << RGB::to_string(RGB::R) << RGB::to_string(RGB::G) << RGB::to_string(RGB::B) << std::endl;
 
     return 0;
 }

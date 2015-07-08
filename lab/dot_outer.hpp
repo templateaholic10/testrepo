@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cassert>
 #include "graph_config.hpp"
+#include "util.hpp"
 
 namespace dot {
     using RGB = std::array <unsigned char, 3>;
@@ -15,7 +16,7 @@ namespace dot {
     using Rect = std::array <double, 2>;
     constexpr Rect Rect_defo = Rect({ 0, 0 });
 
-    enum class Direction { graph, digraph };
+    named_enum(Direction, graph, digraph);
 
     enum class Loc { defo, b, t };
 

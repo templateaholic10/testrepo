@@ -87,35 +87,46 @@ namespace util {
         return std::move(result);
     }
 
+    // ・trim関数
+    // 文字列の前後のホワイトスペースを削る．
+    std::string trim(const std::string &str)
+    {
+        std::istringstream iss(str);
+        std::string        result;
+        iss >> result;
+
+        return result;
+    }
+
     // ・配列つきenum
     // __VA_ARGS__は関数マクロの可変長引数を提供する．
     // 関数マクロ定義中の#演算子は変数名を文字列リテラルとしたものを表す．
     // つまり#演算子のついた変数は再評価されない．
     // インスタンスを作らないので，mapは必要なときに構築する．
     // classnameでラップしているのでスコープなしenumを用いる．
-#define named_enum(classname, ...)                           \
-    class classname                                          \
-    {                                                        \
-    public:                                                  \
-        enum _enum { __VA_ARGS__ };                          \
-    public:                                                  \
-        static std::string to_string(int index)              \
-        {                                                    \
-            static std::map <int, std::string> _name;        \
-            if (_name.empty()) {                             \
-                auto elems = util::split(#__VA_ARGS__, ','); \
-                int  key   = 0;                              \
-                for (auto elem : elems) {                    \
-                    auto tmp = util::split(elem, '=');       \
-                    if (tmp.size() > 1) {                    \
-                        key = std::stoi(tmp[1]);             \
-                    }                                        \
-                    _name[key] = std::string(tmp[0]);        \
-                    key++;                                   \
-                }                                            \
-            }                                                \
-            return _name[index];                             \
-        }                                                    \
+#define named_enum(classname, ...)                                \
+    class classname                                               \
+    {                                                             \
+    public:                                                       \
+        enum _enum { __VA_ARGS__ };                               \
+    public:                                                       \
+        static std::string to_string(int index)                   \
+        {                                                         \
+            static std::map <int, std::string> _name;             \
+            if (_name.empty()) {                                  \
+                auto elems = util::split(#__VA_ARGS__, ',');      \
+                int  key   = 0;                                   \
+                for (auto elem : elems) {                         \
+                    auto tmp = util::split(elem, '=');            \
+                    if (tmp.size() > 1) {                         \
+                        key = std::stoi(tmp[1]);                  \
+                    }                                             \
+                    _name[key] = util::trim(std::string(tmp[0])); \
+                    key++;                                        \
+                }                                                 \
+            }                                                     \
+            return _name[index];                                  \
+        }                                                         \
     };
 
     // ・imprementation_test関数
