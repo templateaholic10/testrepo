@@ -104,11 +104,12 @@ namespace util {
     // つまり#演算子のついた変数は再評価されない．
     // インスタンスを作らないので，mapは必要なときに構築する．
     // classnameでラップしているのでスコープなしenumを用いる．
+    // named_enum型の変数の宣言時にはTagが必要だが，具体的な整数定数を指すときはTagは不要．
 #define named_enum(classname, ...)                                \
     class classname                                               \
     {                                                             \
     public:                                                       \
-        enum Tag { __VA_ARGS__ };                               \
+        enum Tag { __VA_ARGS__ };                                 \
     public:                                                       \
         static std::string to_string(int index)                   \
         {                                                         \

@@ -51,6 +51,12 @@ int main(int argc, char const *argv[])
     // RGB rgb = RGB({255, 0, 0});
     // std::cout << util::color_encode(rgb) << std::endl;
     dot::Dot hoge = dot::Dot();
+    hoge.node_master.shape = dot::Node::Shape::box;
+    hoge.node_master.style = dot::Node::Style::dotted;
+    hoge.node_master.color = dot::RGB({255,0,0});
+    hoge.edges.push_back(dot::Edge(1,2));
+    hoge.edges.push_back(dot::Edge(2,3));
+    hoge.edges.push_back(dot::Edge(3,1));
     std::cout << hoge << std::endl;
 
     return 0;

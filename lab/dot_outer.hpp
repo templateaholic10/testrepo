@@ -52,23 +52,21 @@ namespace dot {
 
     named_enum(Direction, graph, digraph);
 
-    named_enum(Loc, defo, b, t);
-
-    named_enum(Just, defo, l, r);
-
-    named_enum(Style, defo, solid, dotted, bold, invis, filled, diagonals, rounded, dashed);
-
     // サイズの単位はインチ．
 
     class Graph
     {
-    private:
+    public:
+        named_enum(Loc, defo, b, t);
+
+        named_enum(Just, defo, l, r);
+
         named_enum(Level_direction, defo, LR);
 
     public:
         // デフォルト値の設定
         Graph()
-            : size(Rect_defo), label(""), labelloc(Loc::Tag::defo), labeljust(Just::Tag::defo), bgcolor(RGB_defo), rankdir(Level_direction::Tag::defo)
+            : size(Rect_defo), label(""), labelloc(Loc::defo), labeljust(Just::defo), bgcolor(RGB_defo), rankdir(Level_direction::defo)
         {
         }
 
@@ -86,7 +84,8 @@ namespace dot {
     std::ostream&operator<<(std::ostream &os, const Graph &graph)
     {
         // 変数名を文字列リテラル化するには#演算子を使う．
-#define ATTR(T, attr) (std::string(#attr " = ") + T::to_string(graph.attr))
+        const std::string delim = ",";
+#define ATTR(T, attr) (std::string(#attr " = ") + T::to_string(graph.attr) + delim)
 
         os << "graph [" << std::endl;
         if (graph.size != Rect_defo) {
@@ -95,13 +94,13 @@ namespace dot {
         if (graph.label != "") {
             os << ATTR(dot, label) << std::endl;
         }
-        if (graph.labelloc != Loc::Tag::defo) {
-            os << ATTR(Loc, labelloc) << std::endl;
+        if (graph.labelloc != Graph::Loc::defo) {
+            os << ATTR(Graph::Loc, labelloc) << std::endl;
         }
-        if (graph.labeljust != Just::Tag::defo) {
-            os << ATTR(Just, labeljust) << std::endl;
+        if (graph.labeljust != Graph::Just::defo) {
+            os << ATTR(Graph::Just, labeljust) << std::endl;
         }
-        if (graph.rankdir != Graph::Level_direction::Tag::defo) {
+        if (graph.rankdir != Graph::Level_direction::defo) {
             os << ATTR(Graph::Level_direction, rankdir) << std::endl;
         }
         os << "];";
@@ -115,22 +114,23 @@ namespace dot {
     // マスターノードの属性はすべてのノードに反映される．
     class Node
     {
-    private:
+    public:
         named_enum(Shape, defo, ellipse, box, circle, egg, triangle, diamond, trapezium, parallelogram, house, pentagon, hexagon, septagon, octagon, invtriangle, invtrapezium, invhouse, doublecircle, doubleoctagon, tripleoctagon, Mdiamonc, Msquare, Mcircle, rect, rectangle, plaintext, point);
+
+        named_enum(Style, defo, solid, dotted, bold, invis, filled, diagonals, rounded, dashed);
 
         static constexpr unsigned char peri_defo = 0;
     public:
         // デフォルト値の設定
         Node()
-            : id(num), label(""), size(Rect_defo), shape(Shape::Tag::defo), style(Style::Tag::defo), peripheries(peri_defo), color(RGB_defo), fillcolor(RGB_defo)
+            : id(num), label(""), size(Rect_defo), shape(Shape::defo), style(Style::defo), peripheries(peri_defo), color(RGB_defo), fillcolor(RGB_defo)
         {
             num++;
         }
 
         Node(size_t id_)
-            : id(id_), label(""), size(Rect_defo), shape(Shape::Tag::defo), style(Style::Tag::defo), peripheries(peri_defo), color(RGB_defo), fillcolor(RGB_defo)
+            : id(id_), label(""), size(Rect_defo), shape(Shape::defo), style(Style::defo), peripheries(peri_defo), color(RGB_defo), fillcolor(RGB_defo)
         {
-            assert(id_ >= num);
             num = id_ + 1;
         }
 
@@ -160,20 +160,23 @@ namespace dot {
     std::ostream&operator<<(std::ostream &os, const Node &node)
     {
         // 変数名を文字列リテラル化するには#演算子を使う．
-#define ATTR(T, attr) (std::string(#attr " = ") + T::to_string(node.attr))
+        const std::string delim = ",";
+#define ATTR(T, attr) (std::string(#attr " = ") + T::to_string(node.attr) + delim)
 
         os << ((node.id == 0) ? "node" : std::to_string(node.id)) << " [" << std::endl;
         if (node.label != "") {
             os << ATTR(dot, label) << std::endl;
         }
         if (node.size != Rect_defo) {
-            os << ATTR(dot, size) << std::endl;
+            os << "fixedsize = true," << std::endl;
+            os << "width = " << node.size[0] << "," << std::endl;
+            os << "height = " << node.size[1] << "," << std::endl;
         }
-        if (node.shape != Node::Shape::Tag::defo) {
+        if (node.shape != Node::Shape::defo) {
             os << ATTR(Node::Shape, shape) << std::endl;
         }
-        if (node.style != Style::Tag::defo) {
-            os << ATTR(Style, style) << std::endl;
+        if (node.style != Node::Style::defo) {
+            os << ATTR(Node::Style, style) << std::endl;
         }
         if (node.peripheries !=Node::peri_defo) {
             os << ATTR(std, peripheries) << std::endl;
@@ -195,10 +198,12 @@ namespace dot {
     // マスターエッジの属性はすべてのエッジに反映される．
     class Edge
     {
-    private:
+    public:
         named_enum(Direction, defo, back, both, none);
 
         named_enum(Arrow, defo, normal, box, crow, diamond, dot, inv, none, tee, vee, lbox, rbox, obox, olbox, orbox, lcrow, rcrow, ldiamond, rdiamond, odiamond, oldiamond, ordiamond, odot, linv, rinv, oinv, olinv, orinv, lnormal, rnormal, onormal, olnormal, ornormal, ltee, rtee, lvee, rvee);
+
+        named_enum(Style, defo, solid, dotted, bold, invis, filled, diagonals, rounded, dashed);
 
         static constexpr unsigned char labeldistance_defo = 0;
 
@@ -211,22 +216,21 @@ namespace dot {
     public:
         // デフォルト値の設定
         Edge()
-            : id(num), from_id(1), to_id(1), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::Tag::defo), dir(Edge::Direction::Tag::defo), arrowhead(Arrow::Tag::defo), arrowtail(Arrow::Tag::defo), arrowsize(arrowsize_defo), color(
+            : id(num), from_id(1), to_id(1), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::defo), dir(Edge::Direction::defo), arrowhead(Arrow::defo), arrowtail(Arrow::defo), arrowsize(arrowsize_defo), color(
                 RGB_defo)
         {
             num++;
         }
 
         Edge(size_t id_)
-            : id(id_), from_id(1), to_id(1), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::Tag::defo), dir(Edge::Direction::Tag::defo), arrowhead(Arrow::Tag::defo), arrowtail(Arrow::Tag::defo), arrowsize(arrowsize_defo), color(
+            : id(id_), from_id(1), to_id(1), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::defo), dir(Edge::Direction::defo), arrowhead(Arrow::defo), arrowtail(Arrow::defo), arrowsize(arrowsize_defo), color(
                 RGB_defo)
         {
-            assert(id_ >= num);
             num = id_ + 1;
         }
 
         Edge(size_t from_id_, size_t to_id_)
-            : id(num), from_id(from_id_), to_id(to_id_), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::Tag::defo), dir(Edge::Direction::Tag::defo), arrowhead(Arrow::Tag::defo), arrowtail(Arrow::Tag::defo), arrowsize(arrowsize_defo), color(
+            : id(num), from_id(from_id_), to_id(to_id_), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::defo), dir(Edge::Direction::defo), arrowhead(Arrow::defo), arrowtail(Arrow::defo), arrowsize(arrowsize_defo), color(
                 RGB_defo)
         {
             num++;
@@ -266,7 +270,8 @@ namespace dot {
     std::ostream&operator<<(std::ostream &os, const Edge &edge)
     {
         // 変数名を文字列リテラル化するには#演算子を使う．
-#define ATTR(T, attr) (std::string(#attr " = ") + T::to_string(edge.attr))
+        const std::string delim = ",";
+#define ATTR(T, attr) (std::string(#attr " = ") + T::to_string(edge.attr) + delim)
 
         if (edge.id == 0) {
             os << "edge";
@@ -292,16 +297,16 @@ namespace dot {
         if (edge.labelfloat != Edge::labelfloat_defo) {
             os << ATTR(dot, labelfloat) << std::endl;
         }
-        if (edge.style != Style::Tag::defo) {
-            os << ATTR(Style, style) << std::endl;
+        if (edge.style != Edge::Style::defo) {
+            os << ATTR(Edge::Style, style) << std::endl;
         }
-        if (edge.dir != Edge::Direction::Tag::defo) {
+        if (edge.dir != Edge::Direction::defo) {
             os << ATTR(Edge::Direction, dir) << std::endl;
         }
-        if (edge.arrowhead != Edge::Arrow::Tag::defo) {
+        if (edge.arrowhead != Edge::Arrow::defo) {
             os << ATTR(Edge::Arrow, arrowhead) << std::endl;
         }
-        if (edge.arrowtail != Edge::Arrow::Tag::defo) {
+        if (edge.arrowtail != Edge::Arrow::defo) {
             os << ATTR(Edge::Arrow, arrowtail) << std::endl;
         }
         if (edge.arrowsize !=Edge::arrowsize_defo) {
@@ -320,7 +325,7 @@ namespace dot {
     class Dot
     {
     public:
-        Dot(const std::string& name_="akari", const Direction::Tag direction_=Direction::Tag::digraph)
+        Dot(const std::string& name_="akari", const Direction::Tag direction_=Direction::digraph)
             : name(name_), direction(direction_), node_master(0), edge_master(0)
         {
         }

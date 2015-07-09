@@ -1,0 +1,18 @@
+# dot file
+digraph akari {
+graph [
+];
+node [
+shape = box,
+style = dotted,
+color = "#ff0000",
+];
+edge [
+];
+1 -> 2 [
+];
+2 -> 3 [
+];
+3 -> 1 [
+];
+}
