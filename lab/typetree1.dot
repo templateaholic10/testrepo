@@ -1,5 +1,5 @@
 # dot file
-digraph typetree {
+digraph typetree1 {
 graph [
 ];
 node [

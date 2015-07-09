@@ -356,7 +356,6 @@ namespace dot {
     template <class Out_, typename std::enable_if <Out_::expression == graph::Expression::adjacency_list>::type *>
     Dot&Dot::operator<<(const Out_ &out)
     {
-        std::cout << "into <<" << std::endl;
         std::map <std::string, size_t> label_to_id;
         size_t                         id = 1;
         std::stringstream              ss;
@@ -364,13 +363,16 @@ namespace dot {
         ss << out;
         while (!ss.eof()) {
             std::getline(ss, line);
-            std::cout << line << std::endl;
+            if (line == "" || line[0] == '#') {
+                continue;
+            }
             auto        parent_children = util::split(line, out.edge_marker);
+
+            if (parent_children.size() == 0) {
+                continue;
+            }
+            // parentが存在するときのみ
             std::string parent          = util::trim(parent_children[0]);
-            _DISPLAY(parent)
-            auto        children        = util::split(parent_children[1], out.delim);
-            std::transform(children.begin(), children.end(), children.begin(), util::trim);
-            _DISPLAY_SEQ(children)
             // parentの処理
             if (label_to_id.find(parent) == label_to_id.end()) {
                 label_to_id[parent] = id;
@@ -380,6 +382,13 @@ namespace dot {
                 id++;
             }
             size_t parent_id = label_to_id[parent];
+
+            if (parent_children.size() == 1) {
+                continue;
+            }
+            // childrenが存在するときのみ
+            auto        children        = util::split(parent_children[1], out.delim);
+            std::transform(children.begin(), children.end(), children.begin(), util::trim);
             // childrenの処理
             for (auto child : children) {
                 if (label_to_id.find(child) == label_to_id.end()) {
@@ -393,7 +402,6 @@ namespace dot {
                 edges.push_back(Edge(parent_id, child_id));
             }
         }
-        std::cout << "out of <<" << std::endl;
 
         return *this;
     }

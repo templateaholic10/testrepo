@@ -1,0 +1,62 @@
+# dot file
+digraph typetree2 {
+graph [
+];
+node [
+];
+edge [
+];
+1 [
+label = "boost::type<int>",
+];
+2 [
+label = "boost::type<int const>",
+];
+3 [
+label = "boost::type<int*>",
+];
+4 [
+label = "boost::type<int&>",
+];
+5 [
+label = "boost::type<int []>",
+];
+6 [
+label = "boost::type<int const*>",
+];
+7 [
+label = "boost::type<int* const>",
+];
+8 [
+label = "boost::type<int* []>",
+];
+9 [
+label = "boost::type<int*&>",
+];
+10 [
+label = "boost::type<int* const*>",
+];
+11 [
+label = "boost::type<int (*) []>",
+];
+1 -> 2 [
+];
+1 -> 3 [
+];
+1 -> 4 [
+];
+1 -> 5 [
+];
+2 -> 6 [
+];
+3 -> 7 [
+];
+3 -> 8 [
+];
+3 -> 9 [
+];
+7 -> 10 [
+];
+5 -> 11 [
+];
+}

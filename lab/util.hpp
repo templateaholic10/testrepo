@@ -84,6 +84,7 @@ namespace util {
     }
 
     // ・split関数
+    // 空文字列を渡すと要素数0のvectorを返す．
     std::vector <std::string> split(const std::string &str, const char delim=' ')
     {
         std::vector <std::string> result;
@@ -150,13 +151,25 @@ namespace util {
 
     // ・trim関数
     // 文字列の前後のホワイトスペースを削る．
+    // 削った結果なくなってしまう場合，空文字列を返す．
+    // 中間にホワートスペースを含んでいたときも正しく動くように．
     std::string trim(const std::string &str)
     {
-        std::istringstream iss(str);
-        std::string        result;
-        iss >> result;
+        size_t begin = 0, end = str.size();
+        while (begin < end) {
+            if (str[begin] != ' ' && str[begin] != '\t' && str[begin] != '\n' && str[begin] != '\r' && str[begin] != '\v') {
+                break;
+            }
+            begin++;
+        }
+        while (begin < end) {
+            if (str[end-1] != ' ' && str[end-1] != '\t' && str[end-1] != '\n' && str[end-1] != '\r' && str[end-1] != '\v') {
+                break;
+            }
+            end--;
+        }
 
-        return result;
+        return str.substr(begin, end-begin);
     }
 
     // ・配列つきenum

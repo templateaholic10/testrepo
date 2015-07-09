@@ -6,7 +6,7 @@
 // #include "test_simple_svg.hpp"
 // #include "unionbitarray.hpp"
 #include "test_sprout.hpp"
-#include "typetree.hpp"
+#include "test_tree.hpp"
 #include "dot_outer.hpp"
 
 named_enum(RGB, R, G, B);
@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
     // // convert_arrayのテスト
     // // testconvert_array();
 
-    tree::typetree::test_typetree_to_dot();
+    tree::typetree::test_typetree();
 
     return 0;
 }
