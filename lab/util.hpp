@@ -2,17 +2,38 @@
 #define UTIL
 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <array>
-#include <iterator>
-#include <typeinfo>
-#include <type_traits>
+#include <vector>
 #include <utility>
 #include <cstddef>
 #include <tuple>
+#include <map>
+#include <bitset>
+#include <boost/type.hpp>
 #include <boost/optional.hpp>
 
 namespace util {
+    // ・_DISPLAY関数
+    // デバッグ用なのでアンダーバー．
+    #ifdef _DISPLAY
+    #undef _DISPLAY
+    #endif
+#define _DISPLAY(var) { std::cout << "$" #var ": " << var << std::endl; }
+    #ifdef _DISPLAY_SEQ
+    #undef _DISPLAY_SEQ
+    #endif
+#define _DISPLAY_SEQ(seq)             \
+    {                                 \
+        std::cout << "$" #seq ":";    \
+        for (auto elem : seq) {       \
+            std::cout << " " << elem; \
+        }                             \
+        std::cout << std::endl;       \
+    }
+
     // ・repeat関数
     // 文字列strをdelimで区切ってn回osに出力する
     void repeat(std::ostream &os, const std::string &str, int n)
@@ -29,6 +50,215 @@ namespace util {
         }
         os << str;
     }
+
+    // ・Repeatクラス
+    // std::cout << Repeat("gfn", "2") << std::endl;
+    // のように使う．
+    class Repeat
+    {
+    public:
+        Repeat(const std::string &str, const int n, const char delim='\0');
+        friend std::ostream&operator<<(std::ostream &os, const Repeat &rep);
+
+    private:
+        const std::string _str;
+        const int         _n;
+        const char        _delim;
+    };
+
+    Repeat::Repeat(const std::string &str, const int n, const char delim)
+        : _str(str), _n(n), _delim(delim)
+    {
+    }
+
+    std::ostream&operator<<(std::ostream &os, const Repeat &rep)
+    {
+        for (int i = 0; i < rep._n; i++) {
+            os << rep._str;
+            if (rep._delim == '\0' && i != rep._n - 1) {
+                os << rep._delim;
+            }
+        }
+
+        return os;
+    }
+
+    // ・split関数
+    // 空文字列を渡すと要素数0のvectorを返す．
+    std::vector <std::string> split(const std::string &str, const char delim=' ')
+    {
+        std::vector <std::string> result;
+        std::string               word = "";
+        for (char ch : str) {
+            if (ch == delim) {
+                if (word != "") {
+                    result.push_back(word);
+                }
+                word = "";
+            } else {
+                word += ch;
+            }
+        }
+        if (word != "") {
+            result.push_back(word);
+        }
+
+        return std::move(result);
+    }
+
+    // デフォルト引数にすると上のオーバーロードとambiguousになってしまう．
+    std::vector <std::string> split(const std::string &str, const std::string &delim)
+    {
+        std::vector <std::string> result;
+        std::string               word         = "";
+        size_t                    pos_on_delim = 0;
+        std::string               delim_buf    = "";
+        for (char ch : str) {
+            if (ch != delim[pos_on_delim]) {
+                // デリミタの現在位置と整合しない場合
+                if (pos_on_delim != 0) {
+                    // 途中まで整合していた場合
+                    word        += delim_buf;
+                    delim_buf    = "";
+                    pos_on_delim = 0;
+                }
+                // 現在位置をヘッドにシークして再度判定する．
+            }
+            if (ch == delim[pos_on_delim]) {
+                // デリミタと整合した場合
+                delim_buf += ch;
+                pos_on_delim++;
+                if (pos_on_delim >= delim.size()) {
+                    // デリミタの終端の場合wordをpushしてflushする．
+                    if (word != "") {
+                        result.push_back(word);
+                    }
+                    word         = "";
+                    delim_buf    = "";
+                    pos_on_delim = 0;
+                }
+            } else {
+                // テリミタと整合しない場合
+                word += ch;
+            }
+        }
+        if (word != "") {
+            result.push_back(word);
+        }
+
+        return std::move(result);
+    }
+
+    // ・trim関数
+    // 文字列の前後のホワイトスペースを削る．
+    // 削った結果なくなってしまう場合，空文字列を返す．
+    // 中間にホワートスペースを含んでいたときも正しく動くように．
+    std::string trim(const std::string &str)
+    {
+        size_t begin = 0, end = str.size();
+        while (begin < end) {
+            if (str[begin] != ' ' && str[begin] != '\t' && str[begin] != '\n' && str[begin] != '\r' && str[begin] != '\v') {
+                break;
+            }
+            begin++;
+        }
+        while (begin < end) {
+            if (str[end-1] != ' ' && str[end-1] != '\t' && str[end-1] != '\n' && str[end-1] != '\r' && str[end-1] != '\v') {
+                break;
+            }
+            end--;
+        }
+
+        return str.substr(begin, end-begin);
+    }
+
+    // ・配列つきenum
+    // __VA_ARGS__は関数マクロの可変長引数を提供する．
+    // 関数マクロ定義中の#演算子は変数名を文字列リテラルとしたものを表す．
+    // つまり#演算子のついた変数は再評価されない．
+    // インスタンスを作らないので，mapは必要なときに構築する．
+    // classnameでラップしているのでスコープなしenumを用いる．
+    // named_enum型の変数の宣言時にはTagが必要だが，具体的な整数定数を指すときはTagは不要．
+#define named_enum(classname, ...)                                \
+    class classname                                               \
+    {                                                             \
+    public:                                                       \
+        enum Tag { __VA_ARGS__ };                                 \
+    public:                                                       \
+        static std::string to_string(int index)                   \
+        {                                                         \
+            static std::map <int, std::string> _name;             \
+            if (_name.empty()) {                                  \
+                auto elems = util::split(#__VA_ARGS__, ',');      \
+                int  key   = 0;                                   \
+                for (auto elem : elems) {                         \
+                    auto tmp = util::split(elem, '=');            \
+                    if (tmp.size() > 1) {                         \
+                        key = std::stoi(tmp[1]);                  \
+                    }                                             \
+                    _name[key] = util::trim(std::string(tmp[0])); \
+                    key++;                                        \
+                }                                                 \
+            }                                                     \
+            return _name[index];                                  \
+        }                                                         \
+    };
+
+    // ・imprementation_test関数
+    // 処理系依存の環境をテストする関数．
+    void imprementation_test()
+    {
+        std::cout << Repeat("-", 20) << std::endl;
+        std::cout << "imprementation test" << std::endl;
+
+        std::cout << std::endl;
+
+        std::cout << "size test" << std::endl;
+        std::cout << "sizeof(char) : " << sizeof(char) << "[byte]" << std::endl;
+        std::cout << "sizeof(short): " << sizeof(short) << "[byte]" << std::endl;
+        std::cout << "sizeof(int)  : " << sizeof(int) << "[byte]" << std::endl;
+        std::cout << "sizeof(long) : " << sizeof(long) << "[byte]" << std::endl;
+
+        std::cout << std::endl;
+
+        std::cout << "downcast test" << std::endl;
+        unsigned long ul = 549755813887;
+        std::cout << "unsigned long : " << std::bitset <64>(static_cast <unsigned long>(ul)).to_string() << std::endl;
+        std::cout << "unsigned int  : " << std::bitset <64>(static_cast <unsigned int>(ul)).to_string() << std::endl;
+        std::cout << "unsigned short: " << std::bitset <64>(static_cast <unsigned short>(ul)).to_string() << std::endl;
+        std::cout << "unsigned char : " << std::bitset <64>(static_cast <unsigned char>(ul)).to_string() << std::endl;
+
+        std::cout << Repeat("-", 20) << std::endl;
+    }
+
+    // ・reverse関数
+    // イテレータがない場合．
+    template <class T>
+    constexpr T reverse(const T &container)
+    {
+        T result = container;
+        for (size_t i = 0; i < container.size(); i++) {
+            result[i] = container[container.size() - 1 - i];
+        }
+
+        return std::move(result);
+    }
+
+    // ・slice関数
+    template <int i, int j>
+    struct Slice
+    {
+        template <template <int> class T, int n>
+        constexpr static T <j - i> slice(const T <n> &container)
+        {
+            T <j - i> result;
+            for (size_t k = i; k < j; k++) {
+                result[k - i] = container[k];
+            }
+
+            return std::move(result);
+        }
+    };
 
     // ・HSVtoRGB関数
     // hue \in \set{Z}, saturation = 0, ..., 255, value = 0, ..., 255.
@@ -84,433 +314,68 @@ namespace util {
                 blue  = q;
                 break;
             default:
+
                 return boost::none;
                 break;
         }
-        return std::tuple<int, int, int>(red, green, blue);
+
+        return std::tuple <int, int, int>(red, green, blue);
     }
 
-    // ・nresult_ofメタ関数
-    // 関数fにT型の引数をn個渡した時の返り値の型を返すメタ関数
-
-    // 内部的に用いる_nresult_of_sub関数
-    template <typename Functor, typename T, int n, typename ... Args>
-    struct _nresult_of_sub
+    // ・color_encode関数
+    std::string color_encode(const unsigned char red, const unsigned char green, const unsigned char blue)
     {
-        using type = typename _nresult_of_sub <Functor, T, n - 1, T, Args ...>::type;
-    };
+        std::ostringstream oss;
+        oss << std::setfill('0');
+        oss << "#";
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(red);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(green);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(blue);
 
-    template <typename Functor, typename T, typename ... Args>
-    struct _nresult_of_sub <Functor, T, 0, Args ...>
-    {
-        using type = typename std::result_of <Functor(Args ...)>::type;
-    };
-
-    template <typename Functor, typename T, int n>
-    struct nresult_of
-    {
-        using type = typename _nresult_of_sub <Functor, T, n - 1, T>::type;
-    };
-
-    // nresult_of<F, T, 2>::type
-    // = _nresult_of_sub<F, T, 1, T>::type
-    // = _nresult_of_sub<F, T, 0, T, T>::type
-    // = std::result_of<F(T, T)>::type
-
-    // nresult_of<F, T, 1>::type
-    // = _nresult_of_sub<F, T, 0, T>::type
-    // = std::result_of<F(T)>::type
-
-    // エイリアステンプレート
-    template <typename Functor, typename T, int n>
-    using nresult_of_t = typename nresult_of <Functor, T, n>::type;
-
-    // std::arrayの拡張
-    // --- ここから人様のコピペ
-
-    // [1次元]
-
-    // ・make_array関数
-    // 関数テンプレートの型推論によってconstexprなarrayを要素数なしで生成する．
-    template <typename T, typename ... Args>
-    constexpr std::array <T, sizeof ... (Args)> make_array(Args&& ... args)
-    {
-        return std::array <T, sizeof ... (Args)> { static_cast <Args &&>(args) ... };
+        return oss.str();
     }
 
-    // コンパイル時に作成したstd::arrayについてはコンパイル時assert（static_assert）で要素数などをチェック可能．そのためのconstexprなsize関数を定義する．
-
-    // ・array_size関数
-    // std::arrayの要素数を取得する．
-    template <typename T, std::size_t N>
-    constexpr std::size_t array_size(const std::array <T, N>&)
+    std::string color_encode(const std::array <unsigned char, 3> &rgb)
     {
-        return N;
+        std::ostringstream oss;
+        oss << std::setfill('0');
+        oss << "#";
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(rgb[0]);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(rgb[1]);
+        oss << std::setw(2) << std::hex << static_cast <unsigned int>(rgb[2]);
+
+        return oss.str();
     }
 
-    // 固定長配列の要素数を取得する．
-    template <typename T, std::size_t N>
-    constexpr std::size_t array_size(T(&)[N])
+    // ・typename_of関数
+    // typeid.name出力をデマングルする．
+    // 野良C++erさんのコード．
+    #include <typeinfo>
+    #include <cxxabi.h>
+
+    // __cxa_demangleがmallocして返すためメモリリークがある．
+    char *demangle(const char *demangled)
     {
-        return N;
+        int status;
+
+        return abi::__cxa_demangle(demangled, 0, 0, &status);
     }
 
-    // [多次元]
-
-    // ・multi_arrayクラス
-    // std::arrayの多次元版のラッパークラス
-    //
-    // ＜動機＞T x[a][b][c]なる多次元配列のstd::array版をmulti_array<T, a, b, c> xで記述したい．
-    //     array<array<array<T, c>, b>, a>
-    // のエイリアステンプレートを定義することによって実現する．
-
-    // 可変長テンプレートパラメータを再帰で展開する．
-
-    // 多次元版（再帰）
-    template <typename T, std::size_t Size, std::size_t ... Sizes>
-    struct multi_array_type
-    {
-        using type = std::array <typename multi_array_type <T, Sizes ...>::type, Size>;
-    };
-
-    // 1次元版（再帰の末端）
-    template <typename T, std::size_t Size>
-    struct multi_array_type <T, Size>
-    {
-        using type = std::array <T, Size>;
-    };
-
-    // エイリアステンプレート
-    template <typename T, std::size_t Size, std::size_t ... Sizes>
-    using multi_array = typename multi_array_type <T, Size, Sizes ...>::type;
-
-    // ・make_common_array関数
-    // 関数テンプレートの型推論によってconstexprなmulti_arrayを型名，要素数なしで生成する．
-
-    // 引数は1次元．多次元array（multi_array）を生成するときは1次元arrayからなる1次元arrayを引数にとる．
-    // 自身が挙動をあまり理解していない．
-
-    // 戻り値の型を定めるメタ関数
-    template <typename ... TArgs>
-    struct common_array_type
-    {
-        using type = std::array <typename std::decay <typename std::common_type <TArgs ...>::type>::type, sizeof ... (TArgs)>;
-    };
-
-    // 関数本体
-    template <typename ... TArgs>
-    constexpr typename common_array_type <TArgs ...>::type make_common_array(TArgs&& ... args)
-    {
-        return typename common_array_type <TArgs ...>::type { std::forward <TArgs>(args) ... };
-    }
-
-    // --- ここまで人様のコピペ
-
-    // ・convert_arrayメタ関数
-    // multi_array<T1, ...>からmulti_array<T2, ...>を得る．
-    // ただ，multi_arrayの次元には任意性があるので（arrayを要素に持つmulti_arrayかもしれない），m(>= n)次元のmulti_array型をn次元で切ってT2に置換した型を得ることにする．
-
-    // プライマリテンプレート．ダミー
-    template <class From, typename T2, int dim>
-    struct convert_array
-    {
-        using type = From;
-    };
-
-    // 再帰版
-    template <typename T2, int dim, class Fromsub, int n>
-    struct convert_array <std::array <Fromsub, n>, T2, dim>
-    {
-        using type = std::array <typename convert_array <Fromsub, T2, dim - 1>::type, n>;
-    };
-
-    // 再帰の末端
-    template <typename T2, typename T1, int n>
-    struct convert_array <std::array <T1, n>, T2, 1>
-    {
-        using type = std::array <T2, n>;
-    };
-
-    // ・convert_array_f関数
-    // 実際のmulti_arrayを受け取って型変換してデフォルトコンストラクトしたものを返す関数
-    template <class From, typename T2, int dim, class Result = typename convert_array <From, T2, dim>::type>
-    Result convert_array_f(From A)
-    {
-        return std::move(Result());
-    }
-
-    // ・apply関数
-    // Rにおけるapply関数を実装する．
-
-    // (1)基本的に副作用を認めないものとし，副作用を生じる場合はapply_side_effect関数を用いる．
-    // (2)多次元版と1次元版を次元に関する部分特殊化で分岐する．
-    // (3)左辺値版と右辺値版をオーバーロードする．
-    // (4)voidな関数と値を返す関数はデフォルトテンプレートパラメータの部分特殊化で分岐する．
-    // (5)multi_arrayの要素の型による多態は関数テンプレートの型推論が担保する．
-
-    // 以上の設計から，クラステンプレートにメンバ関数テンプレートを持たせる実装を行う．
-
-    // 返り値を持つ版
-    // プライマリテンプレート
-    template <typename T, int dim, typename Resultvoid = T>
-    struct Apply
-    {
-        // const lvalue版
-        template <class Fromsub, std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <Fromsub, n>, FResult, dim>::type>
-        constexpr static Result apply(const std::array <Fromsub, n> &x, const Functor &f)
-        {
-            Result applied_array;
-
-            {
-                auto from = x.begin();
-                auto to   = applied_array.begin();
-                for (; from != x.end(); ++from, ++to) {
-                    *to = Apply <T, dim - 1>::apply(*from, f);
-                }
-            }
-
-            return std::move(applied_array);
-        }
-
-        // lvalue版
-        template <class Fromsub, std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <Fromsub, n>, FResult, dim>::type>
-        constexpr static Result apply_side_effect(std::array <Fromsub, n> &x, const Functor &f)
-        {
-            Result applied_array;
-
-            {
-                auto from = x.begin();
-                auto to   = applied_array.begin();
-                for (; from != x.end(); ++from, ++to) {
-                    *to = Apply <T, dim - 1>::apply_side_effect(*from, f);
-                }
-            }
-
-            return std::move(applied_array);
-        }
-
-        // const rvalue版
-        template <class Fromsub, std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <Fromsub, n>, FResult, dim>::type>
-        constexpr static Result apply(const std::array <Fromsub, n> &&x, const Functor &f)
-        {
-            Result applied_array;
-
-            {
-                auto from = x.begin();
-                auto to   = applied_array.begin();
-                for (; from != x.end(); ++from, ++to) {
-                    *to = Apply <T, dim - 1>::apply(*from, f);
-                }
-            }
-
-            return std::move(applied_array);
-        }
-
-        // rvalue版
-        template <class Fromsub, std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <Fromsub, n>, FResult, dim>::type>
-        constexpr static Result apply_side_effect(std::array <Fromsub, n> &&x, const Functor &f)
-        {
-            Result applied_array;
-
-            {
-                auto from = x.begin();
-                auto to   = applied_array.begin();
-                for (; from != x.end(); ++from, ++to) {
-                    *to = Apply <T, dim - 1>::apply_side_effect(*from, f);
-                }
-            }
-
-            return std::move(applied_array);
-        }
-    };
-
-    // 1次元版
-    template <typename T, typename Resultvoid>
-    struct Apply <T, 1, Resultvoid>
-    {
-        // const lvalue版
-        template <std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <T, n>, FResult, 1>::type>
-        constexpr static Result apply(const std::array <T, n> &x, const Functor &f)
-        {
-            // std::cout << "(const lvalue, nonvoid called)" << std::endl;
-            Result applied_array;
-
-            {
-                auto from = x.begin();
-                auto to   = applied_array.begin();
-                for (; from != x.end(); ++from, ++to) {
-                    *to = f(*from);
-                }
-            }
-
-            return std::move(applied_array);
-        }
-
-        // lvalue版
-        template <std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <T, n>, FResult, 1>::type>
-        constexpr static Result apply_side_effect(std::array <T, n> &x, const Functor &f)
-        {
-            // std::cout << "(lvalue, nonvoid called)" << std::endl;
-            Result applied_array;
-
-            {
-                auto from = x.begin();
-                auto to   = applied_array.begin();
-                for (; from != x.end(); ++from, ++to) {
-                    *to = f(*from);
-                }
-            }
-
-            return std::move(applied_array);
-        }
-
-        // const rvalue﻿﻿版
-        template <std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <T, n>, FResult, 1>::type>
-        constexpr static Result apply(const std::array <T, n> &&x, const Functor &f)
-        {
-            // std::cout << "(const rvalue, nonvoid called)" << std::endl;
-            Result applied_array;
-
-            {
-                auto from = x.begin();
-                auto to   = applied_array.begin();
-                for (; from != x.end(); ++from, ++to) {
-                    *to = f(*from);
-                }
-            }
-
-            return std::move(applied_array);
-        }
-
-        // rvalue﻿﻿版
-        template <std::size_t n, typename Functor, typename FResult = typename std::result_of <Functor(T)>::type, class Result = typename convert_array <std::array <T, n>, FResult, 1>::type>
-        constexpr static Result apply_side_effect(std::array <T, n> &&x, const Functor &f)
-        {
-            // std::cout << "(rvalue, nonvoid called)" << std::endl;
-            Result applied_array;
-
-            {
-                auto from = x.begin();
-                auto to   = applied_array.begin();
-                for (; from != x.end(); ++from, ++to) {
-                    *to = f(*from);
-                }
-            }
-
-            return std::move(applied_array);
-        }
-    };
-
-    // void版
-    // プライマリテンプレート
-    template <typename T, int dim>
-    struct Apply <T, dim, void>
-    {
-        // const lvalue版
-        template <class Fromsub, std::size_t n, typename Functor>
-        constexpr static void apply(const std::array <Fromsub, n> &x, const Functor &f)
-        {
-            {
-                auto from = x.begin();
-                for (; from != x.end(); ++from) {
-                    Apply <T, dim - 1, void>::apply(*from, f);
-                }
-            }
-        }
-
-        // lvalue版
-        template <class Fromsub, std::size_t n, typename Functor>
-        constexpr static void apply_side_effect(std::array <Fromsub, n> &x, const Functor &f)
-        {
-            {
-                auto from = x.begin();
-                for (; from != x.end(); ++from) {
-                    Apply <T, dim - 1, void>::apply_side_effect(*from, f);
-                }
-            }
-        }
-
-        // const rvalue版
-        template <class Fromsub, std::size_t n, typename Functor>
-        constexpr static void apply(const std::array <Fromsub, n> &&x, const Functor &f)
-        {
-            {
-                auto from = x.begin();
-                for (; from != x.end(); ++from) {
-                    Apply <T, dim - 1, void>::apply(*from, f);
-                }
-            }
-        }
-
-        // rvalue版
-        template <class Fromsub, std::size_t n, typename Functor>
-        constexpr static void apply_side_effect(std::array <Fromsub, n> &&x, const Functor &f)
-        {
-            {
-                auto from = x.begin();
-                for (; from != x.end(); ++from) {
-                    Apply <T, dim - 1, void>::apply_side_effect(*from, f);
-                }
-            }
-        }
-    };
-
-    // 1次元版
+    // Tの型名を取得．
+    // 参照型を区別しない．
     template <typename T>
-    struct Apply <T, 1, void>
+    char *typename_of()
     {
-        // const lvalue版
-        template <std::size_t n, typename Functor>
-        constexpr static void apply(const std::array <T, n> &x, const Functor &f)
-        {
-            // std::cout << "(const lvalue, void called)" << std::endl;
-            {
-                auto from = x.begin();
-                for (; from != x.end(); ++from) {
-                    f(*from);
-                }
-            }
-        }
+        return demangle(typeid(T).name() );
+    }
 
-        // lvalue版
-        template <std::size_t n, typename Functor>
-        constexpr static void apply_side_effect(std::array <T, n> &x, const Functor &f)
-        {
-            // std::cout << "(lvalue, void called)" << std::endl;
-            {
-                auto from = x.begin();
-                for (; from != x.end(); ++from) {
-                    f(*from);
-                }
-            }
-        }
-
-        // const rvalue﻿﻿版
-        template <std::size_t n, typename Functor>
-        constexpr static void apply(const std::array <T, n> &&x, const Functor &f)
-        {
-            // std::cout << "(const rvalue, void called)" << std::endl;
-            {
-                auto from = x.begin();
-                for (; from != x.end(); ++from) {
-                    f(*from);
-                }
-            }
-        }
-
-        // rvalue﻿﻿版
-        template <std::size_t n, typename Functor>
-        constexpr static void apply_side_effect(std::array <T, n> &&x, const Functor &f)
-        {
-            // std::cout << "(rvalue, void called)" << std::endl;
-            {
-                auto from = x.begin();
-                for (; from != x.end(); ++from) {
-                    f(*from);
-                }
-            }
-        }
-    };
+    // Tの型名を取得．
+    // 参照型を区別するが，boost::type<>の中に表示されるので冗長．
+    template <typename T>
+    char *typename_of_detail()
+    {
+        return demangle(typeid(boost::type <T> ).name() );
+    }
 }
 
 #endif

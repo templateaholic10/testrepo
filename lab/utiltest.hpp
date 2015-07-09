@@ -2,6 +2,7 @@
 #define UTILTEST
 
 #include "util.hpp"
+#include "util_array.hpp"
 
 namespace util {
     template <class T, std::size_t Size>

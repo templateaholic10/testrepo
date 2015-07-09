@@ -1,8 +1,15 @@
 ﻿char *gets(char *str);
 
-#include "functor.hpp"
+#include <random>
+// #include "functor.hpp"
 #include "utiltest.hpp"
-#include "test_simple_svg.hpp"
+// #include "test_simple_svg.hpp"
+// #include "unionbitarray.hpp"
+#include "test_sprout.hpp"
+#include "test_tree.hpp"
+#include "dot_outer.hpp"
+
+named_enum(RGB, R, G, B);
 
 int main(int argc, char const *argv[])
 {
@@ -32,7 +39,7 @@ int main(int argc, char const *argv[])
     // // convert_arrayのテスト
     // // testconvert_array();
 
-    test_simple_svg::test_pinwheel();
+    tree::typetree::test_typetree();
 
     return 0;
 }
