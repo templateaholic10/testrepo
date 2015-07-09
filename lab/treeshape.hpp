@@ -2,9 +2,10 @@
 #define TREE_SHAPE
 
 #include <iostream>
+#include <sprout/array.hpp>
 #include <sprout/numeric/iota.hpp>
 #include <sprout/algorithm/fixed/reverse.hpp>
-#include "util.hpp"
+#include "util_bit.hpp"
 #include "treeshape_paren.hpp"
 
 // 木構造に関する空間

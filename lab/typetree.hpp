@@ -5,9 +5,11 @@
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/find.hpp>
+#include "util.hpp"
 #include "graph_config.hpp"
 #include "treeshape.hpp"
 #include "metadata.hpp"
+#include "dot_outer.hpp"
 
 // 木構造に関する名前空間
 namespace tree {
@@ -122,29 +124,29 @@ namespace tree {
         private:
             using _Node = tree::shape::Node <Paren_, index>;
         public:
-            constexpr Sibling_Out(const std::string &delim=", ")
-                : _delim(delim)
+            constexpr Sibling_Out(const std::string &delim_=", ")
+                : delim(delim_)
             {
             }
 
-            static std::string to_string(const std::string &delim=", ")
+            static std::string to_string(const std::string &delim_=", ")
             {
                 using next_sibling = typename _Node::NEXTSIBLING;
                 std::string result = "";
                 if (next_sibling::type::id != 0) {
-                    result += Out <typename next_sibling::type, Elements_>::to_string() + delim + Sibling_Out <typename next_sibling::type, Elements_>::to_string();
+                    result += Out <typename next_sibling::type, Elements_>::to_string() + delim_ + Sibling_Out <typename next_sibling::type, Elements_>::to_string();
                 }
 
                 return std::move(result);
             }
 
-            const std::string _delim;
+            const std::string delim;
         };
 
         template <class Node_, class Elements_>
         std::ostream&operator<<(std::ostream &os, const Sibling_Out <Node_, Elements_> &out)
         {
-            os << out.to_string(out._delim);
+            os << out.to_string(out.delim);
 
             return os;
         }
@@ -159,29 +161,29 @@ namespace tree {
         private:
             using _Node = tree::shape::Node <Paren_, index>;
         public:
-            constexpr Children_Out(const std::string &delim=", ")
-                : _delim(delim)
+            constexpr Children_Out(const std::string &delim_=", ")
+                : delim(delim_)
             {
             }
 
-            static std::string to_string(const std::string &delim=", ")
+            static std::string to_string(const std::string &delim_=", ")
             {
                 using first_child = typename _Node::FIRSTCHILD;
                 std::string result = "";
                 if (first_child::type::id != 0) {
-                    result += Out <typename first_child::type, Elements_>::to_string() + delim + Sibling_Out <typename first_child::type, Elements_>::to_string();
+                    result += Out <typename first_child::type, Elements_>::to_string() + delim_ + Sibling_Out <typename first_child::type, Elements_>::to_string(delim_);
                 }
 
                 return std::move(result);
             }
 
-            const std::string _delim;
+            const std::string delim;
         };
 
         template <class Node_, class Elements_>
         std::ostream&operator<<(std::ostream &os, const Children_Out <Node_, Elements_> &out)
         {
-            os << out.to_string(out._delim);
+            os << out.to_string(out.delim);
 
             return os;
         }
@@ -196,26 +198,26 @@ namespace tree {
         private:
             using _Node = tree::shape::Node <Paren_, index>;
         public:
-            List_Out(const std::string &edge_marker=" -> ", const std::string &delim=", ")
-                : _edge_marker(edge_marker), _delim(delim)
+            List_Out(const std::string &edge_marker_=" -> ", const std::string &delim_=", ")
+                : edge_marker(edge_marker_), delim(delim_)
             {
             }
 
-            static std::string to_string(const std::string &edge_marker=" -> ", const std::string &delim=", ")
+            static std::string to_string(const std::string &edge_marker_=" -> ", const std::string &delim_=", ")
             {
-                std::string result = Out <_Node, Elements_>::to_string() + edge_marker + Children_Out <_Node, Elements_>::to_string();
+                std::string result = Out <_Node, Elements_>::to_string() + edge_marker_ + Children_Out <_Node, Elements_>::to_string(delim_);
 
                 return std::move(result);
             }
 
-            const std::string _edge_marker;
-            const std::string _delim;
+            const std::string edge_marker;
+            const std::string delim;
         };
 
         template <class Node_, class Elements_>
         std::ostream&operator<<(std::ostream &os, const List_Out <Node_, Elements_> &out)
         {
-            os << out.to_string(out._edge_marker, out._delim);
+            os << out.to_string(out.edge_marker, out.delim);
 
             return os;
         }
@@ -232,21 +234,21 @@ namespace tree {
             using _Tree = Tree <Shape_, Elements_>;
             static constexpr size_t next_index = (1 <= index && index < _Tree::v_size) ? index + 1 : 0;
         public:
-            constexpr _Tree_Out(const std::string &edge_marker=" -> ", const std::string &delim=", ")
-                : _edge_marker(edge_marker), _delim(delim)
+            constexpr _Tree_Out(const std::string &edge_marker_=" -> ", const std::string &delim_=", ")
+                : edge_marker(edge_marker_), delim(delim_)
             {
             }
 
-            static std::string to_string(const std::string &edge_marker=" -> ", const std::string &delim=", ")
+            static std::string to_string(const std::string &edge_marker_=" -> ", const std::string &delim_=", ")
             {
                 using this_node = typename tree::shape::AT <typename _Tree::Shape, index>;
-                std::string result = List_Out <typename this_node::type, Elements_>::to_string(edge_marker, delim) + '\n' + _Tree_Out <_Tree, next_index>::to_string(edge_marker, delim);
+                std::string result = List_Out <typename this_node::type, Elements_>::to_string(edge_marker_, delim_) + '\n' + _Tree_Out <_Tree, next_index>::to_string(edge_marker_, delim_);
 
                 return std::move(result);
             }
 
-            const std::string _edge_marker;
-            const std::string _delim;
+            const std::string edge_marker;
+            const std::string delim;
         };
 
         // 再帰を用いるので停止条件に注意．
@@ -256,20 +258,20 @@ namespace tree {
         private:
             using _Tree = Tree <Shape_, Elements_>;
         public:
-            constexpr _Tree_Out(const std::string &edge_marker=" -> ", const std::string &delim=", ")
-                : _edge_marker(edge_marker), _delim(delim)
+            constexpr _Tree_Out(const std::string &edge_marker_=" -> ", const std::string &delim_=", ")
+                : edge_marker(edge_marker_), delim(delim_)
             {
             }
 
-            static std::string to_string(const std::string &edge_marker=" -> ", const std::string &delim=", ")
+            static std::string to_string(const std::string &edge_marker_=" -> ", const std::string &delim_=", ")
             {
                 std::string result = "";
 
                 return std::move(result);
             }
 
-            const std::string _edge_marker;
-            const std::string _delim;
+            const std::string edge_marker;
+            const std::string delim;
         };
 
         // 兄弟の出力専用のオブジェクト．
@@ -282,27 +284,27 @@ namespace tree {
         private:
             using _Tree = Tree <Shape_, Elements_>;
         public:
-            constexpr Tree_Out(const std::string &edge_marker=" -> ", const std::string &delim=", ")
-                : _edge_marker(edge_marker), _delim(delim)
+            constexpr Tree_Out(const std::string &edge_marker_=" -> ", const std::string &delim_=", ")
+                : edge_marker(edge_marker_), delim(delim_)
             {
             }
 
-            static std::string to_string(const std::string &edge_marker=" -> ", const std::string &delim=", ")
+            static std::string to_string(const std::string &edge_marker_=" -> ", const std::string &delim_=", ")
             {
-                std::string result = _Tree_Out <_Tree, 1>::to_string(edge_marker, delim);
+                std::string result = _Tree_Out <_Tree, 1>::to_string(edge_marker_, delim_);
 
                 return std::move(result);
             }
 
             static constexpr graph::Expression expression = graph::Expression::adjacency_list;
-            const std::string _edge_marker;
-            const std::string _delim;
+            const std::string                  edge_marker;
+            const std::string                  delim;
         };
 
         template <class Shape_, class Elements_>
         std::ostream&operator<<(std::ostream &os, const Tree_Out <Tree <Shape_, Elements_> > &out)
         {
-            os << out.to_string(out._edge_marker, out._delim);
+            os << out.to_string(out.edge_marker, out.delim);
 
             return os;
         }
@@ -351,6 +353,21 @@ namespace tree {
             std::cout << "DIRECTLINE(int *, int (*)[]): " << DIRECTLINE <_Meta_Tree2, int *, int(*)[]>::value << std::endl;
 
             std::cout << util::Repeat("-", 20) << std::endl;
+        }
+
+        void test_typetree_to_dot()
+        {
+            constexpr auto str1 = animal::p_seq;
+            // Paren型．
+            using _Paren1 = tree::shape::paren::Paren <util::paren_to_bitseq(sprout::fixed::reverse(str1)).to_ulong(), str1.size()>;
+            // Tree型．
+            using _TreeShape1 = tree::shape::TreeShape <_Paren1>;
+            // メタデータ木．
+            using _Meta_Tree1 = Tree <_TreeShape1, animal::Elements>;
+
+            std::cout << Tree_Out <_Meta_Tree1>() << std::endl;
+            std::cout << std::endl;
+            std::cout << (dot::Dot("typetree") << Tree_Out <_Meta_Tree1>()) << std::endl;
         }
     }
 }

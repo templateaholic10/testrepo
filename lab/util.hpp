@@ -16,6 +16,24 @@
 #include <boost/optional.hpp>
 
 namespace util {
+    // ・_DISPLAY関数
+    // デバッグ用なのでアンダーバー．
+    #ifdef _DISPLAY
+    #undef _DISPLAY
+    #endif
+#define _DISPLAY(var) { std::cout << "$" #var ": " << var << std::endl; }
+    #ifdef _DISPLAY_SEQ
+    #undef _DISPLAY_SEQ
+    #endif
+#define _DISPLAY_SEQ(seq)             \
+    {                                 \
+        std::cout << "$" #seq ":";    \
+        for (auto elem : seq) {       \
+            std::cout << " " << elem; \
+        }                             \
+        std::cout << std::endl;       \
+    }
+
     // ・repeat関数
     // 文字列strをdelimで区切ってn回osに出力する
     void repeat(std::ostream &os, const std::string &str, int n)
@@ -91,16 +109,16 @@ namespace util {
     std::vector <std::string> split(const std::string &str, const std::string &delim)
     {
         std::vector <std::string> result;
-        std::string               word = "";
+        std::string               word         = "";
         size_t                    pos_on_delim = 0;
-        std::string delim_buf = "";
+        std::string               delim_buf    = "";
         for (char ch : str) {
             if (ch != delim[pos_on_delim]) {
                 // デリミタの現在位置と整合しない場合
                 if (pos_on_delim != 0) {
                     // 途中まで整合していた場合
-                    word += delim_buf;
-                    delim_buf = "";
+                    word        += delim_buf;
+                    delim_buf    = "";
                     pos_on_delim = 0;
                 }
                 // 現在位置をヘッドにシークして再度判定する．
@@ -115,7 +133,7 @@ namespace util {
                         result.push_back(word);
                     }
                     word         = "";
-                    delim_buf = "";
+                    delim_buf    = "";
                     pos_on_delim = 0;
                 }
             } else {

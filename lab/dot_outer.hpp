@@ -4,43 +4,45 @@
 #include <iostream>
 #include <list>
 #include <array>
+#include <map>
 #include <cstddef>
 #include <cassert>
 #include "graph_config.hpp"
 #include "util.hpp"
 
 namespace dot {
-    std::string quote(const std::string& str)
+    std::string quote(const std::string &str)
     {
         return "\"" + str + "\"";
     }
 
     template <typename T, size_t num>
-    std::string expand(const std::array<T, num>& a)
+    std::string expand(const std::array <T, num> &a)
     {
-        using CIT = typename std::array<T, num>::const_iterator;
+        using CIT = typename std::array <T, num>::const_iterator;
         std::string result = std::to_string(a[0]);
-        for (CIT it = a.begin()+1; it != a.end(); it++) {
+        for (CIT it = a.begin() + 1; it != a.end(); it++) {
             result += ", " + std::to_string(*it);
         }
+
         return result;
     }
 
     using RGB = std::array <unsigned char, 3>;
     constexpr RGB RGB_defo = RGB({ 255, 255, 255 });
-    std::string to_string(const RGB& rgb)
+    std::string to_string(const RGB &rgb)
     {
         return quote(util::color_encode(rgb));
     }
 
     using Rect = std::array <double, 2>;
     constexpr Rect Rect_defo = Rect({ 0, 0 });
-    std::string to_string(const Rect& rect)
+    std::string to_string(const Rect &rect)
     {
         return quote(expand(rect));
     }
 
-    std::string to_string(const std::string& str)
+    std::string to_string(const std::string &str)
     {
         return quote(str);
     }
@@ -62,7 +64,6 @@ namespace dot {
         named_enum(Just, defo, l, r);
 
         named_enum(Level_direction, defo, LR);
-
     public:
         // デフォルト値の設定
         Graph()
@@ -115,7 +116,8 @@ namespace dot {
     class Node
     {
     public:
-        named_enum(Shape, defo, ellipse, box, circle, egg, triangle, diamond, trapezium, parallelogram, house, pentagon, hexagon, septagon, octagon, invtriangle, invtrapezium, invhouse, doublecircle, doubleoctagon, tripleoctagon, Mdiamonc, Msquare, Mcircle, rect, rectangle, plaintext, point);
+        named_enum(Shape, defo, ellipse, box, circle, egg, triangle, diamond, trapezium, parallelogram, house, pentagon, hexagon, septagon, octagon, invtriangle, invtrapezium, invhouse, doublecircle, doubleoctagon, tripleoctagon, Mdiamonc,
+                   Msquare, Mcircle, rect, rectangle, plaintext, point);
 
         named_enum(Style, defo, solid, dotted, bold, invis, filled, diagonals, rounded, dashed);
 
@@ -144,8 +146,8 @@ namespace dot {
         // 形
         // 勝手にfixedsizeが設定される．
         Rect          size;
-        Shape::Tag         shape;
-        Style::Tag         style;
+        Shape::Tag    shape;
+        Style::Tag    style;
         unsigned char peripheries;
 
         // 色
@@ -178,7 +180,7 @@ namespace dot {
         if (node.style != Node::Style::defo) {
             os << ATTR(Node::Style, style) << std::endl;
         }
-        if (node.peripheries !=Node::peri_defo) {
+        if (node.peripheries != Node::peri_defo) {
             os << ATTR(std, peripheries) << std::endl;
         }
         if (node.color != RGB_defo) {
@@ -201,7 +203,8 @@ namespace dot {
     public:
         named_enum(Direction, defo, back, both, none);
 
-        named_enum(Arrow, defo, normal, box, crow, diamond, dot, inv, none, tee, vee, lbox, rbox, obox, olbox, orbox, lcrow, rcrow, ldiamond, rdiamond, odiamond, oldiamond, ordiamond, odot, linv, rinv, oinv, olinv, orinv, lnormal, rnormal, onormal, olnormal, ornormal, ltee, rtee, lvee, rvee);
+        named_enum(Arrow, defo, normal, box, crow, diamond, dot, inv, none, tee, vee, lbox, rbox, obox, olbox, orbox, lcrow, rcrow, ldiamond, rdiamond, odiamond, oldiamond, ordiamond, odot, linv, rinv, oinv, olinv, orinv, lnormal, rnormal,
+                   onormal, olnormal, ornormal, ltee, rtee, lvee, rvee);
 
         named_enum(Style, defo, solid, dotted, bold, invis, filled, diagonals, rounded, dashed);
 
@@ -212,25 +215,27 @@ namespace dot {
         static constexpr bool labelfloat_defo = false;
 
         static constexpr unsigned char arrowsize_defo = 0;
-
     public:
         // デフォルト値の設定
         Edge()
-            : id(num), from_id(1), to_id(1), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::defo), dir(Edge::Direction::defo), arrowhead(Arrow::defo), arrowtail(Arrow::defo), arrowsize(arrowsize_defo), color(
+            : id(num), from_id(1), to_id(1), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::defo), dir(Edge::Direction::defo), arrowhead(
+                Arrow::defo), arrowtail(Arrow::defo), arrowsize(arrowsize_defo), color(
                 RGB_defo)
         {
             num++;
         }
 
         Edge(size_t id_)
-            : id(id_), from_id(1), to_id(1), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::defo), dir(Edge::Direction::defo), arrowhead(Arrow::defo), arrowtail(Arrow::defo), arrowsize(arrowsize_defo), color(
+            : id(id_), from_id(1), to_id(1), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::defo), dir(Edge::Direction::defo), arrowhead(
+                Arrow::defo), arrowtail(Arrow::defo), arrowsize(arrowsize_defo), color(
                 RGB_defo)
         {
             num = id_ + 1;
         }
 
         Edge(size_t from_id_, size_t to_id_)
-            : id(num), from_id(from_id_), to_id(to_id_), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::defo), dir(Edge::Direction::defo), arrowhead(Arrow::defo), arrowtail(Arrow::defo), arrowsize(arrowsize_defo), color(
+            : id(num), from_id(from_id_), to_id(to_id_), label(""), headlabel(""), taillabel(""), labeldistance(labeldistance_defo), labelangle(labelangle_defo), labelfloat(labelfloat_defo), style(Style::defo), dir(Edge::Direction::defo),
+            arrowhead(Arrow::defo), arrowtail(Arrow::defo), arrowsize(arrowsize_defo), color(
                 RGB_defo)
         {
             num++;
@@ -241,8 +246,8 @@ namespace dot {
     public:
         // 基本情報
         size_t      id;
-        size_t from_id;
-        size_t to_id;
+        size_t      from_id;
+        size_t      to_id;
         std::string label;
         std::string headlabel;
         std::string taillabel;
@@ -257,7 +262,7 @@ namespace dot {
         Edge::Direction::Tag dir;
         Arrow::Tag           arrowhead;
         Arrow::Tag           arrowtail;
-        unsigned char   arrowsize;
+        unsigned char        arrowsize;
 
         // 色
         RGB color;
@@ -288,10 +293,10 @@ namespace dot {
         if (edge.taillabel != "") {
             os << ATTR(dot, taillabel) << std::endl;
         }
-        if (edge.labeldistance !=Edge::labeldistance_defo) {
+        if (edge.labeldistance != Edge::labeldistance_defo) {
             os << ATTR(std, labeldistance) << std::endl;
         }
-        if (edge.labelangle !=Edge::labelangle_defo) {
+        if (edge.labelangle != Edge::labelangle_defo) {
             os << ATTR(std, labelangle) << std::endl;
         }
         if (edge.labelfloat != Edge::labelfloat_defo) {
@@ -309,7 +314,7 @@ namespace dot {
         if (edge.arrowtail != Edge::Arrow::defo) {
             os << ATTR(Edge::Arrow, arrowtail) << std::endl;
         }
-        if (edge.arrowsize !=Edge::arrowsize_defo) {
+        if (edge.arrowsize != Edge::arrowsize_defo) {
             os << ATTR(std, arrowsize) << std::endl;
         }
         if (edge.color != RGB_defo) {
@@ -325,7 +330,7 @@ namespace dot {
     class Dot
     {
     public:
-        Dot(const std::string& name_="akari", const Direction::Tag direction_=Direction::digraph)
+        Dot(const std::string &name_="akari", const Direction::Tag direction_=Direction::digraph)
             : name(name_), direction(direction_), node_master(0), edge_master(0)
         {
         }
@@ -339,18 +344,57 @@ namespace dot {
         friend std::ostream&operator<<(std::ostream &os, const Dot &dot);
 
     public:
-        std::string name;
-        Direction::Tag    direction;
-        Graph             graph;
-        Node              node_master;
+        std::string      name;
+        Direction::Tag   direction;
+        Graph            graph;
+        Node             node_master;
         std::list <Node> nodes;
-        Edge              edge_master;
+        Edge             edge_master;
         std::list <Edge> edges;
     };
 
     template <class Out_, typename std::enable_if <Out_::expression == graph::Expression::adjacency_list>::type *>
     Dot&Dot::operator<<(const Out_ &out)
     {
+        std::cout << "into <<" << std::endl;
+        std::map <std::string, size_t> label_to_id;
+        size_t                         id = 1;
+        std::stringstream              ss;
+        std::string                    line;
+        ss << out;
+        while (!ss.eof()) {
+            std::getline(ss, line);
+            std::cout << line << std::endl;
+            auto        parent_children = util::split(line, out.edge_marker);
+            std::string parent          = util::trim(parent_children[0]);
+            _DISPLAY(parent)
+            auto        children        = util::split(parent_children[1], out.delim);
+            std::transform(children.begin(), children.end(), children.begin(), util::trim);
+            _DISPLAY_SEQ(children)
+            // parentの処理
+            if (label_to_id.find(parent) == label_to_id.end()) {
+                label_to_id[parent] = id;
+                nodes.push_back(Node());
+                assert(nodes.back().id == id);
+                nodes.back().label = parent;
+                id++;
+            }
+            size_t parent_id = label_to_id[parent];
+            // childrenの処理
+            for (auto child : children) {
+                if (label_to_id.find(child) == label_to_id.end()) {
+                    label_to_id[child] = id;
+                    nodes.push_back(Node());
+                    assert(nodes.back().id == id);
+                    nodes.back().label = child;
+                    id++;
+                }
+                size_t child_id = label_to_id[child];
+                edges.push_back(Edge(parent_id, child_id));
+            }
+        }
+        std::cout << "out of <<" << std::endl;
+
         return *this;
     }
 
@@ -376,6 +420,21 @@ namespace dot {
         os << "}";
 
         return os;
+    }
+
+    void test_dot()
+    {
+        dot::Dot hoge = dot::Dot();
+
+        constexpr size_t                 node_num = 100;
+        constexpr size_t                 edge_num = 100;
+        std::random_device               rnd;
+        std::mt19937                     mt(rnd());
+        std::uniform_int_distribution <> rand_edge(1, node_num);
+        for (size_t i = 0; i < edge_num; i++) {
+            hoge.edges.push_back(dot::Edge(rand_edge(mt), rand_edge(mt)));
+        }
+        std::cout << hoge << std::endl;
     }
 }
 

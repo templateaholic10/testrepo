@@ -1,18 +1,28 @@
-# dot file
-digraph akari {
-graph [
-];
-node [
-shape = box,
-style = dotted,
-color = "#ff0000",
-];
-edge [
-];
-1 -> 2 [
-];
-2 -> 3 [
-];
-3 -> 1 [
-];
-}
+animal::Animal -> animal::Human, animal::Otaku, 
+animal::Human -> animal::Kameoka, animal::non_Kameoka, 
+animal::Kameoka -> animal::Akari, 
+animal::Akari -> 
+animal::non_Kameoka -> animal::Man, animal::Woman, 
+animal::Man -> 
+animal::Woman -> 
+animal::Otaku -> 
+
+
+into <<
+animal::Animal -> animal::Human, animal::Otaku, 
+$parent: animal::Animal
+$children: animal::Human animal::Otaku
+animal::Human -> animal::Kameoka, animal::non_Kameoka, 
+$parent: animal::Human
+$children: animal::Kameoka animal::non_Kameoka
+animal::Kameoka -> animal::Akari, 
+$parent: animal::Kameoka
+$children: animal::Akari
+animal::Akari -> 
+$parent: animal::Akari
+$children: animal::Akari
+animal::non_Kameoka -> animal::Man, animal::Woman, 
+$parent: animal::non_Kameoka
+$children: animal::Man animal::Woman
+animal::Man -> 
+$parent: animal::Man

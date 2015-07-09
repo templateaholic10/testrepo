@@ -2,8 +2,9 @@
 #define TREESHAPE_PAREN
 
 #include <cstddef>
+#include <sprout/array.hpp>
 #include <sprout/algorithm/fixed/reverse.hpp>
-#include "util.hpp"
+#include "util_bit.hpp"
 
 // 木構造に関する名前空間
 namespace tree {
