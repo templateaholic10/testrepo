@@ -6,6 +6,7 @@
 // #include "unionbitarray.hpp"
 #include "test_sprout.hpp"
 // #include "typetree.hpp"
+#include "dot_outer.hpp"
 
 named_enum(RGB, R, G, B);
 
@@ -49,8 +50,8 @@ int main(int argc, char const *argv[])
     // using RGB = std::array<unsigned char, 3>;
     // RGB rgb = RGB({255, 0, 0});
     // std::cout << util::color_encode(rgb) << std::endl;
-
-    std::cout << RGB::to_string(RGB::R) << RGB::to_string(RGB::G) << RGB::to_string(RGB::B) << std::endl;
+    dot::Dot hoge = dot::Dot();
+    std::cout << hoge << std::endl;
 
     return 0;
 }

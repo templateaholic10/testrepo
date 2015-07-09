@@ -108,7 +108,7 @@ namespace util {
     class classname                                               \
     {                                                             \
     public:                                                       \
-        enum _enum { __VA_ARGS__ };                               \
+        enum Tag { __VA_ARGS__ };                               \
     public:                                                       \
         static std::string to_string(int index)                   \
         {                                                         \
