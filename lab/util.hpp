@@ -69,7 +69,7 @@ namespace util {
     std::vector <std::string> split(const std::string &str, const char delim=' ')
     {
         std::vector <std::string> result;
-        std::string               word;
+        std::string               word = "";
         for (char ch : str) {
             if (ch == delim) {
                 if (word != "") {
@@ -77,6 +77,49 @@ namespace util {
                 }
                 word = "";
             } else {
+                word += ch;
+            }
+        }
+        if (word != "") {
+            result.push_back(word);
+        }
+
+        return std::move(result);
+    }
+
+    // デフォルト引数にすると上のオーバーロードとambiguousになってしまう．
+    std::vector <std::string> split(const std::string &str, const std::string &delim)
+    {
+        std::vector <std::string> result;
+        std::string               word = "";
+        size_t                    pos_on_delim = 0;
+        std::string delim_buf = "";
+        for (char ch : str) {
+            if (ch != delim[pos_on_delim]) {
+                // デリミタの現在位置と整合しない場合
+                if (pos_on_delim != 0) {
+                    // 途中まで整合していた場合
+                    word += delim_buf;
+                    delim_buf = "";
+                    pos_on_delim = 0;
+                }
+                // 現在位置をヘッドにシークして再度判定する．
+            }
+            if (ch == delim[pos_on_delim]) {
+                // デリミタと整合した場合
+                delim_buf += ch;
+                pos_on_delim++;
+                if (pos_on_delim >= delim.size()) {
+                    // デリミタの終端の場合wordをpushしてflushする．
+                    if (word != "") {
+                        result.push_back(word);
+                    }
+                    word         = "";
+                    delim_buf = "";
+                    pos_on_delim = 0;
+                }
+            } else {
+                // テリミタと整合しない場合
                 word += ch;
             }
         }

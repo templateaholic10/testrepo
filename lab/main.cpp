@@ -50,14 +50,18 @@ int main(int argc, char const *argv[])
     // using RGB = std::array<unsigned char, 3>;
     // RGB rgb = RGB({255, 0, 0});
     // std::cout << util::color_encode(rgb) << std::endl;
-    dot::Dot hoge = dot::Dot();
-    hoge.node_master.shape = dot::Node::Shape::box;
-    hoge.node_master.style = dot::Node::Style::dotted;
-    hoge.node_master.color = dot::RGB({255,0,0});
-    hoge.edges.push_back(dot::Edge(1,2));
-    hoge.edges.push_back(dot::Edge(2,3));
-    hoge.edges.push_back(dot::Edge(3,1));
-    std::cout << hoge << std::endl;
+
+    // dot::Dot hoge = dot::Dot();
+    // hoge.node_master.shape = dot::Node::Shape::box;
+    // hoge.node_master.style = dot::Node::Style::dotted;
+    // hoge.node_master.color = dot::RGB({255,0,0});
+    // hoge.edges.push_back(dot::Edge(1,2));
+    // hoge.edges.push_back(dot::Edge(2,3));
+    // hoge.edges.push_back(dot::Edge(3,1));
+    // std::cout << hoge << std::endl;
+
+    auto splited = util::split("sena->ak-ari-->ichigo", "->");
+    std::for_each(splited.begin(), splited.end(), [](const std::string& str){std::cout << str << std::endl;});
 
     return 0;
 }
