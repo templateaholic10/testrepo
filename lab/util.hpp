@@ -14,6 +14,8 @@
 #include <bitset>
 #include <boost/type.hpp>
 #include <boost/optional.hpp>
+#include <typeinfo>
+#include <cxxabi.h>
 
 namespace util {
     // ・_DISPLAY関数
@@ -35,7 +37,8 @@ namespace util {
     }
 
     // ・repeat関数
-    // 文字列strをdelimで区切ってn回osに出力する
+    // 文字列strをdelimで区切ってn回osに出力する．
+    // 下のRepeatクラスの使用を推奨．
     void repeat(std::ostream &os, const std::string &str, int n)
     {
         for (int i = 0; i < n; i++) {
@@ -54,6 +57,7 @@ namespace util {
     // ・Repeatクラス
     // std::cout << Repeat("gfn", "2") << std::endl;
     // のように使う．
+    // 記法がスマートでよい．
     class Repeat
     {
     public:
@@ -245,6 +249,7 @@ namespace util {
     }
 
     // ・slice関数
+    // めっちゃ怪しいから使わない方がいいよ．
     template <int i, int j>
     struct Slice
     {
@@ -350,8 +355,6 @@ namespace util {
     // ・typename_of関数
     // typeid.name出力をデマングルする．
     // 野良C++erさんのコード．
-    #include <typeinfo>
-    #include <cxxabi.h>
 
     // __cxa_demangleがmallocして返すためメモリリークがある．
     char *demangle(const char *demangled)
