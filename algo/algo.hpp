@@ -332,19 +332,26 @@ namespace algo {
     }
 
     namespace game {
-        // リクエストを表す構造体．
-        struct Request {
-            system::Player player;
+        // 解答を表す構造体．
+        struct Guess {
+            int          place;
+            system::Card card;
         };
 
-        // 解答を表す構造体．
-        struct Answer {
-            system::Player player;
+        // CPUを表す構造体．
+        template <class T>
+        class CPU {
+            Guess guess(const system::Board& board);
+            bool one_more(const system::Board& board);
         };
 
         // ゲームを表すクラス．
+        template <class Alice, class Bob>
         class Game {
         private:
+            struct setting {
+            };
+
         public:
             void set();
             void take_turn();
