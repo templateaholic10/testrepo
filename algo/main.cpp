@@ -4,7 +4,7 @@ char *gets(char *str);
 
 int main(int argc, char const *argv[])
 {
-    algo::test::game();
+    algo::test::PvC();
 
     return 0;
 }
