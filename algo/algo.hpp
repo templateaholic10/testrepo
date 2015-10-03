@@ -366,6 +366,7 @@ namespace algo {
         // playside"の"手札の予想を確認する．
         bool Board::check(Playside playside, Guess guess) const
         {
+            _DISPLAY(guess.place)
             assert(0 <= guess.place && guess.place < hands[Playsidetoi(playside)].size());
 
             return hands[Playsidetoi(playside)][guess.place].number == guess.number;
@@ -449,7 +450,14 @@ namespace algo {
 
             os << name << "> " << "Guess a number of any face-down card." << std::endl;
             os << "place(0-" << board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
-            is >> place;
+            do {
+                is >> place;
+                if (board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
+                    os << "Already open." << std::endl;
+                    os << "place(0-" << board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
+                    continue;
+                }
+            } while (false);
             os << "number(0-11): ";
             is >> number;
 
@@ -501,12 +509,12 @@ namespace algo {
             std::mt19937       mt(rnd());
 
             std::uniform_int_distribution <> rnd_place(0, board.hands[system::Playsidetoi(system::invert(playside))].size() - 1);
-            while (false) {
+            do {
                 place = rnd_place(mt);
                 if (board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
                     continue;
                 }
-            }
+            } while (false);
 
             std::uniform_int_distribution <> rnd_number(0, 11);
             number = rnd_number(mt);
@@ -574,7 +582,7 @@ namespace algo {
                 if (result) {
                     // 正解した場合．
                     // オープン．
-                    board.turn(playside, guess.place, true);
+                    board.turn(system::invert(playside), guess.place, true);
 
                     // ゲームの終了判定．
                     full_open = board.full_open(playside);
@@ -587,13 +595,13 @@ namespace algo {
                         if (!one_more) {
                             // ディフェンスの場合．
                             cont = false;
-                            board.take(playside, board.pop_deck(), true);
+                            board.take(playside, board.pop_deck(), false);
                         }
                     }
                 } else {
                     // 外れた場合．
                     cont = false;
-                    board.take(playside, board.pop_deck(), false);
+                    board.take(playside, board.pop_deck(), true);
                 }
                 // 履歴．
                 history.push_back(Record(guess, result, one_more));
