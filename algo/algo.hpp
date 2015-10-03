@@ -13,11 +13,12 @@
 #include <algorithm>
 #include <numeric>
 #include <random>
+#include "../lab/util.hpp"
 
 namespace util {
     // ランダムアクセスシーケンスを非破壊的にシャッフルする関数．
     template <typename T>
-    std::vector <T> Fisher_Yates_shuffle(const std::vector <T> seq)
+    std::vector <T> Fisher_Yates_shuffle(const std::vector <T>& seq)
     {
         const std::size_t size = seq.size();
 
@@ -46,10 +47,8 @@ namespace util {
     }
 
     template <typename T, std::size_t num>
-    std::array <T, num> Fisher_Yates_shuffle(const std::array <T, num> seq)
+    std::array <T, num> Fisher_Yates_shuffle(const std::array <T, num>& seq)
     {
-        const std::size_t size = seq.size();
-
         // 添字シーケンスの作成．
         std::array <int, num> indexes;
         std::iota(indexes.begin(), indexes.end(), 1);
@@ -59,19 +58,36 @@ namespace util {
         std::mt19937       mt(rnd());
 
         // 添字シーケンスのシャッフル．
-        for (size_t i = 0; i < size; i++) {
-            std::uniform_int_distribution <> rnd_index(i, size - 1);
+        for (size_t i = 0; i < num; i++) {
+            std::uniform_int_distribution <> rnd_index(i, num - 1);
             int                              index = rnd_index(mt);
             std::swap(indexes[i], indexes[index]);
         }
 
         // 結果シーケンスのセット．
-        std::array <T, num> result(size);
-        for (size_t i = 0; i < size; i++) {
+        std::array <T, num> result;
+        for (size_t i = 0; i < num; i++) {
             result[i] = seq[indexes[i]];
         }
 
         return result;
+    }
+
+    void test_Fisher_Yates_shuffle()
+    {
+        constexpr std::size_t size = 10;
+
+        std::vector<int> v(size);
+        std::iota(v.begin(), v.end(), 1);
+        _DISPLAY_SEQ(v)
+        v = Fisher_Yates_shuffle(v);
+        _DISPLAY_SEQ(v)
+
+        std::array<int, size> a;
+        std::iota(a.begin(), a.end(), 1);
+        _DISPLAY_SEQ(a)
+        a = Fisher_Yates_shuffle(a);
+        _DISPLAY_SEQ(a)
     }
 }
 
@@ -139,6 +155,15 @@ namespace algo {
             }
 
             friend std::ostream&operator<<(std::ostream &os, const Card &card);
+        };
+
+        // 1ターンの履歴を表す構造体．
+        struct Record {
+            Player player;
+            int place;
+            Card guess;
+            bool correctness;
+            bool cont_turn;
         };
 
         int Card::serial = 0;
@@ -227,7 +252,7 @@ namespace algo {
         // 手を進める関数．
         void move(Board &board)
         {
-            
+
         }
     }
 }
