@@ -21,19 +21,22 @@ namespace util {
     class Comment {
     private:
         static std::string header;
-        const std::string content;
+        const std::string  content;
     public:
-        Comment(const std::string& content_)
-        : content(content_)
-        {}
-        friend std::ostream& operator<<(std::ostream& os, const Comment& comment);
+        Comment(const std::string &content_)
+            : content(content_)
+        {
+        }
+
+        friend std::ostream&operator<<(std::ostream &os, const Comment &comment);
     };
 
     std::string Comment::header = "?? ";
 
-    std::ostream& operator<<(std::ostream& os, const Comment& comment)
+    std::ostream&operator<<(std::ostream &os, const Comment &comment)
     {
         os << comment.header << comment.content << std::endl;
+
         return os;
     }
 
@@ -366,7 +369,6 @@ namespace algo {
         // playside"の"手札の予想を確認する．
         bool Board::check(Playside playside, Guess guess) const
         {
-            _DISPLAY(guess.place)
             assert(0 <= guess.place && guess.place < hands[Playsidetoi(playside)].size());
 
             return hands[Playsidetoi(playside)][guess.place].number == guess.number;
@@ -394,7 +396,7 @@ namespace algo {
         // 表裏を指定する．
         void Board::take(Playside playside, Card card, bool is_front)
         {
-            assert(0 <= deck_pos && deck_pos < Board::cards_num-1);
+            assert(0 <= deck_pos && deck_pos < Board::cards_num - 1);
             auto pos = std::lower_bound(hands[Playsidetoi(playside)].begin(), hands[Playsidetoi(playside)].end(), card);
             card.is_front = is_front;
             hands[Playsidetoi(playside)].insert(pos, card);
@@ -435,7 +437,14 @@ namespace algo {
 
         system::Guess Person::guess(const system::Board &board) const
         {
+            os << name << ">" << std::endl;
+
             // 報告
+            os << "     ";
+            for (size_t i = 0; i < system::Board::cards_num/2; i++) {
+                os << " " << std::setw(2) << i << " ";
+            }
+            os << std::endl;
             os << "Opp: ";
             display_hand(board, system::invert(playside), false, os);
             os << "You: ";
@@ -448,16 +457,17 @@ namespace algo {
             size_t place;
             int    number;
 
-            os << name << "> " << "Guess a number of any face-down card." << std::endl;
+            os << "Guess a number of any face-down card." << std::endl;
             os << "place(0-" << board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
-            do {
+            while (true) {
                 is >> place;
                 if (board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
                     os << "Already open." << std::endl;
                     os << "place(0-" << board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
-                    continue;
+                } else {
+                    break;
                 }
-            } while (false);
+            }
             os << "number(0-11): ";
             is >> number;
 
@@ -477,7 +487,7 @@ namespace algo {
             // 入力
             char c;
 
-            os << name << "> " << "Guess more?" << std::endl;
+            os << "Guess more?" << std::endl;
             os << "y/n: ";
             is >> c;
 
@@ -509,12 +519,12 @@ namespace algo {
             std::mt19937       mt(rnd());
 
             std::uniform_int_distribution <> rnd_place(0, board.hands[system::Playsidetoi(system::invert(playside))].size() - 1);
-            do {
+            while (true) {
                 place = rnd_place(mt);
-                if (board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
-                    continue;
+                if (!board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
+                    break;
                 }
-            } while (false);
+            }
 
             std::uniform_int_distribution <> rnd_number(0, 11);
             number = rnd_number(mt);
@@ -530,12 +540,13 @@ namespace algo {
         // 履歴を表す構造体．
         struct Record {
             system::Guess guess;
-            bool correctness;
-            bool one_more;
+            bool          correctness;
+            bool          one_more;
 
             Record(system::Guess guess_, bool correctness_, bool one_more_)
-            : guess(guess_), correctness(correctness_), one_more(one_more_)
-            {}
+                : guess(guess_), correctness(correctness_), one_more(one_more_)
+            {
+            }
         };
 
         // ゲームを表すクラス．
@@ -543,7 +554,7 @@ namespace algo {
         private:
             system::Board                               board;
             std::array <std::unique_ptr <Character>, 2> characters;
-            std::deque<Record> history;
+            std::deque <Record>                         history;
         public:
             Game(std::unique_ptr <Character> &&Alice_, std::unique_ptr <Character> &&Bob_)
                 : board(), characters(std::array <std::unique_ptr <Character>, 2>(
@@ -556,7 +567,7 @@ namespace algo {
             std::unique_ptr <Character> &character(system::Playside playside);
 
             bool                         take_turn(system::Playside playside);
-            void main();
+            void                         main();
         };
 
         std::unique_ptr <Character>&Game::character(system::Playside playside)
@@ -568,7 +579,7 @@ namespace algo {
         // ゲーム終了時にはtrue，それ以外にはfalseを返す．
         bool Game::take_turn(system::Playside playside)
         {
-            bool cont = true;
+            bool cont      = true;
             bool full_open = false;
             do {
                 // 予想．
@@ -585,7 +596,7 @@ namespace algo {
                     board.turn(system::invert(playside), guess.place, true);
 
                     // ゲームの終了判定．
-                    full_open = board.full_open(playside);
+                    full_open = board.full_open(system::invert(playside));
                     if (full_open) {
                         cont = false;
                     } else {
@@ -606,6 +617,7 @@ namespace algo {
                 // 履歴．
                 history.push_back(Record(guess, result, one_more));
             } while (cont);
+
             return full_open;
         }
 
@@ -615,14 +627,22 @@ namespace algo {
             do {
                 end_flag = take_turn(system::Playside::Alice);
                 end_flag = take_turn(system::Playside::Bob);
-            } while(!end_flag);
+            } while (!end_flag);
         }
     }
 
     namespace test {
-        void work()
+        void PvP()
         {
-            game::Game G = game::Game(std::unique_ptr<game::Character>(new game::Person("Akari", system::Playside::Alice, std::cin, std::cout)), std::unique_ptr<game::Character>(new game::Person("Sumire", system::Playside::Alice, std::cin, std::cout)));
+            game::Game G = game::Game(std::unique_ptr <game::Character>(new game::Person("Akari", system::Playside::Alice, std::cin, std::cout)), std::unique_ptr <game::Character>(new game::Person("Sumire", system::Playside::Bob, std::cin,
+                                                                                                                                                                                                     std::cout)));
+            G.main();
+        }
+
+        void PvC()
+        {
+            game::Game G = game::Game(std::unique_ptr <game::Character>(new game::Randy("Akari", system::Playside::Alice)), std::unique_ptr <game::Character>(new game::Person("Me", system::Playside::Bob, std::cin,
+                                                                                                                                                                                                     std::cout)));
             G.main();
         }
     }
