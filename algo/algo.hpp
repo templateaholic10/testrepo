@@ -10,12 +10,20 @@
 #include <array>
 #include <deque>
 #include <stack>
+#include <memory>
 #include <algorithm>
 #include <numeric>
 #include <random>
 #include "../lab/util.hpp"
 
 namespace util {
+    // y/nをtrue/falseに変換する関数．
+    // yまたはY以外はfalse．
+    bool ctob(const char c)
+    {
+        return c == 'y' || c == 'Y';
+    }
+
     // ランダムアクセスシーケンスを非破壊的にシャッフルする関数．
     template <typename T>
     std::vector <T> Fisher_Yates_shuffle(const std::vector <T> &seq)
@@ -95,26 +103,36 @@ namespace algo {
     namespace system {
         // algoのシステムを実装する．
 
-        // プレイヤーを表す列挙型．
-        enum class Player {
+        // プレイサイドを表す列挙型．
+        enum class Playside {
             Alice,
             Bob,
         };
 
-        // プレイヤーを数字に変換する関数．
-        std::size_t Playertoi(const Player player)
+        // プレイサイドを反転させる関数．
+        Playside invert(const Playside playside)
         {
-            if (player == Player::Alice) {
+            if (playside == Playside::Alice) {
+                return Playside::Bob;
+            } else {
+                return Playside::Alice;
+            }
+        }
+
+        // プレイサイドを数字に変換する関数．
+        std::size_t Playsidetoi(const Playside playside)
+        {
+            if (playside == Playside::Alice) {
                 return 0;
             } else {
                 return 1;
             }
         }
 
-        // プレイヤーを文字列に変換する関数．
-        std::string str(const Player player)
+        // プレイサイドを文字列に変換する関数．
+        std::string str(const Playside playside)
         {
-            if (player == Player::Alice) {
+            if (playside == Playside::Alice) {
                 return "Alice";
             } else {
                 return "Bob";
@@ -215,13 +233,14 @@ namespace algo {
             return os;
         }
 
-        // 1ターンの履歴を表す構造体．
+        // 予想を表す構造体．
         struct Guess {
-            Player player;
-            int    place;
-            Card   card;
-            bool   correctness;
-            bool   cont_turn;
+            size_t place;
+            int    number;
+            Guess(size_t place_, int number_)
+                : place(place_), number(number_)
+            {
+            }
         };
 
         // 盤面の全情報を格納する構造体．
@@ -233,13 +252,17 @@ namespace algo {
             size_t                            deck_pos;
             static constexpr std::size_t      start_hand_num = 5;
             std::array <std::deque <Card>, 2> hands;   // 手札
-            std::deque <Guess>                history;  // 履歴
 
             Board();
-            void init();
+            void               init();
+
+            std::deque <Card> &hand(Playside playside);
+
             Card pop_deck() const;
-            bool guess(Player player, int place, Card card);
-            void take(Player player, Card card, bool is_front);
+            bool check(Playside playside, Guess guess) const;
+            void turn(Playside playside, size_t place, bool to_front);
+            bool full_open(Playside playside) const;
+            void take(Playside playside, Card card, bool is_front);
         };
 
         std::array <Card, Board::cards_num> Board::deck = std::array <Card, Board::cards_num>();
@@ -256,7 +279,6 @@ namespace algo {
                 }
                 std::sort(hands[i].begin(), hands[i].end());
             }
-            history.clear();
             state = State::turn_Alice;
         }
 
@@ -265,10 +287,16 @@ namespace algo {
             init();
         }
 
-        // 手札を確認する関数．
-        void display_hand(const Board &board, const Player player, bool open=false, std::ostream &os=std::cout)
+        // いちいち変換するのが面倒なので参照返しでラップ．
+        std::deque <Card>&Board::hand(Playside playside)
         {
-            for (auto card : board.hands[Playertoi(player)]) {
+            return hands[system::Playsidetoi(playside)];
+        }
+
+        // 手札を確認する関数．
+        void display_hand(const Board &board, const Playside playside, bool open=false, std::ostream &os=std::cout)
+        {
+            for (auto card : board.hands[Playsidetoi(playside)]) {
                 display_card(card, open, os);
             }
             os << std::endl;
@@ -277,8 +305,8 @@ namespace algo {
         // 盤面を確認する関数．
         void display_board(const Board &board, bool open=false, std::ostream &os=std::cout)
         {
-            display_hand(board, Player::Alice, open, os);
-            display_hand(board, Player::Bob, open, os);
+            display_hand(board, Playside::Alice, open, os);
+            display_hand(board, Playside::Bob, open, os);
         }
 
         // 山札を確認する関数．
@@ -314,56 +342,255 @@ namespace algo {
             return deck[deck_pos];
         }
 
-        // 予想する関数．
-        // player"の"手札を予想する．
-        bool Board::guess(Player player, int place, Card card)
+        // 確認する関数．
+        // playside"の"手札の予想を確認する．
+        bool Board::check(Playside playside, Guess guess) const
         {
-            return hands[Playertoi(player)][place] == card;
+            assert(0 <= guess.place && guess.place < hands[Playsidetoi(playside)].size());
+
+            return hands[Playsidetoi(playside)][guess.place].number == guess.number;
+        }
+
+        // カードの向きを変える関数．
+        void Board::turn(Playside playside, size_t place, bool to_front)
+        {
+            hand(playside)[place].is_front = to_front;
+        }
+
+        // 手札がすべて開いているかを調べる関数．
+        bool Board::full_open(Playside playside) const
+        {
+            for (auto card : hands[Playsidetoi(playside)]) {
+                if (!card.is_front) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         // カードを手札に加える関数．
         // 表裏を指定する．
-        void Board::take(Player player, Card card, bool is_front)
+        void Board::take(Playside playside, Card card, bool is_front)
         {
-            auto pos = std::lower_bound(hands[Playertoi(player)].begin(), hands[Playertoi(player)].end(), card);
+            assert(0 <= deck_pos && deck_pos < Board::cards_num-1);
+            auto pos = std::lower_bound(hands[Playsidetoi(playside)].begin(), hands[Playsidetoi(playside)].end(), card);
             card.is_front = is_front;
-            hands[Playertoi(player)].insert(pos, card);
+            hands[Playsidetoi(playside)].insert(pos, card);
+            deck_pos++;
         }
     }
 
     namespace game {
-        // 解答を表す構造体．
-        struct Guess {
-            int          place;
-            system::Card card;
+        // 基底クラス．
+        class Character {
+        public:
+            std::string      name;
+            system::Playside playside;
+        public:
+            Character(const std::string &name_, system::Playside playside_)
+                : name(name_), playside(playside_)
+            {
+            }
+
+            virtual system::Guess guess(const system::Board &board) const    = 0;
+            virtual bool          one_more(const system::Board &board) const = 0;
         };
 
-        // CPUを表す構造体．
-        template <class T>
-        class CPU {
-            Guess guess(const system::Board& board);
-            bool one_more(const system::Board& board);
+        // 人クラス．
+        class Person : Character {
+        private:
+            std::istream &is;
+            std::ostream &os;
+        public:
+            Person(const std::string &name_, system::Playside playside_, std::istream &is_, std::ostream &os_)
+                : Character(name_, playside_), is(is_), os(os_)
+            {
+            }
+
+            system::Guess guess(const system::Board &board) const;
+            bool          one_more(const system::Board &board) const;
+        };
+
+        system::Guess Person::guess(const system::Board &board) const
+        {
+            // 報告
+            os << "Opp: ";
+            display_hand(board, system::invert(playside), false, os);
+            os << "You: ";
+            display_hand(board, playside, true, os);
+            os << "Drew: ";
+            os << board.pop_deck();
+
+            // 入力
+            size_t place;
+            int    number;
+
+            os << "Guess a number of any face-down card." << std::endl;
+            os << "place(0-" << board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
+            is >> place;
+            os << "number(0-11): ";
+            is >> number;
+
+            return system::Guess(place, number);
+        }
+
+        bool Person::one_more(const system::Board &board) const
+        {
+            // 報告
+            os << "Great guess!" << std::endl;
+            os << "Drew: ";
+            os << board.pop_deck();
+
+            // 入力
+            char c;
+
+            os << "Guess more?" << std::endl;
+            os << "y/n: ";
+            is >> c;
+
+            return util::ctob(c);
+        }
+
+        // ランダムクラス．
+        class Randy : Character {
+        private:
+        public:
+            Randy(const std::string &name_, system::Playside playside_)
+                : Character(name_, playside_)
+            {
+            }
+
+            system::Guess guess(const system::Board &board) const;
+            bool          one_more(const system::Board &board) const;
+        };
+
+        system::Guess Randy::guess(const system::Board &board) const
+        {
+            // 入力
+            size_t place;
+            int    number;
+
+            std::random_device rnd;
+            std::mt19937       mt(rnd());
+
+            std::uniform_int_distribution <> rnd_place(0, board.hands[system::Playsidetoi(system::invert(playside))].size() - 1);
+            while (false) {
+                place = rnd_place(mt);
+                if (board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
+                    continue;
+                }
+            }
+
+            std::uniform_int_distribution <> rnd_number(0, 11);
+            number = rnd_number(mt);
+
+            return system::Guess(place, number);
+        }
+
+        bool Randy::one_more(const system::Board &board) const
+        {
+            return true;
+        }
+
+        // 履歴を表す構造体．
+        struct Record {
+            system::Guess guess;
+            bool correctness;
+            bool one_more;
+
+            Record(system::Guess guess_, bool correctness_, bool one_more_)
+            : guess(guess_), correctness(correctness_), one_more(one_more_)
+            {}
         };
 
         // ゲームを表すクラス．
-        template <class Alice, class Bob>
         class Game {
         private:
-            struct setting {
-            };
-
+            system::Board                               board;
+            std::array <std::unique_ptr <Character>, 2> characters;
+            std::deque<Record> history;
         public:
-            void set();
-            void take_turn();
+            Game(std::unique_ptr <Character> &&Alice_, std::unique_ptr <Character> &&Bob_)
+                : board(), characters(std::array <std::unique_ptr <Character>, 2>(
+            {
+                std::move(Alice_), std::move(Bob_)
+            }))
+            {
+            }
+
+            std::unique_ptr <Character> &character(system::Playside playside);
+
+            bool                         take_turn(system::Playside playside);
+            void main();
         };
+
+        std::unique_ptr <Character>&Game::character(system::Playside playside)
+        {
+            return characters[system::Playsidetoi(playside)];
+        }
+
+        // ターンをこなす破壊的関数．
+        // ゲーム終了時にはtrue，それ以外にはfalseを返す．
+        bool Game::take_turn(system::Playside playside)
+        {
+            bool cont = true;
+            bool full_open = false;
+            do {
+                // 予想．
+                auto guess = character(playside)->guess(board);
+
+                // 判定．
+                bool result = board.check(system::invert(playside), guess);
+
+                bool one_more = false;
+
+                if (result) {
+                    // 正解した場合．
+                    // オープン．
+                    board.turn(playside, guess.place, true);
+
+                    // ゲームの終了判定．
+                    full_open = board.full_open(playside);
+                    if (full_open) {
+                        cont = false;
+                    } else {
+                        // アタックかディフェンスか．
+                        one_more = character(playside)->one_more(board);
+
+                        if (!one_more) {
+                            // ディフェンスの場合．
+                            cont = false;
+                            board.take(playside, board.pop_deck(), true);
+                        }
+                    }
+                } else {
+                    // 外れた場合．
+                    cont = false;
+                    board.take(playside, board.pop_deck(), false);
+                }
+                // 履歴．
+                history.push_back(Record(guess, result, one_more));
+            } while (cont);
+            return full_open;
+        }
+
+        void Game::main()
+        {
+            bool end_flag = false;
+            do {
+                end_flag = take_turn(system::Playside::Alice) or take_turn(system::Playside::Bob);;
+            } while(!end_flag);
+        }
     }
 
     namespace test {
-        void game()
+        void work()
         {
-            system::Board board = system::Board();
-            system::display_board(board);
-            system::display_deck(board);
+            auto Akari = std::make_unique<game::Person>("Akari", system::Playside::Alice, std::cin, std::cout);
+            auto Sumire = std::make_unique<game::Person>("Sumire", system::Playside::Alice, std::cin, std::cout);
+            game::Game G = game::Game(Akari, Sumire);
+            G.main();
         }
     }
 }
