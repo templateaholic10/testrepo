@@ -24,7 +24,7 @@ namespace util {
 
         // 添字シーケンスの作成．
         std::vector <int> indexes(size);
-        std::iota(indexes.begin(), indexes.end(), 1);
+        std::iota(indexes.begin(), indexes.end(), 0);
 
         // 乱数の設定．
         std::random_device rnd;
@@ -51,7 +51,7 @@ namespace util {
     {
         // 添字シーケンスの作成．
         std::array <int, num> indexes;
-        std::iota(indexes.begin(), indexes.end(), 1);
+        std::iota(indexes.begin(), indexes.end(), 0);
 
         // 乱数の設定．
         std::random_device rnd;
@@ -78,13 +78,13 @@ namespace util {
         constexpr std::size_t size = 10;
 
         std::vector<int> v(size);
-        std::iota(v.begin(), v.end(), 1);
+        std::iota(v.begin(), v.end(), 0);
         _DISPLAY_SEQ(v)
         v = Fisher_Yates_shuffle(v);
         _DISPLAY_SEQ(v)
 
         std::array<int, size> a;
-        std::iota(a.begin(), a.end(), 1);
+        std::iota(a.begin(), a.end(), 0);
         _DISPLAY_SEQ(a)
         a = Fisher_Yates_shuffle(a);
         _DISPLAY_SEQ(a)
@@ -183,6 +183,7 @@ namespace algo {
                     os << "(  )";
                 }
             }
+            return os;
         }
 
         void see_through(std::ostream &os, const Card &card)
