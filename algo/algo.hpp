@@ -398,7 +398,7 @@ namespace algo {
         };
 
         // 人クラス．
-        class Person : Character {
+        class Person : public Character {
         private:
             std::istream &is;
             std::ostream &os;
@@ -453,7 +453,7 @@ namespace algo {
         }
 
         // ランダムクラス．
-        class Randy : Character {
+        class Randy : public Character {
         private:
         public:
             Randy(const std::string &name_, system::Playside playside_)
@@ -587,9 +587,7 @@ namespace algo {
     namespace test {
         void work()
         {
-            auto Akari = std::make_unique<game::Person>("Akari", system::Playside::Alice, std::cin, std::cout);
-            auto Sumire = std::make_unique<game::Person>("Sumire", system::Playside::Alice, std::cin, std::cout);
-            game::Game G = game::Game(Akari, Sumire);
+            game::Game G = game::Game(std::unique_ptr<game::Character>(new game::Person("Akari", system::Playside::Alice, std::cin, std::cout)), std::unique_ptr<game::Character>(new game::Person("Sumire", system::Playside::Alice, std::cin, std::cout)));
             G.main();
         }
     }
