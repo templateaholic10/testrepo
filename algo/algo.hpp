@@ -18,7 +18,7 @@
 namespace util {
     // ランダムアクセスシーケンスを非破壊的にシャッフルする関数．
     template <typename T>
-    std::vector <T> Fisher_Yates_shuffle(const std::vector <T>& seq)
+    std::vector <T> Fisher_Yates_shuffle(const std::vector <T> &seq)
     {
         const std::size_t size = seq.size();
 
@@ -47,7 +47,7 @@ namespace util {
     }
 
     template <typename T, std::size_t num>
-    std::array <T, num> Fisher_Yates_shuffle(const std::array <T, num>& seq)
+    std::array <T, num> Fisher_Yates_shuffle(const std::array <T, num> &seq)
     {
         // 添字シーケンスの作成．
         std::array <int, num> indexes;
@@ -77,13 +77,13 @@ namespace util {
     {
         constexpr std::size_t size = 10;
 
-        std::vector<int> v(size);
+        std::vector <int> v(size);
         std::iota(v.begin(), v.end(), 0);
         _DISPLAY_SEQ(v)
         v = Fisher_Yates_shuffle(v);
         _DISPLAY_SEQ(v)
 
-        std::array<int, size> a;
+        std::array <int, size> a;
         std::iota(a.begin(), a.end(), 0);
         _DISPLAY_SEQ(a)
         a = Fisher_Yates_shuffle(a);
@@ -102,12 +102,22 @@ namespace algo {
         };
 
         // プレイヤーを数字に変換する関数．
-        std::size_t numerize(const Player player)
+        std::size_t Playertoi(const Player player)
         {
             if (player == Player::Alice) {
                 return 0;
             } else {
                 return 1;
+            }
+        }
+
+        // プレイヤーを文字列に変換する関数．
+        std::string str(const Player player)
+        {
+            if (player == Player::Alice) {
+                return "Alice";
+            } else {
+                return "Bob";
             }
         }
 
@@ -139,14 +149,19 @@ namespace algo {
         struct Card {
             Color color;
             int   number;
-            bool  open;
+            bool  is_front;
 
             static int serial;
 
             Card()
-                : color(itoColor(serial % 2)), number(serial / 2), open(false)
+                : color(itoColor(serial % 2)), number(serial / 2), is_front(false)
             {
                 serial++;
+            }
+
+            Card(Color color_, int number_, bool is_front_)
+                : color(color_), number(number_), is_front(is_front_)
+            {
             }
 
             bool operator<(const Card &rhs) const
@@ -154,86 +169,135 @@ namespace algo {
                 return (number == rhs.number) ? (color < rhs.color) : (number < rhs.number);
             }
 
-            friend std::ostream&operator<<(std::ostream &os, const Card &card);
-        };
+            bool operator==(const Card &rhs) const
+            {
+                return (color == rhs.color) && (number == rhs.number);
+            }
 
-        // 1ターンの履歴を表す構造体．
-        struct Record {
-            Player player;
-            int place;
-            Card guess;
-            bool correctness;
-            bool cont_turn;
+            friend std::ostream&operator<<(std::ostream &os, const Card &card);
         };
 
         int Card::serial = 0;
 
-        std::ostream&operator<<(std::ostream &os, const Card &card)
+        // 表→黒: [ 0]，白: ( 0)
+        // 裏→黒: [  ]，白: (  )
+        // 　　黒: * 0]，白: * 0)
+        void display_card(const Card &card, bool open=false, std::ostream &os=std::cout)
         {
             if (card.color == Color::Black) {
-                if (card.open) {
+                if (card.is_front) {
                     os << "[" << std::setw(2) << card.number << "]";
                 } else {
-                    os << "[  ]";
+                    if (open) {
+                        os << "*" << std::setw(2) << card.number << "]";
+                    } else {
+                        os << "[  ]";
+                    }
                 }
             } else {
-                if (card.open) {
+                if (card.is_front) {
                     os << "(" << std::setw(2) << card.number << ")";
                 } else {
-                    os << "(  )";
+                    if (open) {
+                        os << "*" << std::setw(2) << card.number << ")";
+                    } else {
+                        os << "(  )";
+                    }
                 }
             }
+        }
+
+        // 普通に出力する場合は透視しない．
+        std::ostream&operator<<(std::ostream &os, const Card &card)
+        {
+            display_card(card, false, os);
+
             return os;
         }
 
-        void see_through(std::ostream &os, const Card &card)
-        {
-            if (card.color == Color::Black) {
-                os << "[" << std::setw(2) << card.number << "]";
-            } else {
-                os << "(" << std::setw(2) << card.number << ")";
-            }
-        }
+        // 1ターンの履歴を表す構造体．
+        struct Guess {
+            Player player;
+            int    place;
+            Card   card;
+            bool   correctness;
+            bool   cont_turn;
+        };
 
         // 盤面の全情報を格納する構造体．
         struct Board {
-            State                              state; // 状態
-            static constexpr std::size_t cards_num = 24;
-            static std::array <Card, cards_num>                 deck; // 山札
-            size_t deck_pos;
-            static constexpr std::size_t start_hand_num = 5;
-            std::array <std::deque <Card>, 2> hands; // 手札
+            State                               state; // 状態
+            static constexpr std::size_t        cards_num = 24;
+            static std::array <Card, cards_num> deck;                 // 山札
+            // 配列の前が山札の上．
+            size_t                            deck_pos;
+            static constexpr std::size_t      start_hand_num = 5;
+            std::array <std::deque <Card>, 2> hands;   // 手札
+            std::deque <Guess>                history;  // 履歴
 
-            Board()
-                : state(State::turn_Alice), deck_pos(0)
-            {
-                deck         = util::Fisher_Yates_shuffle(deck);
-                for (auto hand : hands) {
-                    hand.clear();
-                    for (size_t i = 0; i < start_hand_num; i++) {
-                        hand.push_back(deck[deck_pos]);
-                        deck_pos++;
-                    }
-                    std::sort(hand.begin(), hand.end());
-                }
-            }
+            Board();
+            void init();
+            Card pop_deck() const;
+            bool guess(Player player, int place, Card card);
+            void take(Player player, Card card, bool is_front);
         };
 
-        std::array<Card, Board::cards_num> Board::deck = std::array<Card, Board::cards_num>();
+        std::array <Card, Board::cards_num> Board::deck = std::array <Card, Board::cards_num>();
+
+        void Board::init()
+        {
+            deck     = util::Fisher_Yates_shuffle(deck);
+            deck_pos = 0;
+            for (size_t i = 0; i < 2; i++) {
+                hands[i].clear();
+                for (size_t deal = 0; deal < start_hand_num; deal++) {
+                    hands[i].push_back(deck[deck_pos]);
+                    deck_pos++;
+                }
+                std::sort(hands[i].begin(), hands[i].end());
+            }
+            history.clear();
+            state = State::turn_Alice;
+        }
+
+        Board::Board()
+        {
+            init();
+        }
 
         // 手札を確認する関数．
-        void display(const Board &board, const Player player, bool open=false)
+        void display_hand(const Board &board, const Player player, bool open=false, std::ostream &os=std::cout)
         {
-            if (open) {
-                for (auto card : board.hands[numerize(player)]) {
-                    see_through(std::cout, card);
-                }
-            } else {
-                for (auto card : board.hands[numerize(player)]) {
-                    std::cout << card;
-                }
+            for (auto card : board.hands[Playertoi(player)]) {
+                display_card(card, open, os);
             }
-            std::cout << std::endl;
+            os << std::endl;
+        }
+
+        // 盤面を確認する関数．
+        void display_board(const Board &board, bool open=false, std::ostream &os=std::cout)
+        {
+            display_hand(board, Player::Alice, open, os);
+            display_hand(board, Player::Bob, open, os);
+        }
+
+        // 山札を確認する関数．
+        void display_deck(const Board &board, bool open=false, std::ostream &os=std::cout)
+        {
+            std::for_each(board.deck.begin(), board.deck.end(), [&](const Card &card) {
+                display_card(card, open, os);
+            });
+            os << std::endl;
+            const std::string card_space = "    ";
+            for (size_t i = 0; i < board.deck_pos; i++) {
+                os << card_space;
+            }
+            os << " top";
+            for (size_t i = 0; i < Board::cards_num - board.deck_pos - 2; i++) {
+                os << card_space;
+            }
+            os << " btm";
+            os << std::endl;
         }
 
         // 手札を正しく並べる関数．
@@ -245,15 +309,54 @@ namespace algo {
         }
 
         // 山札の一番上を見る関数．
-        Card pop_deck(const Board &board)
+        Card Board::pop_deck() const
         {
-            return board.deck[board.deck_pos];
+            return deck[deck_pos];
         }
 
-        // 手を進める関数．
-        void move(Board &board)
+        // 予想する関数．
+        // player"の"手札を予想する．
+        bool Board::guess(Player player, int place, Card card)
         {
+            return hands[Playertoi(player)][place] == card;
+        }
 
+        // カードを手札に加える関数．
+        // 表裏を指定する．
+        void Board::take(Player player, Card card, bool is_front)
+        {
+            auto pos = std::lower_bound(hands[Playertoi(player)].begin(), hands[Playertoi(player)].end(), card);
+            card.is_front = is_front;
+            hands[Playertoi(player)].insert(pos, card);
+        }
+    }
+
+    namespace game {
+        // リクエストを表す構造体．
+        struct Request {
+            system::Player player;
+        };
+
+        // 解答を表す構造体．
+        struct Answer {
+            system::Player player;
+        };
+
+        // ゲームを表すクラス．
+        class Game {
+        private:
+        public:
+            void set();
+            void take_turn();
+        };
+    }
+
+    namespace test {
+        void game()
+        {
+            system::Board board = system::Board();
+            system::display_board(board);
+            system::display_deck(board);
         }
     }
 }

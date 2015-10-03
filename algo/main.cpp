@@ -4,7 +4,7 @@ char *gets(char *str);
 
 int main(int argc, char const *argv[])
 {
-    util::test_Fisher_Yates_shuffle();
+    algo::test::game();
 
     return 0;
 }
