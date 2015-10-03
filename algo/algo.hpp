@@ -17,6 +17,26 @@
 #include "../lab/util.hpp"
 
 namespace util {
+    // デバッグ用出力コメント．
+    class Comment {
+    private:
+        static std::string header;
+        const std::string content;
+    public:
+        Comment(const std::string& content_)
+        : content(content_)
+        {}
+        friend std::ostream& operator<<(std::ostream& os, const Comment& comment);
+    };
+
+    std::string Comment::header = "?? ";
+
+    std::ostream& operator<<(std::ostream& os, const Comment& comment)
+    {
+        os << comment.header << comment.content << std::endl;
+        return os;
+    }
+
     // y/nをtrue/falseに変換する関数．
     // yまたはY以外はfalse．
     bool ctob(const char c)
@@ -225,10 +245,10 @@ namespace algo {
             }
         }
 
-        // 普通に出力する場合は透視しない．
+        // 普通に出力する場合は透視する．
         std::ostream&operator<<(std::ostream &os, const Card &card)
         {
-            display_card(card, false, os);
+            display_card(card, true, os);
 
             return os;
         }
@@ -385,8 +405,8 @@ namespace algo {
         // 基底クラス．
         class Character {
         public:
-            std::string      name;
-            system::Playside playside;
+            const std::string      name;
+            const system::Playside playside;
         public:
             Character(const std::string &name_, system::Playside playside_)
                 : name(name_), playside(playside_)
@@ -421,16 +441,19 @@ namespace algo {
             display_hand(board, playside, true, os);
             os << "Drew: ";
             os << board.pop_deck();
+            os << std::endl;
 
             // 入力
             size_t place;
             int    number;
 
-            os << "Guess a number of any face-down card." << std::endl;
+            os << name << "> " << "Guess a number of any face-down card." << std::endl;
             os << "place(0-" << board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
             is >> place;
             os << "number(0-11): ";
             is >> number;
+
+            os << std::endl;
 
             return system::Guess(place, number);
         }
@@ -441,13 +464,16 @@ namespace algo {
             os << "Great guess!" << std::endl;
             os << "Drew: ";
             os << board.pop_deck();
+            os << std::endl;
 
             // 入力
             char c;
 
-            os << "Guess more?" << std::endl;
+            os << name << "> " << "Guess more?" << std::endl;
             os << "y/n: ";
             is >> c;
+
+            os << std::endl;
 
             return util::ctob(c);
         }
@@ -579,7 +605,8 @@ namespace algo {
         {
             bool end_flag = false;
             do {
-                end_flag = take_turn(system::Playside::Alice) or take_turn(system::Playside::Bob);;
+                end_flag = take_turn(system::Playside::Alice);
+                end_flag = take_turn(system::Playside::Bob);
             } while(!end_flag);
         }
     }
