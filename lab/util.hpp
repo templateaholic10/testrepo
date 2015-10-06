@@ -18,6 +18,13 @@
 #include <cxxabi.h>
 
 namespace util {
+    // ・_HERE関数
+    // デバッグ用なのでアンダーバー．
+    #ifdef _HERE
+    #undef _HERE
+    #endif
+    #define _HERE { std::cout << __LINE__ << std::endl; }
+
     // ・_DISPLAY関数
     // デバッグ用なのでアンダーバー．
     #ifdef _DISPLAY
