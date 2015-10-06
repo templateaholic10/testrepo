@@ -1,6 +1,6 @@
 char *gets(char *str);
 
-#include "algo.hpp"
+#include "test.hpp"
 
 int main(int argc, char const *argv[])
 {
