@@ -2,7 +2,7 @@
 
 namespace algo {
     namespace game {
-        // 人クラス．
+        // 自機．
         class Person : public Character {
         private:
             std::istream &is;
@@ -111,13 +111,13 @@ namespace algo {
             // 入力
             char c;
 
-            os << "Guess more?" << std::endl;
-            os << "y/n: ";
+            os << "Attack or stay?" << std::endl;
+            os << "a/s: ";
             is >> c;
 
             os << std::endl;
 
-            return util::ctob(c);
+            return c == 'a';
         }
     }
 }

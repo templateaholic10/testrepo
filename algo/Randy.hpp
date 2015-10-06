@@ -2,7 +2,8 @@
 
 namespace algo {
     namespace game {
-        // ランダムクラス．
+        // あてずっぽうに予想するプレイヤー．
+        // 名前の由来はrandom．
         class Randy : public Character {
         private:
         public:
