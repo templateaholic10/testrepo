@@ -17,6 +17,8 @@ namespace algo {
 
         system::Guess Randy::guess(const Game &game) const
         {
+            auto &opp_hand = game.board.hands[system::Playsidetoi(system::invert(playside))];
+
             // 入力
             size_t place;
             int    number;
@@ -24,10 +26,10 @@ namespace algo {
             std::random_device rnd;
             std::mt19937       mt(rnd());
 
-            std::uniform_int_distribution <> rnd_place(0, game.board.hands[system::Playsidetoi(system::invert(playside))].size() - 1);
+            std::uniform_int_distribution <> rnd_place(0, opp_hand.size() - 1);
             while (true) {
                 place = rnd_place(mt);
-                if (!game.board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
+                if (!opp_hand[place].is_front) {
                     break;
                 }
             }

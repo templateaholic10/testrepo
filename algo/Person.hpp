@@ -36,22 +36,24 @@ namespace algo {
             os << std::endl;
 
             // 入力
-            const char command_history = 'h';
-            std::string word;
-            int place;
-            int    number;
+            auto &opp_hand = game.board.hands[system::Playsidetoi(system::invert(playside))];
 
-            auto show_history = [&](){
-                os << Record::Header() << std::endl;
-                for (auto record : game.history) {
-                    os << record << std::endl;
-                }
-            };
+            const char  command_history = 'h';
+            std::string word;
+            int         place;
+            int         number;
+
+            auto show_history = [&]() {
+                                    os << Record::Header() << std::endl;
+                                    for (auto record : game.history) {
+                                        os << record << std::endl;
+                                    }
+                                };
 
             os << "Guess a number of any face-down card." << std::endl;
             os << "To check history, input \"h\"." << std::endl;
 
-            os << "place(0-" << game.board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
+            os << "place(0-" << opp_hand.size() << "): ";
             while (true) {
                 is >> word;
                 if (word[0] == command_history) {
@@ -59,8 +61,8 @@ namespace algo {
                 } else {
                     try {
                         place = std::stoi(word);
-                        if (place >= 0 && place < game.board.hands[system::Playsidetoi(system::invert(playside))].size()) {
-                            if (game.board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
+                        if (place >= 0 && place < opp_hand.size()) {
+                            if (opp_hand[place].is_front) {
                                 os << "Already open." << std::endl;
                             } else {
                                 break;
@@ -68,9 +70,10 @@ namespace algo {
                         }
                     } catch (...) {
                     }
-                    os << "Input 0-" << game.board.hands[system::Playsidetoi(system::invert(playside))].size() << " number." << std::endl;
+
+                    os << "Input 0-" << opp_hand.size() << " number." << std::endl;
                 }
-                os << "place(0-" << game.board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
+                os << "place(0-" << opp_hand.size() << "): ";
             }
 
             os << "number(0-11): ";
@@ -86,6 +89,7 @@ namespace algo {
                         }
                     } catch (...) {
                     }
+
                     os << "Input 0-11 number." << std::endl;
                 }
                 os << "number(0-11): ";

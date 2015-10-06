@@ -484,7 +484,7 @@ namespace algo {
 
         std::ostream& operator<<(std::ostream& os, const Record &record)
         {
-            os << record.guess << " " << (record.correctness ? "  true" : " false") << (record.one_more ? "    true" : "   false");
+            os << record.guess << " " << (record.correctness ? "  true" : " false") << " " << (record.one_more ? "    true" : "   false");
             return os;
         }
 
