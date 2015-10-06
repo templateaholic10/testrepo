@@ -11,11 +11,11 @@ namespace algo {
             {
             }
 
-            system::Guess guess(const system::Board &board) const;
-            bool          one_more(const system::Board &board) const;
+            system::Guess guess(const Game &game) const;
+            bool          one_more(const Game &game) const;
         };
 
-        system::Guess Randy::guess(const system::Board &board) const
+        system::Guess Randy::guess(const Game &game) const
         {
             // 入力
             size_t place;
@@ -24,10 +24,10 @@ namespace algo {
             std::random_device rnd;
             std::mt19937       mt(rnd());
 
-            std::uniform_int_distribution <> rnd_place(0, board.hands[system::Playsidetoi(system::invert(playside))].size() - 1);
+            std::uniform_int_distribution <> rnd_place(0, game.board.hands[system::Playsidetoi(system::invert(playside))].size() - 1);
             while (true) {
                 place = rnd_place(mt);
-                if (!board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
+                if (!game.board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
                     break;
                 }
             }
@@ -38,7 +38,7 @@ namespace algo {
             return system::Guess(place, number);
         }
 
-        bool Randy::one_more(const system::Board &board) const
+        bool Randy::one_more(const Game &game) const
         {
             return true;
         }

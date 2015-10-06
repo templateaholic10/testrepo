@@ -13,11 +13,11 @@ namespace algo {
             {
             }
 
-            system::Guess guess(const system::Board &board) const;
-            bool          one_more(const system::Board &board) const;
+            system::Guess guess(const Game &game) const;
+            bool          one_more(const Game &game) const;
         };
 
-        system::Guess Person::guess(const system::Board &board) const
+        system::Guess Person::guess(const Game &game) const
         {
             os << name << ">" << std::endl;
 
@@ -28,43 +28,80 @@ namespace algo {
             }
             os << std::endl;
             os << "Opp: ";
-            display_hand(board, system::invert(playside), false, os);
+            display_hand(game.board, system::invert(playside), false, os);
             os << "You: ";
-            display_hand(board, playside, true, os);
+            display_hand(game.board, playside, true, os);
             os << "Drew: ";
-            os << board.pop_deck();
+            os << game.board.pop_deck();
             os << std::endl;
 
             // 入力
-            size_t place;
+            const char command_history = 'h';
+            std::string word;
+            int place;
             int    number;
+
+            auto show_history = [&](){
+                os << Record::Header() << std::endl;
+                for (auto record : game.history) {
+                    os << record << std::endl;
+                }
+            };
 
             os << "Guess a number of any face-down card." << std::endl;
             os << "To check history, input \"h\"." << std::endl;
-            os << "place(0-" << board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
+
+            os << "place(0-" << game.board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
             while (true) {
-                is >> place;
-                if (board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
-                    os << "Already open." << std::endl;
-                    os << "place(0-" << board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
+                is >> word;
+                if (word[0] == command_history) {
+                    show_history();
                 } else {
-                    break;
+                    try {
+                        place = std::stoi(word);
+                        if (place >= 0 && place < game.board.hands[system::Playsidetoi(system::invert(playside))].size()) {
+                            if (game.board.hands[system::Playsidetoi(system::invert(playside))][place].is_front) {
+                                os << "Already open." << std::endl;
+                            } else {
+                                break;
+                            }
+                        }
+                    } catch (...) {
+                    }
+                    os << "Input 0-" << game.board.hands[system::Playsidetoi(system::invert(playside))].size() << " number." << std::endl;
                 }
+                os << "place(0-" << game.board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
             }
+
             os << "number(0-11): ";
-            is >> number;
+            while (true) {
+                is >> word;
+                if (word[0] == command_history) {
+                    show_history();
+                } else {
+                    try {
+                        number = std::stoi(word);
+                        if (number >= 0 && number < 12) {
+                            break;
+                        }
+                    } catch (...) {
+                    }
+                    os << "Input 0-11 number." << std::endl;
+                }
+                os << "number(0-11): ";
+            }
 
             os << std::endl;
 
             return system::Guess(place, number);
         }
 
-        bool Person::one_more(const system::Board &board) const
+        bool Person::one_more(const Game &game) const
         {
             // 報告
             os << "Great guess!" << std::endl;
             os << "Drew: ";
-            os << board.pop_deck();
+            os << game.board.pop_deck();
             os << std::endl;
 
             // 入力

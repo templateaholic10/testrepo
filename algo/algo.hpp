@@ -436,6 +436,9 @@ namespace algo {
     }
 
     namespace game {
+        // プロプライエタリ宣言．
+        class Game;
+
         // 基底クラス．
         class Character {
         public:
@@ -447,8 +450,8 @@ namespace algo {
             {
             }
 
-            virtual system::Guess guess(const system::Board &board) const    = 0;
-            virtual bool          one_more(const system::Board &board) const = 0;
+            virtual system::Guess guess(const Game &game) const    = 0;
+            virtual bool          one_more(const Game &game) const = 0;
         };
 
         // 履歴を表す構造体．
@@ -481,13 +484,13 @@ namespace algo {
 
         std::ostream& operator<<(std::ostream& os, const Record &record)
         {
-            os << record.guess << " " << (record.correctness ? "  true  " : "  false ") << (record.one_more ? "  true  " : "  false ");
+            os << record.guess << " " << (record.correctness ? "  true" : " false") << (record.one_more ? "    true" : "   false");
             return os;
         }
 
         // ゲームを表すクラス．
         class Game {
-        private:
+        public:
             system::Board                               board;
             std::array <std::unique_ptr <Character>, 2> characters;
             std::deque <Record>                         history;
@@ -519,7 +522,7 @@ namespace algo {
             bool full_open = false;
             do {
                 // 予想．
-                auto guess = character(playside)->guess(board);
+                auto guess = character(playside)->guess(*this);
 
                 // 判定．
                 bool result = board.check(system::invert(playside), guess);
@@ -537,7 +540,7 @@ namespace algo {
                         cont = false;
                     } else {
                         // アタックかディフェンスか．
-                        one_more = character(playside)->one_more(board);
+                        one_more = character(playside)->one_more(*this);
 
                         if (!one_more) {
                             // ディフェンスの場合．
