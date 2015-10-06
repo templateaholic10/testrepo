@@ -260,11 +260,33 @@ namespace algo {
         struct Guess {
             size_t place;
             int    number;
+
+            struct Header {
+                static const std::string __str__;
+
+                friend std::ostream& operator<<(std::ostream& os, const Guess::Header &header);
+            };
+
             Guess(size_t place_, int number_)
                 : place(place_), number(number_)
             {
             }
+            friend std::ostream& operator<<(std::ostream& os, const Guess &guess);
         };
+
+        const std::string Guess::Header::__str__ = "place number";
+
+        std::ostream& operator<<(std::ostream& os, const Guess::Header &header)
+        {
+            os << Guess::Header::__str__;
+            return os;
+        }
+
+        std::ostream& operator<<(std::ostream& os, const Guess &guess)
+        {
+            os << std::setw(5) << guess.place << " " << std::setw(6) << guess.number;
+            return os;
+        }
 
         // 盤面の全情報を格納する構造体．
         struct Board {
@@ -273,10 +295,12 @@ namespace algo {
             static std::array <Card, cards_num> deck;                 // 山札
             // 配列の前が山札の上．
             size_t                            deck_pos;
-            static constexpr std::size_t      start_hand_num = 5;
+            static constexpr std::size_t default_start_hand_num = 4;
+            const std::size_t      start_hand_num;
             std::array <std::deque <Card>, 2> hands;   // 手札
 
             Board();
+            Board(std::size_t start_hand_num_);
             void               init();
 
             std::deque <Card> &hand(Playside playside);
@@ -305,7 +329,14 @@ namespace algo {
             state = State::turn_Alice;
         }
 
+        Board::Board(std::size_t start_hand_num_)
+        : start_hand_num(start_hand_num_)
+        {
+            init();
+        }
+
         Board::Board()
+        : start_hand_num(default_start_hand_num)
         {
             init();
         }
@@ -458,6 +489,7 @@ namespace algo {
             int    number;
 
             os << "Guess a number of any face-down card." << std::endl;
+            os << "To check history, input \"h\"." << std::endl;
             os << "place(0-" << board.hands[system::Playsidetoi(system::invert(playside))].size() << "): ";
             while (true) {
                 is >> place;
@@ -543,11 +575,33 @@ namespace algo {
             bool          correctness;
             bool          one_more;
 
+            struct Header {
+                static const std::string __str__;
+
+                friend std::ostream& operator<<(std::ostream& os, const Record::Header& header);
+            };
+
             Record(system::Guess guess_, bool correctness_, bool one_more_)
                 : guess(guess_), correctness(correctness_), one_more(one_more_)
             {
             }
+
+            friend std::ostream& operator<<(std::ostream& os, const Record &record);
         };
+
+        const std::string Record::Header::__str__ = "result one_more";
+
+        std::ostream& operator<<(std::ostream& os, const Record::Header& header)
+        {
+            os << system::Guess::Header() << " " << Record::Header::__str__;
+            return os;
+        }
+
+        std::ostream& operator<<(std::ostream& os, const Record &record)
+        {
+            os << record.guess << " " << (record.correctness ? "  true  " : "  false ") << (record.one_more ? "  true  " : "  false ");
+            return os;
+        }
 
         // ゲームを表すクラス．
         class Game {
