@@ -1,9 +1,24 @@
 ﻿#include <iostream>
 #include <random>
 #include <cassert>
+#include <cmath>
 #include "lab/util_math.hpp"
 
 namespace prime_test {
+    bool primitive(int p)
+    {
+        if (p <= 1) {
+            return false;
+        }
+        size_t n = std::floor(std::sqrt(p));
+        for (size_t i = 2; i <= n; i++) {
+            if (p % i == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     int gcd(int n, int m)
     {
         assert(n > 0 && m > 0);
@@ -77,5 +92,23 @@ namespace prime_test {
             }
         }
         return counter;
+    }
+
+    double fermat_test_p(int p)
+    {
+        if (p <= 1) {
+            return 0.;
+        } else if (p == 2) {
+            return 1.;
+        }
+
+        int counter = 0;
+        for (size_t a = 2; a < p; a++) {
+            if (gcd(p, a) == 1 && util::power(a, p-1) % p == 1) {
+                // 素数判定された回数を数える．
+                counter++;
+            }
+        }
+        return static_cast<double>(counter) / (p-2);
     }
 }
