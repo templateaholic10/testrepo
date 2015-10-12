@@ -5,17 +5,17 @@ import random
 
 def gcd(n, m):
     u"""
-    $B%f!<%/%j%C%I$N8_=|K!$K$h$C$F:GBg8xLs?t$r5a$a$k4X?t!%(B
+    Eucridの互除法によって最大公約数を求める関数．
 
-    : $B%Q%i%a!<%?(B
-    n: $B<+A3?t!%(B
-    m: $B<+A3?t!%(B
+    : パラメータ
+    n: 自然数．
+    m: 自然数．
 
-    : $BLa$jCM(B
-    $B:GBg8xLs?t!%(B
+    : 戻り値
+    最大公約数．
     """
     assert(n > 0 and m > 0)
-    # n >= m$B$H$9$k!%(B
+    # n >= mとする．
     if n < m:
         m, n = n, m
 
@@ -26,27 +26,42 @@ def gcd(n, m):
 
     return n
 
-def fermat_test(p):
+def unit_fermat_test(p):
     u"""
-    $BAG?t$+$I$&$+$r(BFermat test$B$K$h$C$FH=Dj$9$k4X?t!%(BPF$B!J56M[@-!K$H$J$k3NN($,(B2^(-128)$BDxEYB8:_$9$k!%(B
+    Fermat testを1回行う関数．
 
-    : $B%Q%i%a!<%?(B
-    p: $B<+A3?t!%(B
+    : パラメータ
+    p: 自然数．
 
-    : $BLa$jCM(B
-    $BAG?t$G$"$l$P(BTrue$B!$$=$&$G$J$1$l$P(BFalse$B!%(B
+    : 戻り値
+    素数ならTrue，そうでなければFalse．
     """
     if p <= 1:
         return False
     elif p == 2:
         return True
 
+    a = random.randint(2, p-1)
+    if gcd(p, a) != 1:
+        return False
+    elif a**(p-1) % p != 1:
+        return False
+    else:
+        return True
+
+def fermat_test(p):
+    u"""
+    Fermat testを行う関数．10回テストすることによって偽陽性（PF）の確率を10^(-128)まで小さくできる．
+
+    : パラメータ
+    p: 自然数．
+
+    : 戻り値
+    素数ならTrue，そうでなければFalse．
+    """
     max_rep = 10
     for i in xrange(max_rep):
-        a = random.randint(2, p-1)
-        if gcd(a, p) != 1:
-            return False
-        if a^(p-1) % p != 1:
+        if not unit_fermat_test(p):
             return False
     else:
         return True
@@ -56,9 +71,8 @@ def main():
     m = random.randint(1, 100)
     print('gcd({n}, {m}) = {gcd}'.format(n=n, m=m, gcd=gcd(n, m)))
 
-    p = random.randint(1, 10000)
+    p = 3
     print('fermat_test({p}) = {tf}'.format(p=p, tf=fermat_test(p)))
 
 if __name__ == '__main__':
     main()
-

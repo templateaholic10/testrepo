@@ -16,3 +16,6 @@ bin/
 *.out
 *.app
 *.deb
+
+# intermediates
+*.pyc
