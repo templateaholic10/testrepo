@@ -32,7 +32,7 @@ namespace prime_test {
         std::uniform_int_distribution <> randint(2, p - 1);
         int                              a = randint(mt);
 
-        return !(gcd(p, a) != 1) && !(util::power(a, p-1) % p != 1);
+        return gcd(p, a) == 1 && util::power(a, p-1) % p == 1;
     }
 
     bool fermat_test(int p)
@@ -71,7 +71,7 @@ namespace prime_test {
         int counter = 0;
         for (size_t i = 0; i < n; i++) {
             int a = randint(mt);
-            if ((gcd(p, a) == 1) && (util::power(a, p-1) % p == 1)) {
+            if (gcd(p, a) == 1 && util::power(a, p-1) % p == 1) {
                 // 素数判定された回数を数える．
                 counter++;
             }
