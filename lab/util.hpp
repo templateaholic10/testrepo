@@ -23,7 +23,7 @@ namespace util {
     #ifdef _HERE
     #undef _HERE
     #endif
-    #define _HERE { std::cout << __LINE__ << std::endl; }
+#define _HERE { std::cout << __LINE__ << std::endl; }
 
     // ・_DISPLAY関数
     // デバッグ用なのでアンダーバー．
@@ -42,6 +42,13 @@ namespace util {
         }                             \
         std::cout << std::endl;       \
     }
+
+    // ・_TYPE関数
+    // デバッグ用なのでアンダーバー．
+    #ifdef _TYPE
+    #undef _TYPE
+    #endif
+#define _TYPE(var) { std::cout << "$" #var ": " << typename_of <decltype(var)>() << std::endl; }
 
     // ・repeat関数
     // 文字列strをdelimで区切ってn回osに出力する．
@@ -174,13 +181,13 @@ namespace util {
             begin++;
         }
         while (begin < end) {
-            if (str[end-1] != ' ' && str[end-1] != '\t' && str[end-1] != '\n' && str[end-1] != '\r' && str[end-1] != '\v') {
+            if (str[end - 1] != ' ' && str[end - 1] != '\t' && str[end - 1] != '\n' && str[end - 1] != '\r' && str[end - 1] != '\v') {
                 break;
             }
             end--;
         }
 
-        return str.substr(begin, end-begin);
+        return str.substr(begin, end - begin);
     }
 
     // ・配列つきenum

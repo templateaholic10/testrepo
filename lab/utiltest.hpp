@@ -16,20 +16,19 @@ namespace util {
 
     void PF_test()
     {
-        constexpr size_t p = 17;
-        using F = PF<p>;
-        constexpr auto pf0 = F(0);
-        _DISPLAY(pf0)
-        constexpr auto pf1 = F(1);
-        _DISPLAY(pf1)
-        constexpr auto pf2 = F(2);
-        _DISPLAY(pf2)
-        constexpr auto pf3 = F(3);
-        _DISPLAY(pf3)
-        constexpr auto pf16 = F(16);
-        _DISPLAY(pf16)
-        constexpr auto po = power(pf16, 16);
-        _DISPLAY(po)
+        using Z_5Z = PF<5>;
+
+        constexpr auto _0 = Z_5Z(0);
+        constexpr auto _1 = Z_5Z(1);
+        constexpr auto _2 = Z_5Z(2);
+        constexpr auto _3 = Z_5Z(3);
+        constexpr auto _4 = Z_5Z(4);
+
+        static_assert(_2 + _3 == _0);
+        static_assert(_2 - _3 == _4);
+        static_assert(_2 * _3 == _1);
+        static_assert(_2 / _3 == _4);
+        static_assert(power(_2, 1000) == _1);
     }
 
     template <class T, std::size_t Size>

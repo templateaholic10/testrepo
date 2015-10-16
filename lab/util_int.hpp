@@ -34,7 +34,6 @@ namespace util {
                 return false;
             }
         }
-
         return true;
     }
 
@@ -63,6 +62,22 @@ namespace util {
         }
 
         friend std::ostream &operator<<<>(std::ostream &os, const PF<p>& pf);
+
+        // 同値関係
+        constexpr bool operator==(const PF<p> &rhs) const
+        {
+            return n == rhs.n;
+        }
+
+        // 半順序関係
+        constexpr bool operator<(const PF<p> &rhs) const
+        {
+            return n < rhs.n;
+        }
+        constexpr bool operator>(const PF<p> &rhs) const
+        {
+            return n > rhs.n;
+        }
 
         // 加法
         constexpr PF <p> operator+(const PF <p> &rhs) const

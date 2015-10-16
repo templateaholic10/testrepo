@@ -40,7 +40,7 @@ namespace prime_test {
         std::cout << "p = " << p << std::endl;
         std::cout << "in fact: " << (primitive(p) ? "prime" : "not prime") << std::endl;
         std::cout << "fermat_test: " << (fermat_test(p) ? "prime" : "not prime") << std::endl;
-        std::cout << "P(p is prime) with fermat_test" << fermat_test_p(p) << std::endl;
+        std::cout << "P(p is prime) with fermat_test: " << fermat_test_p(p) << std::endl;
         std::cout << util::Repeat("-", 20) << std::endl;
     }
 }

@@ -104,6 +104,9 @@ namespace prime_test {
 
         int counter = 0;
         for (size_t a = 2; a < p; a++) {
+            std::cout << "a: " << a << std::endl;
+            std::cout << "gcd: " << gcd(p, a) << std::endl;
+            std::cout << "mod p: " << util::power(a,p-1) % p << std::endl;
             if (gcd(p, a) == 1 && util::power(a, p-1) % p == 1) {
                 // 素数判定された回数を数える．
                 counter++;
