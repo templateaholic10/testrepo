@@ -2,9 +2,24 @@
 #define UTILTEST
 
 #include "util.hpp"
+#include "util_int.hpp"
 #include "util_array.hpp"
 
 namespace util {
+    void prime_test()
+    {
+        constexpr int p = 8421070;
+        constexpr bool tf = is_prime(p);
+        std::cout << "p: " << p << std::endl;
+        std::cout << "is_prime: " << (tf ? "true" : "false") << std::endl;
+    }
+
+    void PF_test()
+    {
+        constexpr int quot = mod(-2, 5);
+        std::cout << "mod(-2, 5) = " << quot << std::endl;
+    }
+
     template <class T, std::size_t Size>
     void disp_array(const std::array <T, Size> &A)
     {

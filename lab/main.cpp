@@ -39,7 +39,9 @@ int main(int argc, char const *argv[])
     // // convert_arrayのテスト
     // // testconvert_array();
 
-    tree::typetree::test_typetree();
+    // tree::typetree::test_typetree();
+
+    util::PF_test();
 
     return 0;
 }

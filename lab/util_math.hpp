@@ -38,8 +38,8 @@ namespace util {
         return lgn;
     }
 
-    // ・ifloor関数
-    constexpr int ifloor(const double d)
+    // ・floor関数
+    constexpr int floor(const double d)
     {
         if (d > 0) {
             // 正の場合
@@ -50,8 +50,8 @@ namespace util {
         }
     }
 
-    // ・iceil関数
-    constexpr int iceil(const double d)
+    // ・ceil関数
+    constexpr int ceil(const double d)
     {
         if (d > 0) {
             // 正の場合
@@ -62,8 +62,8 @@ namespace util {
         }
     }
 
-    // ・iround関数
-    constexpr int iround(const double d)
+    // ・round関数
+    constexpr int round(const double d)
     {
         if (d > 0) {
             // 正の場合
@@ -72,6 +72,18 @@ namespace util {
             // 負の場合
             return static_cast <int>(d - 0.5);
         }
+    }
+
+    // ・sqrt関数
+    // Newton法で求める．
+    constexpr int sqrt(const double d)
+    {
+        // 初期値．
+        double x = d;
+        while (x*x - d > epsilon) {
+            x = (x*x + d) / x * 0.5;
+        }
+        return x;
     }
 
     // ・extract_digit関数
