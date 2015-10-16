@@ -4,10 +4,11 @@
 #include <cstddef>
 #include <cmath>
 #include <sprout/assert.hpp>
+#include <random>
 #include "util.hpp"
 #include "util_math.hpp"
 
-namespace util {
+namespace util_int {
     // ・mod関数
     // C++では整数除算を0に近い方向に丸めるため，剰余がずれる．
     // 例えば -2 % 5 = -2．
@@ -18,6 +19,32 @@ namespace util {
     constexpr T mod(const T n, const int m)
     {
         return n % m + (n < 0 ? m : 0);
+    }
+
+    // ・gcd関数
+    // 最大公約数を求める．
+    // SFINAEにより整数型に限定．
+    template <typename T, typename std::enable_if <std::is_integral <T>::value>::type * = nullptr>
+    constexpr T gcd(T n, T m)
+    {
+        SPROUT_ASSERT(n > 0 && m > 0, "n <= 0 or m <= 0.");
+        if (n < m) {
+            std::swap(n, m);
+        }
+        const size_t _m = m;
+        for (size_t i = 0; i < _m; i++) {
+            // mは必ず小さくなるため高々m回の反復で終了する．
+            int r = n % m;
+            n = m;
+            m = r;
+            if (m == 0) {
+                return n;
+            }
+        }
+        // 終了しなかった場合，エラー．
+        SPROUT_ASSERT(false, "not finished.");
+
+        return 0;
     }
 
     // ・is_prime関数
@@ -34,6 +61,7 @@ namespace util {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -43,11 +71,13 @@ namespace util {
     template <size_t p>
     class PF;
     template <size_t p>
-    std::ostream &operator<<(std::ostream &os, const PF<p>& pf);
+    std::ostream&operator<<(std::ostream &os, const PF <p> &pf);
+
     template <size_t p>
-    constexpr PF<p> inverse(const PF<p>& pf);
+    constexpr PF <p> inverse(const PF <p> &pf);
+
     template <size_t p>
-    constexpr PF <p> power(const PF<p>& base, int exponent);
+    constexpr PF <p> power(const PF <p> &base, int exponent);
 
     template <size_t p>
     class PF {
@@ -57,24 +87,25 @@ namespace util {
     public:
         template <typename T>
         constexpr PF(T n_)
-        : n(mod(n_, p))
+            : n(mod(n_, p))
         {
         }
 
-        friend std::ostream &operator<<<>(std::ostream &os, const PF<p>& pf);
+        friend std::ostream & operator<< <>(std::ostream & os, const PF <p> &pf);
 
         // 同値関係
-        constexpr bool operator==(const PF<p> &rhs) const
+        constexpr bool operator==(const PF <p> &rhs) const
         {
             return n == rhs.n;
         }
 
         // 半順序関係
-        constexpr bool operator<(const PF<p> &rhs) const
+        constexpr bool operator<(const PF <p> &rhs) const
         {
             return n < rhs.n;
         }
-        constexpr bool operator>(const PF<p> &rhs) const
+
+        constexpr bool operator>(const PF <p> &rhs) const
         {
             return n > rhs.n;
         }
@@ -86,7 +117,7 @@ namespace util {
         }
 
         // 加法的逆元
-        constexpr PF<p> operator-() const
+        constexpr PF <p> operator-() const
         {
             return PF(-n);
         }
@@ -104,7 +135,7 @@ namespace util {
         }
 
         // 乗法的逆元
-        friend constexpr PF<p> inverse<>(const PF<p>& pf);
+        friend constexpr PF <p> inverse <>(const PF <p> &pf);
 
         // 除法
         constexpr PF <p> operator/(const PF <p> &rhs) const
@@ -113,40 +144,100 @@ namespace util {
         }
 
         // べき乗
-        friend constexpr PF <p> power<>(const PF<p>& base, int exponent);
+        friend constexpr PF <p> power <>(const PF <p> &base, int exponent);
     };
 
     template <size_t p>
-    std::ostream& operator<<(std::ostream& os, const PF<p>& pf)
+    std::ostream&operator<<(std::ostream &os, const PF <p> &pf)
     {
         os << pf.n;
+
         return os;
     }
 
     template <size_t p>
-    constexpr PF<p> inverse(const PF<p>& pf)
+    constexpr PF <p> inverse(const PF <p> &pf)
     {
         SPROUT_ASSERT(pf.n != 0, "zero has no inverse.");
-        int unit = 1;
-        int upper = pf.n * (p-1);
+        int unit  = 1;
+        int upper = pf.n * (p - 1);
         for (; unit <= upper; unit += p) {
             if (unit % pf.n == 0) {
-                return PF<p>(unit / pf.n);
+                return PF <p>(unit / pf.n);
             }
         }
         SPROUT_ASSERT(false, "no inverse.");
-        return PF<p>(0);
+
+        return PF <p>(0);
     }
 
     template <size_t p>
-    constexpr PF<p> power(const PF<p>& base, int exponent)
+    constexpr PF <p> power(const PF <p> &base, int exponent)
     {
         // base.nは必ず0 <= n < pを満たす．
         int result = base.n;
         for (int i = 1; i < exponent; i++) {
             result = (result * base.n) % p;
         }
+
         return result;
+    }
+
+    // ・mod_power関数
+    // 剰余環におけるpower．
+    template <typename T, typename std::enable_if <std::is_integral <T>::value>::type * = nullptr>
+    constexpr T power(T base, int exponent, int mod)
+    {
+        // base.nは必ず0 <= n < pを満たす．
+        int result = base;
+        for (int i = 1; i < exponent; i++) {
+            result = (result * base) % mod;
+        }
+
+        return result;
+    }
+
+    // ・fermat_test関数
+    // Fermat testによって素数判定を行う．
+    bool fermat_test(int p, size_t n=10)
+    {
+        if (p <= 1) {
+            return false;
+        } else if (p == 2) {
+            return true;
+        }
+
+        std::random_device               rnd;
+        std::mt19937                     mt(rnd());
+        std::uniform_int_distribution <> randint(2, p - 1);
+        for (size_t i = 0; i < n; i++) {
+            const int a = randint(mt);
+            if (gcd(p, a) != 1 || power(a, p - 1, p) != 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // ・fermat_test_p関数
+    // Fermat testによって素数と判定される厳密確率を求める．
+    double fermat_test_p(int p)
+    {
+        if (p <= 1) {
+            return 0.;
+        } else if (p == 2) {
+            return 1.;
+        }
+
+        int counter = 0;
+        for (int a = 2; a < p; a++) {
+            if (gcd(p, a) == 1 && power(a, p - 1, p) == 1) {
+                // 素数判定された回数を数える．
+                counter++;
+            }
+        }
+        return static_cast <double>(counter) / (p - 2);
     }
 }
 

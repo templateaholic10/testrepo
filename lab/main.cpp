@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
 
     // tree::typetree::test_typetree();
 
-    util::PF_test();
+    util::fermat_test();
 
     return 0;
 }

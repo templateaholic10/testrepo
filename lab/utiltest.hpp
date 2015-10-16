@@ -9,14 +9,14 @@ namespace util {
     void prime_test()
     {
         constexpr int p = 8421070;
-        constexpr bool tf = is_prime(p);
+        constexpr bool tf = util_int::is_prime(p);
         std::cout << "p: " << p << std::endl;
         std::cout << "is_prime: " << (tf ? "true" : "false") << std::endl;
     }
 
     void PF_test()
     {
-        using Z_5Z = PF<5>;
+        using Z_5Z = util_int::PF<5>;
 
         constexpr auto _0 = Z_5Z(0);
         constexpr auto _1 = Z_5Z(1);
@@ -29,6 +29,11 @@ namespace util {
         static_assert(_2 * _3 == _1);
         static_assert(_2 / _3 == _4);
         static_assert(power(_2, 1000) == _1);
+    }
+
+    void fermat_test()
+    {
+        std::cout << util_int::fermat_test_p(17) << std::endl;
     }
 
     template <class T, std::size_t Size>
