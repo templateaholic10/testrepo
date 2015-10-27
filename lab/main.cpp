@@ -1,13 +1,7 @@
 ﻿char *gets(char *str);
 
 #include <random>
-// #include "functor.hpp"
-#include "utiltest.hpp"
-// #include "test_simple_svg.hpp"
-// #include "unionbitarray.hpp"
-#include "test_sprout.hpp"
-#include "test_tree.hpp"
-#include "dot_outer.hpp"
+#include "util.hpp"
 
 named_enum(RGB, R, G, B);
 
@@ -41,7 +35,7 @@ int main(int argc, char const *argv[])
 
     // tree::typetree::test_typetree();
 
-    util::fermat_test();
+    // util::fermat_test();
 
     return 0;
 }

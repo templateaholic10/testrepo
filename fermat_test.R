@@ -1,7 +1,8 @@
 prime_strict <- read.csv("fermat_work4.csv", header=FALSE)
 prime_prob <- read.csv("fermat_work3.csv", header=FALSE)
-prime_test <- cbind(prime_strict, prime_prob)
-colnames(prime_test) <- c("is_prime", "prime_prob")
+prime_test <- read.csv("fermat_work5.csv", header=FALSE)
+prime_test <- cbind(prime_strict, prime_prob, prime_test)
+colnames(prime_test) <- c("is_prime", "prime_prob", "test")
 prime_test$p <- 1:10000
 prime_test$is_prime <- factor(prime_test$is_prime)
 prime_test$kind <- ifelse(prime_test$prime_prob == 0., "not_prime", ifelse(prime_test$prime_prob == 1., "prime", "pseudoprime"))
@@ -18,3 +19,7 @@ plot(pseu.df)
 summary(pseu.df)
 tab <- table(prime_test$is_prime, prime_test$kind)
 tab
+test_result <- prime_test[c("p", "is_prime", "test")]
+test_result$test <- factor(test_result$test)
+tab2 <- table(test_result$is_prime, test_result$test)
+tab2
