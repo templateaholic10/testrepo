@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <array>
 #include <bitset>
+#include <sprout/assert.hpp>
 #include <sprout/array.hpp>
 #include <sprout/bitset.hpp>
 
@@ -94,11 +95,12 @@ namespace util {
     }
 
     /*! @brief コンパイル時平方根関数．Newton法による実装
-        @param d 実数
+        @param d 非負実数
         @return dの平方根
     */
     constexpr double sqrt(const double d)
     {
+        SPROUT_ASSERT(d >= 0, "negative number has no square root!");
         // 初期値．
         double x = d;
         while (x*x - d > epsilon) {
@@ -146,16 +148,16 @@ namespace util {
 
     /*! @brief 2次方程式の大きい根を求める関数．桁落ちが小さい表式で求める．実根を持たないときエラー
     */
-    constexpr double quad_root_real1(double a, double b, double c)
+    double quad_root_real1(double a, double b, double c)
     {
-        return (b>=0) ? (-c / (b + sqrt(b*b-a*c))) : ((-b + sqrt(b*b - a*c)) / a);
+        return (b>=0) ? ((-2.*c) / (b + sqrt(b*b-4.*a*c))) : ((-b + sqrt(b*b - 4.*a*c)) / (2.*a));
     }
 
     /*! @brief 2次方程式の小さい根を求める関数．桁落ちが小さい表式で求める．実根を持たないときエラー
     */
     constexpr double quad_root_real2(double a, double b, double c)
     {
-        return (b>=0) ? ((-b - sqrt(b*b - a*c)) / a) : (c / (-b + sqrt(b*b-a*c)));
+        return (b>=0) ? ((-b - sqrt(b*b - 4.*a*c)) / (2.*a)) : ((2.*c) / (-b + sqrt(b*b-4.*a*c)));
     }
 
     /*! @brief 整数列の，各要素の右からdigit桁目を並べた整数列を返す関数

@@ -415,9 +415,25 @@ namespace util {
     }
 
     // Tの型名を取得．
+    // 参照型を区別しない．
+    template <typename T>
+    char *typename_of(T x)
+    {
+        return demangle(typeid(T).name() );
+    }
+
+    // Tの型名を取得．
     // 参照型を区別するが，boost::type<>の中に表示されるので冗長．
     template <typename T>
     char *typename_of_detail()
+    {
+        return demangle(typeid(boost::type <T> ).name() );
+    }
+
+    // Tの型名を取得．
+    // 参照型を区別するが，boost::type<>の中に表示されるので冗長．
+    template <typename T>
+    char *typename_of_detail(T x)
     {
         return demangle(typeid(boost::type <T> ).name() );
     }
