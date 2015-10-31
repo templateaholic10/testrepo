@@ -13,7 +13,7 @@ def main():
         from_filename = os.path.join(from_dirname, utilfilename)
         trimed_name = utilfilename.split(".")[0]
         to_filename = os.path.join(to_dirname, trimed_name)
-        subprocess.call('sh -c "sudo mv {from_filename} {to_filename}"'.format(from_filename=from_filename, to_filename=to_filename), shell=True)
+        subprocess.call('sh -c "sudo cp {from_filename} {to_filename}"'.format(from_filename=from_filename, to_filename=to_filename), shell=True)
 
 if __name__ == "__main__":
     main()

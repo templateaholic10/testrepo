@@ -23,3 +23,13 @@ test_result <- prime_test[c("p", "is_prime", "test")]
 test_result$test <- factor(test_result$test)
 tab2 <- table(test_result$is_prime, test_result$test)
 tab2
+pseu.class <- cut(pseu.df$prime_prob, breaks=seq(0, 1, 0.001), right=FALSE, ordered_result=TRUE)
+pseu.tab <- table(pseu.class)
+pseu.len <- length(pseu.tab)
+cum <- numeric(length=pseu.len)
+pseu.sum <- 0
+for ( i in 1:pseu.len ) {
+  pseu.sum <- pseu.sum + pseu.tab[i]
+  cum[i] <- pseu.sum
+}
+plot(seq(0.001, 1, 0.001), cum, type="l", xlab="P(unit(p))", ylab="cumulative frequency")
