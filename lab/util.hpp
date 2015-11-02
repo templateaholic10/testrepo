@@ -48,7 +48,7 @@ namespace util {
     #ifdef _TYPE
     #undef _TYPE
     #endif
-#define _TYPE(var) { std::cout << "$" #var ": " << typename_of <decltype(var)>() << std::endl; }
+#define _TYPE(var) { std::cout << "$" #var ": " << util::typename_of <decltype(var)>() << std::endl; }
 
     /*! @brief 大きい方を返す関数
     */

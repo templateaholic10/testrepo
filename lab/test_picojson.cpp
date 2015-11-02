@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <util>
-#include "/home/mistpc/Downloads/picojson.h"
+#include <picojson>
 
 int main()
 {
