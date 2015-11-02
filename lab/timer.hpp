@@ -1,8 +1,11 @@
-/*! @file
+﻿/*! @file
     @brief タイマークラス
     @auther yanteyon10
     @date 11/2
 */
+
+#ifndef TIMER
+#define TIMER
 
 #include <chrono>
 
@@ -20,13 +23,18 @@ public:
     {
         restart();
     }
+
     void restart()
     {
         start = std::chrono::system_clock::now();
     }
+
     int elapsed()
     {
         std::chrono::system_clock::time_point end = std::chrono::system_clock::now();
-        return std::chrono::duration_cast<Unit>(end - start).count();
+
+        return std::chrono::duration_cast <Unit>(end - start).count();
     }
 };
+
+#endif
