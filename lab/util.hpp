@@ -30,14 +30,14 @@ namespace util {
     #ifdef _DISPLAY
     #undef _DISPLAY
     #endif
-#define _DISPLAY(var) { std::cout << "$" #var ": " << var << std::endl; }
+#define _DISPLAY(var) { std::cout << "$" #var ": " << (var) << std::endl; }
     #ifdef _DISPLAY_SEQ
     #undef _DISPLAY_SEQ
     #endif
 #define _DISPLAY_SEQ(seq)             \
     {                                 \
         std::cout << "$" #seq ":";    \
-        for (auto elem : seq) {       \
+        for (auto elem : (seq)) {       \
             std::cout << " " << elem; \
         }                             \
         std::cout << std::endl;       \

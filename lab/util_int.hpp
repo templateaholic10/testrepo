@@ -5,8 +5,8 @@
 #include <cmath>
 #include <sprout/assert.hpp>
 #include <random>
-#include "util.hpp"
-#include "util_math.hpp"
+#include <util>
+#include <util_math>
 
 namespace util_int {
     // ・mod関数
@@ -21,24 +21,28 @@ namespace util_int {
         return n % m + (n < 0 ? m : 0);
     }
 
-    // ・gcd関数
-    // 最大公約数を求める．
-    // SFINAEにより整数型に限定．
+
+    /*! @brief ユークリッドの互除法によって2数の絶対値の最大公約数を求める関数．少なくとも一方が0のとき1を返す
+    */
     template <typename T, typename std::enable_if <std::is_integral <T>::value>::type * = nullptr>
-    constexpr T gcd(T n, T m)
+    constexpr T gcd(const T& n, const T& m)
     {
-        SPROUT_ASSERT(n > 0 && m > 0, "n <= 0 or m <= 0.");
-        if (n < m) {
-            std::swap(n, m);
+        if (n == 0 || m == 0) {
+            return 1;
         }
-        const size_t _m = m;
-        for (size_t i = 0; i < _m; i++) {
+        T _n = std::abs(n);
+        T _m = std::abs(m);
+        if (_n < _m) {
+            std::swap(_n, _m);
+        }
+        const size_t max_rep = _m;
+        for (size_t i = 0; i < max_rep; i++) {
             // mは必ず小さくなるため高々m回の反復で終了する．
-            int r = n % m;
-            n = m;
-            m = r;
-            if (m == 0) {
-                return n;
+            int r = _n % _m;
+            _n = _m;
+            _m = r;
+            if (_m == 0) {
+                return _n;
             }
         }
         // 終了しなかった場合，エラー．

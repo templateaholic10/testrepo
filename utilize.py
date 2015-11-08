@@ -9,7 +9,7 @@ def main():
     lab_filenames = subprocess.check_output(["ls", from_dirname]).split()[:-1]
     to_dirname = "/usr/local/include"
 
-    util_filenames = [filename for filename in lab_filenames if filename[:4] == "util"] + ["timer.hpp"]
+    util_filenames = [filename for filename in lab_filenames if filename[:4] == "util"] + ["timer.hpp", "os.hpp"]
     for util_filename in util_filenames:
         from_filename = os.path.join(from_dirname, util_filename)
         trimed_name = util_filename.split(".")[0]
