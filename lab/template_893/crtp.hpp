@@ -57,10 +57,18 @@ namespace crtp {
     struct subtractable {
         /*! @brief 基底クラスでありながら派生クラスのメンバにアクセスできる
         */
+        T&operator-()
+        {
+            T *pointer = static_cast <T *>(this);
+            pointer->opposite();
+
+            return *pointer;
+        }
+
         T&operator-=(const T &rhs)
         {
             T *pointer = static_cast <T *>(this);
-            pointer->operator+=(-rhs);
+            pointer->operator+=(rhs.opposite());
 
             return *pointer;
         }
@@ -68,7 +76,7 @@ namespace crtp {
         T operator-(const T &rhs) const
         {
             T retval = static_cast <T const&>(*this);
-            retval.operator-=(rhs);
+            retval -= rhs;
 
             return retval;
         }
@@ -177,11 +185,16 @@ namespace crtp {
             return *this;
         }
 
-        Rational&operator-()
+        Rational&opposite()
         {
             numerator = -numerator;
 
             return *this;
+        }
+
+        Rational opposite() const
+        {
+            return Rational(-numerator, denominator);
         }
 
         Rational&operator*=(const Rational &rhs)
