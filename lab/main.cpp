@@ -1,20 +1,18 @@
-﻿char *gets(char *str);
-
-#include <random>
-#include "util.hpp"
-#include "util_rand.hpp"
-#include "util_complex.hpp"
-
-named_enum(RGB, R, G, B);
+#include <iostream>
+#include <complex>
+#include <Eigen/Core>
+#include <util>
+#define COMPLEX_DEFAULT
+#define EIGEN_MATRIX_DEFAULT
+#include "default_value.hpp"
 
 int main(int argc, char const *argv[])
 {
-    static_assert(std::is_same<util::Uniform<int>::result_type, int>::value, "wrong specialization");
-    constexpr size_t max_rep = 10;
-    util::Uniform<std::complex<double>> uniform;
-    for (size_t i = 0; i < max_rep; i++) {
-        auto hoge = uniform();
-        std::cout << "(" << hoge.real() << "," << hoge.imag() << ")" << std::endl;
-    }
+    _DISPLAY(util::default_value<int>())
+    _DISPLAY(util::default_value<double>())
+    _DISPLAY(util::default_value<char>())
+    _DISPLAY(util::default_value<float>())
+    _DISPLAY(util::default_value<std::complex<double>>())
+    _DISPLAY((util::default_value<Eigen::Matrix<int, 5, 1>>()))
     return 0;
 }
