@@ -11,7 +11,7 @@ def main():
 
     # ファイルコピー
     lab_filenames = subprocess.check_output(["ls", from_dirname]).split()[:-1]
-    util_filenames = [filename for filename in lab_filenames if filename[:4] == "util"] + ["timer.hpp", "os.hpp", "default_value.hpp"]
+    util_filenames = [filename for filename in lab_filenames if filename[:4] == "util"] + ["timer.hpp", "os.hpp", "zero_one.hpp"]
     for util_filename in util_filenames:
         from_filename = os.path.join(from_dirname, util_filename)
         trimed_name = util_filename.split(".")[0]
