@@ -1,36 +1,27 @@
 #include <iostream>
 #include <fstream>
 #include <util>
-#include "adjacency_matrix.hpp"
+#include "rank_distribution.hpp"
 
 int main()
 {
     std::cout << util::Repeat("-", 20) << std::endl;
-    std::cout << "ADJACENCY_MATRIX" << std::endl;
+    std::cout << "AKARI..." << std::endl;
 
-    constexpr size_t n = 4;
+    constexpr int n = 4;
+    // auto result = graph::rank_distribution<n>();
+    // _DISPLAY_SEQ(result)
     graph::Adjacency_matrix<n> M;
-
     const std::string finname = "sample.in";
     std::ifstream fin(finname);
-    if (fin.fail()) {
-        return 1;
-    }
     fin >> M;
     fin.close();
 
     _DISPLAY(M)
-    _DISPLAY(M.self_check())
-    M.Ubuild();
+    M(0, 1) = 0;
     _DISPLAY(M)
-
-    const std::string foutname = "sample.out";
-    std::ofstream fout(foutname);
-    if (fout.fail()) {
-        return 1;
-    }
-    fout << M;
-    fout.close();
+    M.at(0, 1) = 1;
+    _DISPLAY(M)
 
     std::cout << util::Repeat("-", 20) << std::endl;
     return 0;
