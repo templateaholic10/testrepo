@@ -9,6 +9,8 @@
 #include "../util.hpp"
 
 namespace sfinae {
+    // 基本的には，std::enable_ifにメタ関数を渡して実装する．
+
     // クラステンプレートの場合
     // 部分特殊化とSFINAEを組み合わせる．
     // SFINAEに失敗すると特殊化の候補から除外する．

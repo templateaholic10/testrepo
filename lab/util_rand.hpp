@@ -4,8 +4,8 @@
     @date 11/2
 */
 
-#ifndef UTIL_RAND
-#define UTIL_RAND
+#ifndef UTIL_RAND_HPP
+#define UTIL_RAND_HPP
 
 #include <random>
 #include <type_traits>
@@ -14,7 +14,7 @@
 namespace util {
     /*! @class
         @brief std::uniform_int_distributionとstd::uniform_real_distributionのラッパ関数オブジェクト．メルセンヌツイスタを使用して生成を行う
-        @tparam T intまたはdouble
+        @tparam T 数値型またはstd::complex
     */
     template <typename T, class Ignored = void>
     class Uniform;
@@ -144,6 +144,44 @@ namespace util {
         result_type max() const
         {
             return b;
+        }
+    };
+
+    /*! @class
+        @brief std::normal_distributionのラッパ関数オブジェクト．メルセンヌツイスタを使用して生成を行う
+        @tparam T double
+    */
+    template <typename T, class Ignored = void>
+    class Gaussian;
+
+    template <typename T>
+    class Gaussian <T, typename std::enable_if <std::is_floating_point <T>::value>::type> {
+    public:
+        using result_type = T;
+    private:
+        std::mt19937                                 mt;
+        std::normal_distribution <result_type> rv;
+        const result_type                            mu;
+        const result_type                            sigma;
+    public:
+        Gaussian(result_type mu_=0., result_type sigma_=1., std::random_device::result_type seed=std::random_device()())
+            : mu(mu_), sigma(sigma_), mt(seed), rv(mu_, sigma_)
+        {
+        }
+
+        result_type operator()()
+        {
+            return rv(mt);
+        }
+
+        result_type mean() const
+        {
+            return mu;
+        }
+
+        result_type stddev() const
+        {
+            return sigma;
         }
     };
 }
