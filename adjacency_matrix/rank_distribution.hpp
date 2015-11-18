@@ -33,7 +33,7 @@ namespace graph {
         // 密度が条件を満たしていなければ弾く
         // 残りがすべて0のときの密度
         const double lower = static_cast <double>(M.Esize()) / Adjacency_matrix <n>::max_Esize;
-        if (upper_bound < lower) {
+        if (upper_bound <= lower) {
             return;
         }
         // 残りがすべて1のときの密度
@@ -61,9 +61,11 @@ namespace graph {
     }
 
     /*! @brief 隣接行列のランクの分布を調べる関数
+        @param lower_bound [lower_bound, upper_bound)
+        @param upper_bound [lower_bound, upper_bound)
     */
     template <int n>
-    std::array <int, n + 1> rank_distribution(const double lower_bound=0., const double upper_bound=1.)
+    std::array <int, n + 1> rank_distribution(const double lower_bound=0., const double upper_bound=1.1)
     {
         std::array <int, n + 1> retval;
         retval.fill(0);
