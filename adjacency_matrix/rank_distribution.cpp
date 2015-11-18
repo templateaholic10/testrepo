@@ -1,5 +1,5 @@
 #include <fstream>
-#include <expanded_array>
+#include <array_matrix>
 #include <element_wise>
 #include <util>
 #include <array_io>
@@ -9,7 +9,7 @@ int main()
 {
     constexpr int n = 7;
     constexpr int rank_num = 10;
-    util::matrix<int, rank_num, n+1> result;
+    std::matrix<int, rank_num, n+1> result;
 
     const double interval = 1. / rank_num;
     double lower_bound = 0.0;
