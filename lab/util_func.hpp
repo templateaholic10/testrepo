@@ -288,7 +288,7 @@ namespace util {
         const std::function<double(const double)> f = [](const double x){return x*x;};
         const std::function<double(const double)> g = [](const double x){return 2*x;};
         const std::function<double(const double)> h = [](const double x){return 1;};
-        const std::function<double(const double)> hoge = f * g + h * 5.;
+        const std::function<double(const double)> hoge = 5. * f + 10. * g;
         _DISPLAY(hoge(-2.))
     }
 }

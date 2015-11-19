@@ -3,11 +3,12 @@
 #include <element_wise>
 #include <util>
 #include <array_io>
+#include <os>
 #include "rank_distribution.hpp"
 
 int main()
 {
-    constexpr int n = 7;
+    constexpr int n = 8;
     constexpr int rank_num = 10;
     std::matrix<int, rank_num, n+1> result;
 
@@ -29,7 +30,8 @@ int main()
     std::array<int, n+1> all;
     all = graph::rank_distribution<n>();
 
-    const std::string foutname = "result.out";
+    const std::string dirname = "result";
+    const std::string foutname = os::path::join(dirname, std::to_string(n) + ".out");
     std::ofstream fout(foutname);
     fout << result << std::endl;
     fout << sum << std::endl;
