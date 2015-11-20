@@ -22,77 +22,18 @@
 template <typename Elem, int m, int n>
 std::ostream& operator<<(std::ostream& os, const Eigen::Matrix<Elem, m, n>& M)
 {
-    if (m == 0 || n == 0) {
+    const int _m = M.rows();
+    const int _n = M.cols();
+    if (_m == 0 || _n == 0) {
         return os;
     }
     os << M(0, 0);
-    for (int j = 1; j < n; j++) {
+    for (int j = 1; j < _n; j++) {
         os << EIGEN_IO_DELIM << M(0, j);
     }
-    for (int i = 1; i < m; i++) {
+    for (int i = 1; i < _m; i++) {
         os << std::endl << M(i, 0);
-        for (int j = 1; j < n; j++) {
-            os << EIGEN_IO_DELIM << M(i, j);
-        }
-    }
-    return os;
-}
-
-template <typename Elem, int m>
-std::ostream& operator<<(std::ostream& os, const Eigen::Matrix<Elem, m, Eigen::Dynamic>& M)
-{
-    const int n = M.cols();
-    if (m == 0 || n == 0) {
-        return os;
-    }
-    os << M(0, 0);
-    for (int j = 1; j < n; j++) {
-        os << EIGEN_IO_DELIM << M(0, j);
-    }
-    for (int i = 1; i < m; i++) {
-        os << std::endl << M(i, 0);
-        for (int j = 1; j < n; j++) {
-            os << EIGEN_IO_DELIM << M(i, j);
-        }
-    }
-    return os;
-}
-
-template <typename Elem, int n>
-std::ostream& operator<<(std::ostream& os, const Eigen::Matrix<Elem, Eigen::Dynamic, n>& M)
-{
-    const int m = M.rows();
-    if (m == 0 || n == 0) {
-        return os;
-    }
-    os << M(0, 0);
-    for (int j = 1; j < n; j++) {
-        os << EIGEN_IO_DELIM << M(0, j);
-    }
-    for (int i = 1; i < m; i++) {
-        os << std::endl << M(i, 0);
-        for (int j = 1; j < n; j++) {
-            os << EIGEN_IO_DELIM << M(i, j);
-        }
-    }
-    return os;
-}
-
-template <typename Elem>
-std::ostream& operator<<(std::ostream& os, const Eigen::Matrix<Elem, Eigen::Dynamic, Eigen::Dynamic>& M)
-{
-    const int m = M.rows();
-    const int n = M.cols();
-    if (m == 0 || n == 0) {
-        return os;
-    }
-    os << M(0, 0);
-    for (int j = 1; j < n; j++) {
-        os << EIGEN_IO_DELIM << M(0, j);
-    }
-    for (int i = 1; i < m; i++) {
-        os << std::endl << M(i, 0);
-        for (int j = 1; j < n; j++) {
+        for (int j = 1; j < _n; j++) {
             os << EIGEN_IO_DELIM << M(i, j);
         }
     }
@@ -104,48 +45,10 @@ std::ostream& operator<<(std::ostream& os, const Eigen::Matrix<Elem, Eigen::Dyna
 template <typename Elem, int m, int n>
 std::istream& operator>>(std::istream& is, Eigen::Matrix<Elem, m, n>& M)
 {
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < n; j++) {
-            is >> M(i, j);
-            is.ignore(1, EIGEN_IO_DELIM);
-        }
-    }
-    return is;
-}
-
-template <typename Elem, int m>
-std::istream& operator>>(std::istream& is, Eigen::Matrix<Elem, m, Eigen::Dynamic>& M)
-{
-    const int n = M.cols();
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < n; j++) {
-            is >> M(i, j);
-            is.ignore(1, EIGEN_IO_DELIM);
-        }
-    }
-    return is;
-}
-
-template <typename Elem, int n>
-std::istream& operator>>(std::istream& is, Eigen::Matrix<Elem, Eigen::Dynamic, n>& M)
-{
-    const int m = M.rows();
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < n; j++) {
-            is >> M(i, j);
-            is.ignore(1, EIGEN_IO_DELIM);
-        }
-    }
-    return is;
-}
-
-template <typename Elem>
-std::istream& operator>>(std::istream& is, Eigen::Matrix<Elem, Eigen::Dynamic, Eigen::Dynamic>& M)
-{
-    const int m = M.rows();
-    const int n = M.cols();
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < n; j++) {
+    const int _m = M.rows();
+    const int _n = M.cols();
+    for (int i = 0; i < _m; i++) {
+        for (int j = 0; j < _n; j++) {
             is >> M(i, j);
             is.ignore(1, EIGEN_IO_DELIM);
         }
@@ -163,93 +66,22 @@ namespace Eigen {
     template <typename Elem, int m, int n>
     std::ostream& out(std::ostream& os, const Eigen::Matrix<Elem, m, n>& M, const bool stand = true, const char delim = EIGEN_IO_DELIM)
     {
-        if (m == 0 || n == 0) {
+        const int _m = M.rows();
+        const int _n = M.cols();
+        if (_m == 0 || _n == 0) {
             return os;
         }
         os << M(0, 0);
-        for (int j = 1; j < n; j++) {
+        for (int j = 1; j < _n; j++) {
             os << delim << M(0, j);
         }
-        for (int i = 1; i < m; i++) {
+        for (int i = 1; i < _m; i++) {
             if (stand) {
                 os << std::endl << M(i, 0);
             } else {
                 os << delim << M(i, 0);
             }
-            for (int j = 1; j < n; j++) {
-                os << delim << M(i, j);
-            }
-        }
-        return os;
-    }
-
-    template <typename Elem, int m>
-    std::ostream& out(std::ostream& os, const Eigen::Matrix<Elem, m, Eigen::Dynamic>& M, const bool stand = true, const char delim = EIGEN_IO_DELIM)
-    {
-        const int n = M.cols();
-        if (m == 0 || n == 0) {
-            return os;
-        }
-        os << M(0, 0);
-        for (int j = 1; j < n; j++) {
-            os << delim << M(0, j);
-        }
-        for (int i = 1; i < m; i++) {
-            if (stand) {
-                os << std::endl << M(i, 0);
-            } else {
-                os << delim << M(i, 0);
-            }
-            for (int j = 1; j < n; j++) {
-                os << delim << M(i, j);
-            }
-        }
-        return os;
-    }
-
-    template <typename Elem, int n>
-    std::ostream& out(std::ostream& os, const Eigen::Matrix<Elem, Eigen::Dynamic, n>& M, const bool stand = true, const char delim = EIGEN_IO_DELIM)
-    {
-        const int m = M.rows();
-        if (m == 0 || n == 0) {
-            return os;
-        }
-        os << M(0, 0);
-        for (int j = 1; j < n; j++) {
-            os << delim << M(0, j);
-        }
-        for (int i = 1; i < m; i++) {
-            if (stand) {
-                os << std::endl << M(i, 0);
-            } else {
-                os << delim << M(i, 0);
-            }
-            for (int j = 1; j < n; j++) {
-                os << delim << M(i, j);
-            }
-        }
-        return os;
-    }
-
-    template <typename Elem>
-    std::ostream& out(std::ostream& os, const Eigen::Matrix<Elem, Eigen::Dynamic, Eigen::Dynamic>& M, const bool stand = true, const char delim = EIGEN_IO_DELIM)
-    {
-        const int m = M.rows();
-        const int n = M.cols();
-        if (m == 0 || n == 0) {
-            return os;
-        }
-        os << M(0, 0);
-        for (int j = 1; j < n; j++) {
-            os << delim << M(0, j);
-        }
-        for (int i = 1; i < m; i++) {
-            if (stand) {
-                os << std::endl << M(i, 0);
-            } else {
-                os << delim << M(i, 0);
-            }
-            for (int j = 1; j < n; j++) {
+            for (int j = 1; j < _n; j++) {
                 os << delim << M(i, j);
             }
         }
@@ -264,48 +96,10 @@ namespace Eigen {
     template <typename Elem, int m, int n>
     std::istream& in(std::istream& is, Eigen::Matrix<Elem, m, n>& M, const char delim = EIGEN_IO_DELIM)
     {
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                is >> M(i, j);
-                is.ignore(1, delim);
-            }
-        }
-        return is;
-    }
-
-    template <typename Elem, int m>
-    std::istream& in(std::istream& is, Eigen::Matrix<Elem, m, Eigen::Dynamic>& M, const char delim = EIGEN_IO_DELIM)
-    {
-        const int n = M.cols();
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                is >> M(i, j);
-                is.ignore(1, delim);
-            }
-        }
-        return is;
-    }
-
-    template <typename Elem, int n>
-    std::istream& in(std::istream& is, Eigen::Matrix<Elem, Eigen::Dynamic, n>& M, const char delim = EIGEN_IO_DELIM)
-    {
-        const int m = M.rows();
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                is >> M(i, j);
-                is.ignore(1, delim);
-            }
-        }
-        return is;
-    }
-
-    template <typename Elem>
-    std::istream& in(std::istream& is, Eigen::Matrix<Elem, Eigen::Dynamic, Eigen::Dynamic>& M, const char delim = EIGEN_IO_DELIM)
-    {
-        const int m = M.rows();
-        const int n = M.cols();
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
+        const int _m = M.rows();
+        const int _n = M.cols();
+        for (int i = 0; i < _m; i++) {
+            for (int j = 0; j < _n; j++) {
                 is >> M(i, j);
                 is.ignore(1, delim);
             }

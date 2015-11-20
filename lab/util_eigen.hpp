@@ -369,58 +369,6 @@ namespace Eigen {
 }
 
 namespace util {
-    /*! @brief Eigen::Matrixを形を問わず横一列で出力する関数
-        @param os 出力ストリーム
-        @param M Eigen::Matrix
-        @param delim デリミタ
-        @param insert_LF 行列の行末で改行するかどうか
-    */
-    template <typename T, int m, int n>
-    void row_out(std::ostream &os, const Eigen::Matrix <T, m, n> &M, const char delim = ',', const bool insert_LF = true)
-    {
-        os << M(0, 0);
-        for (int j = 1; j < n; j++) {
-            os << delim << M(0, j);
-        }
-        for (int i = 1; i < m; i++) {
-            if (insert_LF) {
-                os << std::endl << M(i, 0);
-            } else {
-                os << delim << M(i, 0);
-            }
-            for (int j = 1; j < n; j++) {
-                os << delim << M(i, j);
-            }
-        }
-    }
-
-    class Row_out {
-    private:
-        std::ostream& os;
-        const char delim;
-        const bool insert_LF;
-    public:
-        Row_out(std::ostream& os_ = std::cout, const char delim_ = ',', const bool insert_LF_ = true)
-        : os(os_), delim(delim_), insert_LF(insert_LF_)
-        {
-        }
-
-        template <typename T, int m, int n>
-        Row_out& operator<<(const Eigen::Matrix<T, m, n> &M)
-        {
-            row_out(os, M, delim, insert_LF);
-            os << std::endl;
-            return (*this);
-        }
-
-        template <typename T, int m, int n, size_t size>
-        Row_out& operator<<(const std::array<Eigen::Matrix<T, m, n>, size> &seq)
-        {
-            std::for_each(seq.begin(), seq.end(), [&](const Eigen::Matrix<T, m, n>& M){(*this) << M;});
-            return (*this);
-        }
-    };
-
     template <class Seq, int n>
     Seq stlize(const Eigen::Vector <typename Seq::value_type, n> &v)
     {
