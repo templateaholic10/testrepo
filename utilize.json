@@ -4,7 +4,6 @@
         "util_array.hpp",
         "util_bit.hpp",
         "util_complex.hpp",
-        "util_func.hpp",
         "util_int.hpp",
         "util_math.hpp",
         "util_rand.hpp",
@@ -24,7 +23,8 @@
         "interactive.hpp",
         "exeigen.hpp",
         "excomplex.hpp",
-        "randeigen.hpp"
+        "randeigen.hpp",
+        "functionalop.hpp"
     ],
     "constexpr": null
 }

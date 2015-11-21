@@ -1,14 +1,13 @@
 ﻿/*! @file
-    @brief std::functionのユーティリティクラス
+    @brief 関数空間の上の演算子
     @auther yanteyon10
     @date 11/13
 */
 
-#ifndef UTIL_FUNC_HPP
-#define UTIL_FUNC_HPP
+#ifndef FUNCTIONALOP_HPP
+#define FUNCTIONALOP_HPP
 
 #include <functional>
-#include <util>
 #include <zero_one>
 
 namespace util {
@@ -280,17 +279,6 @@ template <typename From, typename To>
 const std::function<To(From)> operator/(const To& a, const std::function<To(From)>& f)
 {
     return std::function<To(From)>(util::Div_scal<From, To>(a, f));
-}
-
-namespace util {
-    void test_util_func()
-    {
-        const std::function<double(const double)> f = [](const double x){return x*x;};
-        const std::function<double(const double)> g = [](const double x){return 2*x;};
-        const std::function<double(const double)> h = [](const double x){return 1;};
-        const std::function<double(const double)> hoge = 5. * f + 10. * g;
-        _DISPLAY(hoge(-2.))
-    }
 }
 
 #ifdef INCLUDE_EIGEN

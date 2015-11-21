@@ -7,8 +7,7 @@
 #define RANDEIGEN_HPP
 
 #include <util_rand>
-#define EIGEN_NO_DEBUG
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 namespace Eigen {
     /*! @brief 各要素が一様分布に従う確率変数によって決定される行列を返す関数

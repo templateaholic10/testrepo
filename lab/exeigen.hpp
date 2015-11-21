@@ -8,8 +8,7 @@
 
 #include <iostream>
 #include <excomplex>
-#define EIGEN_NO_DEBUG
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <Eigen/SVD>
 
 namespace Eigen {
