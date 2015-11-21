@@ -1,0 +1,30 @@
+{
+    ".": [
+        "util.hpp",
+        "util_array.hpp",
+        "util_bit.hpp",
+        "util_complex.hpp",
+        "util_func.hpp",
+        "util_int.hpp",
+        "util_math.hpp",
+        "util_rand.hpp",
+        "util_sfinae.hpp",
+        "util_stochastic.hpp",
+        "util.hpp",
+        "timer.hpp",
+        "os.hpp",
+        "zero_one.hpp",
+        "element_wise.hpp",
+        "array_matrix.hpp",
+        "seq_io.hpp",
+        "array_io.hpp",
+        "vector_io.hpp",
+        "eigen_io.hpp",
+        "exfstream.hpp",
+        "interactive.hpp",
+        "exeigen.hpp",
+        "excomplex.hpp",
+        "randeigen.hpp"
+    ],
+    "constexpr": null
+}

@@ -4,25 +4,30 @@
 import os
 import sys
 import subprocess
+import json
+
+from_dirname = "lab"
+from_full_dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), from_dirname)
+to_dirname = "/usr/local/include"
+utilize_filenamefilename = "utilize.json"
+
+def copy(dirname, filenames=None):
+    u"""
+    ディレクトリ内の特定のファイルをコピーする関数
+    """
+    # ファイルコピー
+    if filenames is None:
+        filenames = subprocess.check_output(["ls", os.path.join(from_full_dirname, dirname)]).split()
+    for filename in filenames:
+        full_filename = os.path.join(os.path.join(from_full_dirname, dirname), filename)
+        to_full_filename = os.path.join(to_dirname, os.path.join(dirname, filename.split(".")[0]))
+        subprocess.call('sh -c "sudo cp {from_filename} {to_filename}"'.format(from_filename=full_filename, to_filename=to_full_filename), shell=True)
 
 def main():
-    from_dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lab")
-    to_dirname = "/usr/local/include"
-
-    # ファイルコピー
-    lab_filenames = subprocess.check_output(["ls", from_dirname]).split()[:-1]
-    util_filenames = [filename for filename in lab_filenames if filename[:4] == "util"] + ["timer.hpp", "os.hpp", "zero_one.hpp", "element_wise.hpp", "array_matrix.hpp", "seq_io.hpp", "array_io.hpp", "vector_io.hpp", "eigen_io.hpp", "exfstream.hpp", "interactive.hpp"]
-    for util_filename in util_filenames:
-        from_filename = os.path.join(from_dirname, util_filename)
-        trimed_name = util_filename.split(".")[0]
-        to_filename = os.path.join(to_dirname, trimed_name)
-        subprocess.call('sh -c "sudo cp {from_filename} {to_filename}"'.format(from_filename=from_filename, to_filename=to_filename), shell=True)
-
-    # ディレクトリコピー
-    util_dirnames = ["_header"]
-    for util_dirname in util_dirnames:
-        dirname = os.path.join(from_dirname, util_dirname)
-        subprocess.call('sh -c "sudo cp -R {from_dirname} {to_dirname}"'.format(from_dirname=dirname, to_dirname=to_dirname), shell=True)
+    with open(utilize_filenamefilename) as fin:
+        utilize_filename = json.load(fin)
+    for k, v in utilize_filename.items():
+        copy(k, v)
 
 if __name__ == "__main__":
     main()

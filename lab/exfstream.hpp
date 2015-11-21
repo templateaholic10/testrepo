@@ -1,5 +1,5 @@
 ﻿/*! @file
-    @brief fstreamのユーティリティクラス
+    @brief fstreamのユーティリティ関数
     @auther yanteyon10
     @date 11/13
 */
@@ -8,6 +8,7 @@
 #define EXFSTREAM_HPP
 
 #include <fstream>
+#include <util>
 
 // 名前空間に入れると，その中の演算子しか探索しない
 

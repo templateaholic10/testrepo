@@ -59,12 +59,52 @@ namespace util {
     };
 }
 
-#ifdef COMPLEX_ZERO_ONE
-#include "_header/zero_one_complex.hpp"
+#ifdef INCLUDE_COMPLEX
+#include <complex>
+
+namespace util {
+    template <typename T>
+    struct Zero<std::complex<T>>
+    {
+        static std::complex<T> eval()
+        {
+            return std::complex<T>(0., 0.);
+        }
+    };
+    template <typename T>
+    struct One<std::complex<T>>
+    {
+        static std::complex<T> eval()
+        {
+            return std::complex<T>(1., 0.);
+        }
+    };
+}
+
 #endif
 
-#ifdef EIGEN_MATRIX_ZERO_ONE
-#include "_header/zero_one_eigen_matrix.hpp"
+#ifdef INCLUDE_EIGEN
+#include <Eigen/Core>
+
+namespace util {
+    template <typename T, int m, int n>
+    struct Zero<Eigen::Matrix<T, m, n>, void>
+    {
+        static Eigen::Matrix<T, m, n> eval()
+        {
+            return Eigen::Matrix<T, m, n>::Zero();
+        }
+    };
+    template <typename T, int m, int n>
+    struct One<Eigen::Matrix<T, m, n>, void>
+    {
+        static Eigen::Matrix<T, m, n> eval()
+        {
+            return Eigen::Matrix<T, m, n>::Identity();
+        }
+    };
+}
+
 #endif
 
 namespace util {
