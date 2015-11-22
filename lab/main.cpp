@@ -2,6 +2,7 @@
 #include <string>
 #include <util>
 #include "exfunction.hpp"
+#include "functionalop.hpp"
 
 template <typename T>
 struct Addconst {
@@ -17,12 +18,6 @@ public:
         return x + c;
     }
 };
-
-template <typename Result, typename ... Args>
-std::function<Result(Args...)> operator+(const std::function<Result(Args...)> &f, const std::function<Result(Args...)> &g)
-{
-    return [&](Args... args){return f(args...) + g(args...);};
-}
 
 int main(int argc, char const *argv[])
 {
@@ -69,7 +64,7 @@ int main(int argc, char const *argv[])
     //
     // _DISPLAY(std::Composite<0>::eval(project, Addconst_type(Addconst<int>(1)))(1, 0, 1, 2))
 
-    project_type triple_project = project + project + project;
+    project_type triple_project = (project + project) * project;
     _DISPLAY(triple_project(2, 0, 1, 2));
 
     return 0;

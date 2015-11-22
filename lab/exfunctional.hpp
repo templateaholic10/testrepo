@@ -1,11 +1,11 @@
 ﻿/*! @file
-    @brief functionヘッダの拡張
+    @brief functionalヘッダの拡張
     @auther yanteyon10
     @date 11/13
 */
 
-#ifndef EXFUNCTION_HPP
-#define EXFUNCTION_HPP
+#ifndef EXFUNCTIONAL_HPP
+#define EXFUNCTIONAL_HPP
 
 #include <functional>
 
@@ -423,6 +423,38 @@ namespace std {
 
             return result_type([&](F1 f1, Ghead ghead, Gargs ... gargs, Fhead fhead, Fargs ... fargs) -> Fret {
                 return f(g(ghead, gargs ...), fhead, fargs ...);
+            });
+        }
+    };
+
+    /*! @struct Push_back
+        @brief 後ろに関数によらない変数を付加する関数のガワ．本体はstaticメンバ関数eval
+    */
+    template <class ... Adds>
+    struct Push_back {
+        template <class Result, class ... Args>
+        std::function <Result(Args ..., Adds ...)> eval(const std::function <Result(Args ...)> &f)
+        {
+            using result_type = std::function <Result(Args ..., Adds ...)>;
+
+            return result_type([&](Args ... args, Adds ... adds) -> Result {
+                return f(args ...);
+            });
+        }
+    };
+
+    /*! @struct Push_front
+        @brief 前に関数によらない変数を付加する関数のガワ．本体はstaticメンバ関数eval
+    */
+    template <class ... Adds>
+    struct Push_front {
+        template <class Result, class ... Args>
+        std::function <Result(Adds ..., Args ...)> eval(const std::function <Result(Args ...)> &f)
+        {
+            using result_type = std::function <Result(Adds ..., Args ...)>;
+
+            return result_type([&](Adds ... adds, Args ... args) -> Result {
+                return f(args ...);
             });
         }
     };
