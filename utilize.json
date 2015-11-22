@@ -6,7 +6,6 @@
         "util_complex.hpp",
         "util_int.hpp",
         "util_math.hpp",
-        "util_rand.hpp",
         "util_sfinae.hpp",
         "util_stochastic.hpp",
         "util.hpp",
@@ -24,7 +23,9 @@
         "exeigen.hpp",
         "excomplex.hpp",
         "randeigen.hpp",
-        "functionalop.hpp"
+        "functionalop.hpp",
+        "exrandom.hpp",
+        "exfunction.hpp"
     ],
     "constexpr": null
 }

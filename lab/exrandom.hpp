@@ -4,14 +4,14 @@
     @date 11/2
 */
 
-#ifndef UTIL_RAND_HPP
-#define UTIL_RAND_HPP
+#ifndef EXRANDOM_HPP
+#define EXRANDOM_HPP
 
 #include <random>
 #include <type_traits>
 #include <complex>
 
-namespace util {
+namespace std {
     /*! @class
         @brief std::uniform_int_distributionとstd::uniform_real_distributionのラッパ関数オブジェクト．メルセンヌツイスタを使用して生成を行う
         @tparam T 数値型またはstd::complex
@@ -80,40 +80,6 @@ namespace util {
             return b;
         }
     };
-
-    /*
-    template <typename T>
-    class Uniform <std::complex <T>, typename std::enable_if <std::is_integral <T>::value>::type> {
-    public:
-        using result_type = std::complex <T>;
-    private:
-        std::mt19937                      mt;
-        std::uniform_int_distribution <T> rv_re;
-        std::uniform_int_distribution <T> rv_im;
-        const result_type                 a;
-        const result_type                 b;
-    public:
-        Uniform(result_type a_=std::complex <T>(0, 0), result_type b_=std::complex <T>(std::numeric_limits <T>::max(), std::numeric_limits <T>::max()), std::random_device::result_type seed=std::random_device()())
-            : a(a_), b(b_), mt(seed), rv_re(a_.real(), b_.real()), rv_im(a_.imag(), b_.imag())
-        {
-        }
-
-        result_type operator()()
-        {
-            return std::complex <T>(rv_re(mt), rv_im(mt));
-        }
-
-        result_type min() const
-        {
-            return a;
-        }
-
-        result_type max() const
-        {
-            return b;
-        }
-    };
-    */
 
     template <typename T>
     class Uniform <std::complex <T>, typename std::enable_if <std::is_floating_point <T>::value>::type> {

@@ -10,16 +10,17 @@
 #include <excomplex>
 #include <Eigen/Core>
 #include <Eigen/SVD>
+#include <Eigen/Eigenvalues>
 
 namespace Eigen {
     /*! @alias
         @brief ベクトル
     */
-    template <typename _Scalar, int _Rows, int _Options = Eigen::ColMajor, int _MaxRows = _Rows>
-    using Vector = Matrix <_Scalar, _Rows, 1, _Options, _MaxRows, 1>;
+    template <typename _Scalar, int _Rows>
+    using Vector = Matrix <_Scalar, _Rows, 1>;
 
-    template <typename _Scalar, int _Cols, int _Options = Eigen::ColMajor, int _MaxCols = _Cols>
-    using RowVector = Matrix <_Scalar, 1, _Cols, _Options, 1, _MaxCols>;
+    template <typename _Scalar, int _Cols>
+    using RowVector = Matrix <_Scalar, 1, _Cols>;
 
     /*! @alias
         @brief double型
@@ -27,11 +28,11 @@ namespace Eigen {
     template <int _Rows, int _Cols, int _Options = Eigen::ColMajor, int _MaxRows = _Rows, int _MaxCols = _Cols>
     using dMatrix = Matrix <double, _Rows, _Cols, _Options, _MaxRows, _MaxCols>;
 
-    template <int _Rows, int _Options = Eigen::ColMajor, int _MaxRows = _Rows>
-    using dVector = Vector<double, _Rows, _Options, _MaxRows>;
+    template <int _Rows>
+    using dVector = Vector<double, _Rows>;
 
-    template <int _Cols, int _Options = Eigen::ColMajor, int _MaxCols = _Cols>
-    using dRowVector = RowVector<double, _Cols, _Options, _MaxCols>;
+    template <int _Cols>
+    using dRowVector = RowVector<double, _Cols>;
 
     /*! @alias
         @brief std::complex<double>型
@@ -39,11 +40,11 @@ namespace Eigen {
     template <int _Rows, int _Cols, int _Options = Eigen::ColMajor, int _MaxRows = _Rows, int _MaxCols = _Cols>
     using cMatrix = Matrix <std::complex<double>, _Rows, _Cols, _Options, _MaxRows, _MaxCols>;
 
-    template <int _Rows, int _Options = Eigen::ColMajor, int _MaxRows = _Rows>
-    using cVector = Vector<std::complex<double>, _Rows, _Options, _MaxRows>;
+    template <int _Rows>
+    using cVector = Vector<std::complex<double>, _Rows>;
 
-    template <int _Cols, int _Options = Eigen::ColMajor, int _MaxCols = _Cols>
-    using cRowVector = RowVector<std::complex<double>, _Cols, _Options, _MaxCols>;
+    template <int _Cols>
+    using cRowVector = RowVector<std::complex<double>, _Cols>;
 }
 
 namespace std {
@@ -248,7 +249,7 @@ namespace Eigen {
     {
         Eigen::JacobiSVD <Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>> svd(M);
 
-        return svd.sigularValues().eval()(k);
+        return svd.singularValues().eval()(k);
     }
 
     /*! @brief 行列の正定値性を判定する関数
