@@ -6,7 +6,7 @@
 #ifndef RANDEIGEN_HPP
 #define RANDEIGEN_HPP
 
-#include <util_rand>
+#include <exrandom>
 #include <Eigen/Core>
 
 namespace Eigen {
@@ -24,7 +24,7 @@ namespace Eigen {
         const int                rows = (m == Eigen::Dynamic) ? mx : m;
         const int                cols = (n == Eigen::Dynamic) ? nx : n;
         Matrix <elem_type, m, n> retval(rows, cols);
-        util::Uniform <rv_type>  uniform(a, b, seed);
+        std::Uniform <rv_type>  uniform(a, b, seed);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 retval(i, j) = uniform();
@@ -48,7 +48,7 @@ namespace Eigen {
         const int                rows = (m == Eigen::Dynamic) ? mx : m;
         const int                cols = (n == Eigen::Dynamic) ? nx : n;
         Matrix <elem_type, m, n> retval(rows, cols);
-        util::Gaussian <rv_type>  gaussian(mu, sigma, seed);
+        std::Gaussian <rv_type>  gaussian(mu, sigma, seed);
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 retval(i, j) = gaussian();

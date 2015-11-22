@@ -48,7 +48,7 @@ namespace std {
         {
             using result_type = std::function <Fret()>;
 
-            return result_type([&]() -> Fret {
+            return result_type([f, g]() -> Fret {
                 return f(g());
             });
         }
@@ -60,7 +60,7 @@ namespace std {
         {
             using result_type = std::function <Fret()>;
 
-            return result_type([&]() -> Fret {
+            return result_type([f, g]() -> Fret {
                 return f(g());
             });
         }
@@ -74,7 +74,7 @@ namespace std {
         {
             using result_type = std::function <Fret(Ghead, Gargs ...)>;
 
-            return result_type([&](Ghead ghead, Gargs ... gargs) -> Fret {
+            return result_type([f, g](Ghead ghead, Gargs ... gargs) -> Fret {
                 return f(g(ghead, gargs ...));
             });
         }
@@ -110,7 +110,7 @@ namespace std {
         {
             using result_type = std::function <Fret(Ghead, Gargs ...)>;
 
-            return result_type([&](Ghead ghead, Gargs ... gargs) -> Fret {
+            return result_type([f, g](Ghead ghead, Gargs ... gargs) -> Fret {
                 return f(g(ghead, gargs ...));
             });
         }
@@ -172,7 +172,7 @@ namespace std {
         {
             using result_type = std::function <Fret(Fhead, Fargs ...)>;
 
-            return result_type([&](Fhead fhead, Fargs ... fargs) -> Fret {
+            return result_type([f, g](Fhead fhead, Fargs ... fargs) -> Fret {
                 return f(g(), fhead, fargs ...);
             });
         }
@@ -208,7 +208,7 @@ namespace std {
         {
             using result_type = std::function <Fret(Fhead, Fargs ...)>;
 
-            return result_type([&](Fhead fhead, Fargs ... fargs) -> Fret {
+            return result_type([f, g](Fhead fhead, Fargs ... fargs) -> Fret {
                 return f(g(), fhead, fargs ...);
             });
         }
@@ -270,7 +270,7 @@ namespace std {
         {
             using result_type = std::function <Fret(Ghead, Gargs ..., Fhead, Fargs ...)>;
 
-            return result_type([&](Ghead ghead, Gargs ... gargs, Fhead fhead, Fargs ... fargs) -> Fret {
+            return result_type([f, g](Ghead ghead, Gargs ... gargs, Fhead fhead, Fargs ... fargs) -> Fret {
                 return f(g(ghead, gargs ...), fhead, fargs ...);
             });
         }
@@ -330,7 +330,7 @@ namespace std {
         {
             using result_type = std::function <Fret(Ghead, Gargs ..., Fhead, Fargs ...)>;
 
-            return result_type([&](Ghead ghead, Gargs ... gargs, Fhead fhead, Fargs ... fargs) -> Fret {
+            return result_type([f, g](Ghead ghead, Gargs ... gargs, Fhead fhead, Fargs ... fargs) -> Fret {
                 return f(g(ghead, gargs ...), fhead, fargs ...);
             });
         }
@@ -345,7 +345,7 @@ namespace std {
         {
             using result_type = std::function <Fret(F1)>;
 
-            return result_type([&](F1 f1) -> Fret {
+            return result_type([f, g](F1 f1) -> Fret {
                 return f(f1, g());
             });
         }
@@ -355,7 +355,7 @@ namespace std {
         {
             using result_type = std::function <Fret(F1)>;
 
-            return result_type([&](F1 f1) -> Fret {
+            return result_type([f, g](F1 f1) -> Fret {
                 return f(f1, g());
             });
         }
@@ -367,7 +367,7 @@ namespace std {
         {
             using result_type = std::function <Fret(F1, Ghead, Gargs ...)>;
 
-            return result_type([&](F1 f1, Ghead ghead, Gargs ... gargs) -> Fret {
+            return result_type([f, g](F1 f1, Ghead ghead, Gargs ... gargs) -> Fret {
                 return f(f1, g(ghead, gargs ...));
             });
         }
@@ -377,7 +377,7 @@ namespace std {
         {
             using result_type = std::function <Fret(F1, Ghead, Gargs ...)>;
 
-            return result_type([&](F1 f1, Ghead ghead, Gargs ... gargs) -> Fret {
+            return result_type([f, g](F1 f1, Ghead ghead, Gargs ... gargs) -> Fret {
                 return f(f1, g(ghead, gargs ...));
             });
         }
@@ -389,7 +389,7 @@ namespace std {
         {
             using result_type = std::function <Fret(F1, Fhead, Fargs ...)>;
 
-            return result_type([&](F1 f1, Fhead fhead, Fargs ... fargs) -> Fret {
+            return result_type([f, g](F1 f1, Fhead fhead, Fargs ... fargs) -> Fret {
                 return f(f1, g(), fhead, fargs ...);
             });
         }
@@ -399,7 +399,7 @@ namespace std {
         {
             using result_type = std::function <Fret(F1, Fhead, Fargs ...)>;
 
-            return result_type([&](F1 f1, Fhead fhead, Fargs ... fargs) -> Fret {
+            return result_type([f, g](F1 f1, Fhead fhead, Fargs ... fargs) -> Fret {
                 return f(f1, g(), fhead, fargs ...);
             });
         }
@@ -411,7 +411,7 @@ namespace std {
         {
             using result_type = std::function <Fret(F1, Ghead, Gargs ..., Fhead, Fargs ...)>;
 
-            return result_type([&](F1 f1, Ghead ghead, Gargs ... gargs, Fhead fhead, Fargs ... fargs) -> Fret {
+            return result_type([f, g](F1 f1, Ghead ghead, Gargs ... gargs, Fhead fhead, Fargs ... fargs) -> Fret {
                 return f(f1, g(ghead, gargs ...), fhead, fargs ...);
             });
         }
@@ -421,7 +421,7 @@ namespace std {
         {
             using result_type = std::function <Fret(F1, Ghead, Gargs ..., Fhead, Fargs ...)>;
 
-            return result_type([&](F1 f1, Ghead ghead, Gargs ... gargs, Fhead fhead, Fargs ... fargs) -> Fret {
+            return result_type([f, g](F1 f1, Ghead ghead, Gargs ... gargs, Fhead fhead, Fargs ... fargs) -> Fret {
                 return f(g(ghead, gargs ...), fhead, fargs ...);
             });
         }
@@ -433,11 +433,11 @@ namespace std {
     template <class ... Adds>
     struct Push_back {
         template <class Result, class ... Args>
-        std::function <Result(Args ..., Adds ...)> eval(const std::function <Result(Args ...)> &f)
+        std::function <Result(Args ..., Adds ...)> static eval(const std::function <Result(Args ...)> &f)
         {
             using result_type = std::function <Result(Args ..., Adds ...)>;
 
-            return result_type([&](Args ... args, Adds ... adds) -> Result {
+            return result_type([f](Args ... args, Adds ... adds) -> Result {
                 return f(args ...);
             });
         }
@@ -449,11 +449,11 @@ namespace std {
     template <class ... Adds>
     struct Push_front {
         template <class Result, class ... Args>
-        std::function <Result(Adds ..., Args ...)> eval(const std::function <Result(Args ...)> &f)
+        std::function <Result(Adds ..., Args ...)> static eval(const std::function <Result(Args ...)> &f)
         {
             using result_type = std::function <Result(Adds ..., Args ...)>;
 
-            return result_type([&](Adds ... adds, Args ... args) -> Result {
+            return result_type([f](Adds ... adds, Args ... args) -> Result {
                 return f(args ...);
             });
         }

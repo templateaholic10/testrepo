@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <util>
-#include "exfunction.hpp"
+#include "exfunctional.hpp"
 #include "functionalop.hpp"
 
 template <typename T>
@@ -65,7 +65,14 @@ int main(int argc, char const *argv[])
     // _DISPLAY(std::Composite<0>::eval(project, Addconst_type(Addconst<int>(1)))(1, 0, 1, 2))
 
     project_type triple_project = (project + project) * project;
+    _TYPE(triple_project)
+    auto expanded = std::Push_back<const double&, const char&>::eval(triple_project);
+    _TYPE(expanded)
+    auto exxpanded = std::Push_back<const std::string&>::eval(expanded);
+    _TYPE(exxpanded)
     _DISPLAY(triple_project(2, 0, 1, 2));
+    _DISPLAY(expanded(2, 0, 1, 2, 0.5, 'c'));
+    _DISPLAY(exxpanded(2, 0, 1, 2, 0.5, 'c', "hoge"));
 
     return 0;
 }
