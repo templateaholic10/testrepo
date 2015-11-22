@@ -16,188 +16,199 @@
 namespace util {
     /*! @brief 関数版+演算子のための関数ファンクタ
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Add {
     private:
-        const std::function<To(From)> f;
-        const std::function<To(From)> g;
+        const std::function <Result(Args ...)> f;
+        const std::function <Result(Args ...)> g;
     public:
-        Add(const std::function<To(From)>& f_, const std::function<To(From)>& g_)
-        : f(f_), g(g_)
+        Add(const std::function <Result(Args ...)> &f_, const std::function <Result(Args ...)> &g_)
+            : f(f_), g(g_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
-            return f(x) + g(x);
+            return f(args ...) + g(args ...);
         }
     };
 
     /*! @brief 関数版二項-演算子のための関数ファンクタ
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Sub {
     private:
-        const std::function<To(From)> f;
-        const std::function<To(From)> g;
+        const std::function <Result(Args ...)> f;
+        const std::function <Result(Args ...)> g;
     public:
-        Sub(const std::function<To(From)>& f_, const std::function<To(From)>& g_)
-        : f(f_), g(g_)
+        Sub(const std::function <Result(Args ...)> &f_, const std::function <Result(Args ...)> &g_)
+            : f(f_), g(g_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
-            return f(x) - g(x);
+            return f(args ...) - g(args ...);
         }
     };
 
     /*! @brief 関数版単項-演算子のための関数ファンクタ
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Opp {
     private:
-        const std::function<To(From)> f;
+        const std::function <Result(Args ...)> f;
     public:
-        Opp(const std::function<To(From)>& f_)
-        : f(f_)
+        Opp(const std::function <Result(Args ...)> &f_)
+            : f(f_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
-            return - f(x);
+            return -f(args ...);
         }
     };
 
     /*! @brief 関数版*演算子のための関数ファンクタ
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Mult {
     private:
-        const std::function<To(From)> f;
-        const std::function<To(From)> g;
+        const std::function <Result(Args ...)> f;
+        const std::function <Result(Args ...)> g;
     public:
-        Mult(const std::function<To(From)>& f_, const std::function<To(From)>& g_)
-        : f(f_), g(g_)
+        Mult(const std::function <Result(Args ...)> &f_, const std::function <Result(Args ...)> &g_)
+            : f(f_), g(g_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
-            return f(x) * g(x);
+            return f(args ...) * g(args ...);
         }
     };
 
     /*! @brief 関数版スカラー倍演算子のための関数ファンクタ
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Scal_multi {
     private:
-        const To a;
-        const std::function<To(From)> f;
+        const Result                           a;
+        const std::function <Result(Args ...)> f;
     public:
-        Scal_multi(const To& a_, const std::function<To(From)>& f_)
-        : a(a_), f(f_)
+        Scal_multi(const Result &a_, const std::function <Result(Args ...)> &f_)
+            : a(a_), f(f_)
         {
         }
-        Scal_multi(const std::function<To(From)>& f_, const To& a_)
-        : a(a_), f(f_)
+
+        Scal_multi(const std::function <Result(Args ...)> &f_, const Result &a_)
+            : a(a_), f(f_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
-            return a * f(x);
+            return a * f(args ...);
         }
     };
 
     /*! @brief 関数版/演算子のための関数ファンクタ．ゼロ除算チェックなし
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Div {
     private:
-        const std::function<To(From)> f;
-        const std::function<To(From)> g;
+        const std::function <Result(Args ...)> f;
+        const std::function <Result(Args ...)> g;
     public:
-        Div(const std::function<To(From)>& f_, const std::function<To(From)>& g_)
-        : f(f_), g(g_)
+        Div(const std::function <Result(Args ...)> &f_, const std::function <Result(Args ...)> &g_)
+            : f(f_), g(g_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
-            return f(x) / g(x);
+            return f(args ...) / g(args ...);
         }
     };
 
     /*! @brief 関数版逆数ファンクタ．ゼロ除算チェックなし
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Inv {
     private:
-        const std::function<To(From)> f;
+        const std::function <Result(Args ...)> f;
     public:
-        Inv(const std::function<To(From)>& f_)
-        : f(f_)
+        Inv(const std::function <Result(Args ...)> &f_)
+            : f(f_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
-            return util::one<To>() / f(x);
+            return util::one <Result>() / f(args ...);
         }
     };
 
     /*! @brief 逆数関数をつくる関数
     */
-    template <typename From, typename To>
-    const std::function<To(From)> inverse(const std::function<To(From)>& f)
+    template <typename Result, typename ... Args>
+    const std::function <Result(Args ...)> inverse(const std::function <Result(Args ...)> &f)
     {
-        return std::function<To(From)>(Inv<From, To>(f));
+        return std::function <Result(Args ...)>(Inv <Args ..., Result>(f));
     }
 
     /*! @brief 関数版スカラー除算演算子のための関数ファンクタ
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Scal_div {
     private:
-        const std::function<To(From)> f;
-        const To a;
+        const std::function <Result(Args ...)> f;
+        const Result                           a;
     public:
-        Scal_div(const std::function<To(From)>& f_, const To& a_)
-        : f(f_), a(a_)
+        Scal_div(const std::function <Result(Args ...)> &f_, const Result &a_)
+            : f(f_), a(a_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
-            return f(x) / a;
+            return f(args ...) / a;
         }
     };
 
     /*! @brief スカラー関数除算演算子のための関数ファンクタ
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Div_scal {
     private:
-        const std::function<To(From)> f;
-        const To a;
+        const std::function <Result(Args ...)> f;
+        const Result                           a;
     public:
-        Div_scal(const To& a_, const std::function<To(From)>& f_)
-        : a(a_), f(f_)
+        Div_scal(const Result &a_, const std::function <Result(Args ...)> &f_)
+            : a(a_), f(f_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
-            return a / f(x);
+            return a / f(args ...);
         }
     };
 
     /*! @brief 定数関数をつくる関数ファンクタ
     */
-    template <typename From, typename To>
+    template <typename Result, typename ... Args>
     struct Constant {
     private:
-        const To c;
+        const Result c;
     public:
-        Constant(const To& c_)
-        : c(c_)
+        Constant(const Result &c_)
+            : c(c_)
         {
         }
-        To operator()(From x) const
+
+        Result operator()(Args ... args) const
         {
             return c;
         }
@@ -205,10 +216,10 @@ namespace util {
 
     /*! @brief 定数関数をつくる関数
     */
-    template <typename From, typename To>
-    const std::function<To(From)> constant(const To& c)
+    template <typename Result, typename ... Args>
+    const std::function <Result(Args ...)> constant(const Result &c)
     {
-        return std::function<To(From)>(Constant<From, To>(c));
+        return std::function <Result(Args ...)>(Constant <Args ..., Result>(c));
     }
 }
 
@@ -216,151 +227,155 @@ namespace util {
 
 /*! @brief 関数版+演算子
 */
-template <typename From, typename To>
-const std::function<To(From)> operator+(const std::function<To(From)>& f, const std::function<To(From)>& g)
+template <typename Result, typename ... Args>
+const std::function <Result(Args ...)> operator+(const std::function <Result(Args ...)> &f, const std::function <Result(Args ...)> &g)
 {
-    return std::function<To(From)>(util::Add<From, To>(f, g));
+    return std::function <Result(Args ...)>(util::Add <Args ..., Result>(f, g));
 }
 
 /*! @brief 関数版二項-演算子
 */
-template <typename From, typename To>
-const std::function<To(From)> operator-(const std::function<To(From)>& f, const std::function<To(From)>& g)
+template <typename Result, typename ... Args>
+const std::function <Result(Args ...)> operator-(const std::function <Result(Args ...)> &f, const std::function <Result(Args ...)> &g)
 {
-    return std::function<To(From)>(util::Sub<From, To>(f, g));
+    return std::function <Result(Args ...)>(util::Sub <Args ..., Result>(f, g));
 }
 
 /*! @brief 関数版単項-演算子
 */
-template <typename From, typename To>
-const std::function<To(From)> operator-(const std::function<To(From)>& f)
+template <typename Result, typename ... Args>
+const std::function <Result(Args ...)> operator-(const std::function <Result(Args ...)> &f)
 {
-    return std::function<To(From)>(util::Opp<From, To>(f));
+    return std::function <Result(Args ...)>(util::Opp <Args ..., Result>(f));
 }
 
 /*! @brief 関数版*演算子
 */
-template <typename From, typename To>
-const std::function<To(From)> operator*(const std::function<To(From)>& f, const std::function<To(From)>& g)
+template <typename Result, typename ... Args>
+const std::function <Result(Args ...)> operator*(const std::function <Result(Args ...)> &f, const std::function <Result(Args ...)> &g)
 {
-    return std::function<To(From)>(util::Mult<From, To>(f, g));
+    return std::function <Result(Args ...)>(util::Mult <Args ..., Result>(f, g));
 }
 
 /*! @brief 関数版スカラー倍演算子
 */
-template <typename From, typename To>
-const std::function<To(From)> operator*(const To& a, const std::function<To(From)>& f)
+template <typename Result, typename ... Args>
+const std::function <Result(Args ...)> operator*(const Result &a, const std::function <Result(Args ...)> &f)
 {
-    return std::function<To(From)>(util::Scal_multi<From, To>(a, f));
+    return std::function <Result(Args ...)>(util::Scal_multi <Args ..., Result>(a, f));
 }
 
-template <typename From, typename To>
-const std::function<To(From)> operator*(const std::function<To(From)>& f, const To& a)
+template <typename Result, typename ... Args>
+const std::function <Result(Args ...)> operator*(const std::function <Result(Args ...)> &f, const Result &a)
 {
-    return std::function<To(From)>(util::Scal_multi<From, To>(f, a));
+    return std::function <Result(Args ...)>(util::Scal_multi <Args ..., Result>(f, a));
 }
 
 /*! @brief 関数版/演算子．ゼロ除算チェックなし
 */
-template <typename From, typename To>
-const std::function<To(From)> operator/(const std::function<To(From)>& f, const std::function<To(From)>& g)
+template <typename Result, typename ... Args>
+const std::function <Result(Args ...)> operator/(const std::function <Result(Args ...)> &f, const std::function <Result(Args ...)> &g)
 {
-    return std::function<To(From)>(util::Div<From, To>(f, g));
+    return std::function <Result(Args ...)>(util::Div <Args ..., Result>(f, g));
 }
 
 /*! @brief 関数版スカラー除算演算子
 */
-template <typename From, typename To>
-const std::function<To(From)> operator/(const std::function<To(From)>& f, const To& a)
+template <typename Result, typename ... Args>
+const std::function <Result(Args ...)> operator/(const std::function <Result(Args ...)> &f, const Result &a)
 {
-    return std::function<To(From)>(util::Scal_div<From, To>(f, a));
+    return std::function <Result(Args ...)>(util::Scal_div <Args ..., Result>(f, a));
 }
 
 /*! @brief スカラー関数除算演算子
 */
-template <typename From, typename To>
-const std::function<To(From)> operator/(const To& a, const std::function<To(From)>& f)
+template <typename Result, typename ... Args>
+const std::function <Result(Args ...)> operator/(const Result &a, const std::function <Result(Args ...)> &f)
 {
-    return std::function<To(From)>(util::Div_scal<From, To>(a, f));
+    return std::function <Result(Args ...)>(util::Div_scal <Args ..., Result>(a, f));
 }
 
 #ifdef INCLUDE_EIGEN
 
-#include <Eigen/Core>
+    #include <Eigen/Core>
 
-namespace util {
-    /*! @brief 関数版スカラー倍演算子のための関数ファンクタ
-    */
-    template <typename From, typename To, int m, int n>
-    struct Eigen_multi_scal {
-    public:
-        using value_type = Eigen::Matrix<To, m, n>;
-    private:
-        const Eigen::Matrix<To, m, n> a;
-        const std::function<To(From)> f;
-    public:
-        Eigen_multi_scal(const Eigen::Matrix<To, m, n>& a_, const std::function<To(From)>& f_)
-        : a(a_), f(f_)
-        {
-        }
-        Eigen_multi_scal(const std::function<To(From)>& f_, const Eigen::Matrix<To, m, n>& a_)
-        : a(a_), f(f_)
-        {
-        }
-        value_type operator()(From x) const
-        {
-            return a * f(x);
-        }
-    };
+    namespace util {
+        /*! @brief 関数版スカラー倍演算子のための関数ファンクタ
+        */
+        template <typename Args, typename Result, int m, int n>
+        struct Eigen_multi_scal {
+        public:
+            using value_type = Eigen::Matrix <Result, m, n>;
+        private:
+            const Eigen::Matrix <Result, m, n>     a;
+            const std::function <Result(Args ...)> f;
+        public:
+            Eigen_multi_scal(const Eigen::Matrix <Result, m, n> &a_, const std::function <Result(Args ...)> &f_)
+                : a(a_), f(f_)
+            {
+            }
 
-    template <typename From, typename To, int m, int n>
-    struct Scal_multi_eigen {
-    public:
-        using value_type = Eigen::Matrix<To, m, n>;
-    private:
-        const To a;
-        const std::function<Eigen::Matrix<To, m, n>(From)> f;
-    public:
-        Scal_multi_eigen(const To& a_, const std::function<Eigen::Matrix<To, m, n>(From)>& f_)
-        : a(a_), f(f_)
-        {
-        }
-        Scal_multi_eigen(const std::function<Eigen::Matrix<To, m, n>(From)>& f_, const To& a_)
-        : a(a_), f(f_)
-        {
-        }
-        value_type operator()(From x) const
-        {
-            return a * f(x);
-        }
-    };
-}
+            Eigen_multi_scal(const std::function <Result(Args ...)> &f_, const Eigen::Matrix <Result, m, n> &a_)
+                : a(a_), f(f_)
+            {
+            }
+
+            value_type operator()(Args ... args) const
+            {
+                return a * f(args ...);
+            }
+        };
+
+        template <typename Args, typename Result, int m, int n>
+        struct Scal_multi_eigen {
+        public:
+            using value_type = Eigen::Matrix <Result, m, n>;
+        private:
+            const Result                                             a;
+            const std::function <Eigen::Matrix <Result, m, n>(Args)> f;
+        public:
+            Scal_multi_eigen(const Result &a_, const std::function <Eigen::Matrix <Result, m, n>(Args)> &f_)
+                : a(a_), f(f_)
+            {
+            }
+
+            Scal_multi_eigen(const std::function <Eigen::Matrix <Result, m, n>(Args)> &f_, const Result &a_)
+                : a(a_), f(f_)
+            {
+            }
+
+            value_type operator()(Args ... args) const
+            {
+                return a * f(args ...);
+            }
+        };
+    }
 
 /*! @brief 関数版スカラー倍演算子
 */
-template <typename From, typename To, int m, int n>
-const std::function<Eigen::Matrix<To, m, n>(From)> operator*(const Eigen::Matrix<To, m, n>& a, const std::function<To(From)>& f)
-{
-    return std::function<Eigen::Matrix<To, m, n>(From)>(util::Eigen_multi_scal<From, To, m, n>(a, f));
-}
+    template <typename Args, typename Result, int m, int n>
+    const std::function <Eigen::Matrix <Result, m, n>(Args)> operator*(const Eigen::Matrix <Result, m, n> &a, const std::function <Result(Args ...)> &f)
+    {
+        return std::function <Eigen::Matrix <Result, m, n>(Args)>(util::Eigen_multi_scal <Args ..., Result, m, n>(a, f));
+    }
 
-template <typename From, typename To, int m, int n>
-const std::function<Eigen::Matrix<To, m, n>(From)> operator*(const std::function<To(From)>& f, const Eigen::Matrix<To, m, n>& a)
-{
-    return std::function<Eigen::Matrix<To, m, n>(From)>(util::Eigen_multi_scal<From, To, m, n>(f, a));
-}
+    template <typename Args, typename Result, int m, int n>
+    const std::function <Eigen::Matrix <Result, m, n>(Args)> operator*(const std::function <Result(Args ...)> &f, const Eigen::Matrix <Result, m, n> &a)
+    {
+        return std::function <Eigen::Matrix <Result, m, n>(Args)>(util::Eigen_multi_scal <Args ..., Result, m, n>(f, a));
+    }
 
-template <typename From, typename To, int m, int n>
-const std::function<Eigen::Matrix<To, m, n>(From)> operator*(const To& a, const std::function<Eigen::Matrix<To, m, n>(From)>& f)
-{
-    return std::function<Eigen::Matrix<To, m, n>(From)>(util::Scal_multi_eigen<From, To, m, n>(a, f));
-}
+    template <typename Args, typename Result, int m, int n>
+    const std::function <Eigen::Matrix <Result, m, n>(Args)> operator*(const Result &a, const std::function <Eigen::Matrix <Result, m, n>(Args)> &f)
+    {
+        return std::function <Eigen::Matrix <Result, m, n>(Args)>(util::Scal_multi_eigen <Args ..., Result, m, n>(a, f));
+    }
 
-template <typename From, typename To, int m, int n>
-const std::function<Eigen::Matrix<To, m, n>(From)> operator*(const std::function<Eigen::Matrix<To, m, n>(From)>& f, const To& a)
-{
-    return std::function<Eigen::Matrix<To, m, n>(From)>(util::Scal_multi_eigen<From, To, m, n>(f, a));
-}
+    template <typename Args, typename Result, int m, int n>
+    const std::function <Eigen::Matrix <Result, m, n>(Args)> operator*(const std::function <Eigen::Matrix <Result, m, n>(Args)> &f, const Result &a)
+    {
+        return std::function <Eigen::Matrix <Result, m, n>(Args)>(util::Scal_multi_eigen <Args ..., Result, m, n>(f, a));
+    }
 
 #endif
 
