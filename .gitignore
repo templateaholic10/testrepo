@@ -19,3 +19,7 @@ bin/
 
 # intermediates
 *.pyc
+
+# core file
+core
+*/core
