@@ -25,7 +25,7 @@
         "randeigen.hpp",
         "functionalop.hpp",
         "exrandom.hpp",
-        "exfunction.hpp"
+        "exfunctional.hpp"
     ],
     "constexpr": null
 }
