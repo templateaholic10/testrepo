@@ -54,35 +54,13 @@ namespace std {
     template <typename _Scalar, int _Rows, int _Cols, int _Options = Eigen::ColMajor, int _MaxRows = _Rows, int _MaxCols = _Cols>
     _Scalar min(const Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> &M)
     {
-        const int rows = M.rows();
-        const int cols = M.cols();
-        _Scalar retval = M(0, 0);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (retval > M(i, j)) {
-                    retval = M(i, j);
-                }
-            }
-        }
-
-        return retval;
+        return M.minCoeff();
     }
 
     template <typename _Scalar, int _Rows, int _Cols, int _Options = Eigen::ColMajor, int _MaxRows = _Rows, int _MaxCols = _Cols>
     _Scalar max(const Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> &M)
     {
-        const int rows = M.rows();
-        const int cols = M.cols();
-        _Scalar retval = M(0, 0);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (retval < M(i, j)) {
-                    retval = M(i, j);
-                }
-            }
-        }
-
-        return retval;
+        return M.maxCoeff();
     }
 
     /*! @brief Eigen::Matrixに対するelement-wise関数
@@ -240,7 +218,7 @@ namespace Eigen {
         return (M - Hermite(M)) / 2;
     }
 
-    /*! @brief 行列のk番目の特異値を返す関数
+    /*! @brief 行列のk番目（0が最大，n-1が最小）の特異値を返す関数
         @param M 行列
         @param k 求める特異値の序列
     */
@@ -250,6 +228,36 @@ namespace Eigen {
         Eigen::JacobiSVD <Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>> svd(M);
 
         return svd.singularValues().eval()(k);
+    }
+
+    /*! @brief 行列のk番目の固有値を返す関数
+        @param M 行列
+        @param k 求める固有値の序列
+    */
+    template <typename _Scalar, int _Rows, int _Cols, int _Options = Eigen::ColMajor, int _MaxRows = _Rows, int _MaxCols = _Cols>
+    typename std::decomplexify<_Scalar>::type eigenvalue(const Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> &M, const int k)
+    {
+        //todo: 順序は適当
+        Eigen::EigenSolver <Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>> es(M);
+
+        return es.eigenValues().eval()(k);
+    }
+
+    /*! @brief エルミート行列のk番目の固有値（0が最大，n-1が最小）を返す関数
+        @param M 行列
+        @param k 求める固有値の序列
+    */
+    template <typename _Scalar, int _Rows, int _Cols, int _Options = Eigen::ColMajor, int _MaxRows = _Rows, int _MaxCols = _Cols>
+    typename std::decomplexify<_Scalar>::type selfadjoint_eigenvalue(const Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> &M, const int k)
+    {
+        assert(M.rows() == M.cols());
+        Eigen::SelfAdjointEigenSolver <Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>> es(M);
+        if (es.info() != Eigen::Success) {
+            assert(false);
+            return 0;
+        }
+
+        return es.eigenvalues().eval()(M.rows() - 1 - k);
     }
 
     /*! @brief 行列の正定値性を判定する関数
@@ -322,6 +330,25 @@ namespace Eigen {
         }
 
         return (es.eigenvalues().array() <= 0.).all();
+    }
+
+    /*! @brief 行列のpositive diagonal QR decompositionを求める関数
+    */
+    template <typename _Scalar, int _Rows, int _Cols, int _Options = Eigen::ColMajor, int _MaxRows = _Rows, int _MaxCols = _Cols>
+    Eigen::Matrix <_Scalar, _Rows, _Rows, _Options, _MaxRows, _MaxRows> householderQ_unique(const Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> &M)
+    {
+        using M_type = Eigen::Matrix <_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>;
+        using Q_type = Eigen::Matrix <_Scalar, _Rows, _Rows, _Options, _MaxRows, _MaxRows>;
+        Q_type Q = Eigen::HouseholderQR<M_type>(M).householderQ();
+        const M_type R = Q.transpose() * M;
+
+        const int rows = M.rows();
+        for (int i = 0; i < rows; i++) {
+            if (R(i, i) < 0.) {
+                Q.col(i) = -Q.col(i);
+            }
+        }
+        return Q;
     }
 }
 

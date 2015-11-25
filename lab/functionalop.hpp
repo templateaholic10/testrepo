@@ -11,7 +11,8 @@
 #include <zero_one>
 
 /*! @namespace util
-    @brief 何も考えずラムダ式で実装すると深くなった時にセグフォする
+    @brief 何も考えずラムダ式で実装すると深くなった時にセグフォする．
+    コピーキャプチャすればよい
 */
 namespace util {
     /*! @brief 関数版+演算子のための関数ファンクタ

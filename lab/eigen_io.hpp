@@ -9,6 +9,7 @@
 #include <Eigen/Core>
 #include <iostream>
 #include <cstdlib>
+#include <util>
 
 /*! @macro
     @brief デリミタ．インクルード前にEIGEN_IO_DELIMを定義することで変更が可能
@@ -17,7 +18,7 @@
 #define EIGEN_IO_DELIM ','
 #endif
 
-/*! @brief Eigen::Matrix抽出子
+/*! @brief Eigen::Matrix抽出子．Eigen::Dynamic行列はきちんと初期化してから使うように
 */
 template <typename Elem, int m, int n>
 std::ostream& operator<<(std::ostream& os, const Eigen::Matrix<Elem, m, n>& M)
@@ -40,7 +41,7 @@ std::ostream& operator<<(std::ostream& os, const Eigen::Matrix<Elem, m, n>& M)
     return os;
 }
 
-/*! @brief Eigen::Matrix挿入子
+/*! @brief Eigen::Matrix挿入子．Eigen::Dynamic行列はきちんと初期化してから使うように
 */
 template <typename Elem, int m, int n>
 std::istream& operator>>(std::istream& is, Eigen::Matrix<Elem, m, n>& M)
@@ -57,7 +58,7 @@ std::istream& operator>>(std::istream& is, Eigen::Matrix<Elem, m, n>& M)
 }
 
 namespace Eigen {
-    /*! @brief Eigen::Matrixの高度抽出関数
+    /*! @brief Eigen::Matrixの高度抽出関数．Eigen::Dynamic行列はきちんと初期化してから使うように
         @param os 出力ストリーム
         @param M 行列
         @param stand 行列を立体で表現するか，1列で表現するか
@@ -88,7 +89,7 @@ namespace Eigen {
         return os;
     }
 
-    /*! @brief Eigen::Matrixの高度挿入関数
+    /*! @brief Eigen::Matrixの高度挿入関数．Eigen::Dynamic行列はきちんと初期化してから使うように
         @param is 入力ストリーム
         @param M 行列
         @param delim デリミタ
