@@ -125,10 +125,10 @@ namespace std {
     public:
         using result_type = T;
     private:
-        std::mt19937                                 mt;
+        std::mt19937                           mt;
         std::normal_distribution <result_type> rv;
-        const result_type                            mu;
-        const result_type                            sigma;
+        const result_type                      mu;
+        const result_type                      sigma;
     public:
         Gaussian(result_type mu_=0., result_type sigma_=1., std::random_device::result_type seed=std::random_device()())
             : mu(mu_), sigma(sigma_), mt(seed), rv(mu_, sigma_)
@@ -148,6 +148,11 @@ namespace std {
         result_type stddev() const
         {
             return sigma;
+        }
+
+        result_type variance() const
+        {
+            return sigma * sigma;
         }
     };
 }

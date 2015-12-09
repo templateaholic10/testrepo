@@ -37,10 +37,12 @@ std::ostream& operator<<(std::ostream& os, const std::vector<Elem>& seq)
 template <typename Elem>
 std::istream& operator>>(std::istream& is, std::vector<Elem>& seq)
 {
-    for (auto elem : seq) {
-        is >> elem;
+    is >> *(seq.begin());
+    for (auto it = seq.begin() + 1; it != seq.end(); it++) {
         is.ignore(1, VECTOR_IO_DELIM);
+        is >> *it;
     }
+
     return is;
 }
 

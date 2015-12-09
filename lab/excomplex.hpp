@@ -9,17 +9,30 @@
 #include <complex>
 
 namespace std {
+    /*! @struct complexify
+        @brief 実数型を複素化するメタ関数
+    */
+    template <typename Floating_point>
+    struct complexify {
+        using type = std::complex<Floating_point>;
+    };
+
+    template <typename Floating_point>
+    struct complexify<std::complex<Floating_point>> {
+        using type = std::complex<Floating_point>;
+    };
+
     /*! @struct decomplexify
         @brief 複素数型を脱複素化するメタ関数
     */
-    template <typename T>
+    template <typename Floating_point>
     struct decomplexify {
-        using type = T;
+        using type = Floating_point;
     };
 
     template <typename Floating_point>
     struct decomplexify<std::complex<Floating_point>> {
-        using T = Floating_point;
+        using type = Floating_point;
     };
 }
 

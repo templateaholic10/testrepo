@@ -1,5 +1,6 @@
 {
     ".": [
+        "debug.hpp",
         "util.hpp",
         "util_array.hpp",
         "util_bit.hpp",
@@ -24,7 +25,10 @@
         "randeigen.hpp",
         "functionalop.hpp",
         "exrandom.hpp",
-        "exfunctional.hpp"
+        "exfunctional.hpp",
+        "iterative.hpp",
+        "exarray.hpp",
+        "fft.hpp"
     ],
     "constexpr": null
 }
