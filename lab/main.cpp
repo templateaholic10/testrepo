@@ -1,71 +1,37 @@
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <util>
-#include <timer>
-#include "randeigen.hpp"
-#include <array>
-#include <Eigen/QR>
-#include "exeigen.hpp"
-#include "eigen_io.hpp"
-#include "array_io.hpp"
-#include "exfstream.hpp"
-
-template <typename T, size_t n>
-void hoge(std::array<T, n>& a)
-{
-    for (size_t i = 0; i < n; i++) {
-        a[i] = 1.;
-    }
-}
-
-template <typename T, size_t n>
-void piyo(std::array<T, n>& a)
-{
-    for (auto it = a.begin(); it != a.end(); it++) {
-        (*it) = 2.;
-    }
-}
-
-template <typename T, size_t n>
-void fuga(std::array<T, n>& a)
-{
-    for (auto elem : a) {
-        elem = 3.;
-    }
-}
-
-template <typename T, size_t n>
-void moge(std::array<T, n>& a)
-{
-    for (auto &&elem : a) {
-        elem = 4.;
-    }
-}
+#include "fft.hpp"
+#include <eigen_io>
+#include <array_io>
+#include <vector_io>
+#include <debug>
 
 int main(int argc, char const *argv[])
 {
-    const std::string filename = "gaussians.csv";
-    constexpr int n = 2;
-    constexpr int max_rep = 10;
-    using v_type = Eigen::RowVector<double, n>;
-    using matrix_type = Eigen::Matrix<double, n, n>;
-    std::array<v_type, max_rep> v;
-    std::array<double, max_rep> a;
-    // v_type mu;
-    // mu << 1., 1.;
-    // matrix_type sigma;
-    // sigma << 1., 0.9, 0.9, 1.;
-    // std::Gaussian<v_type> gaussian(mu, sigma);
-    // for (int i = 0; i < max_rep; i++) {
-    //     v[i] = gaussian();
-    //     dump(filename, v[i], std::ios_base::app);
-    // }
-    // std::cout << v << std::endl;
-    // std::cin >> v[0];
-    // std::cin >> v;
-    load(filename, v);
-    std::cout << v << std::endl;
-
+    using T = double;
+    constexpr int N = 10;
+    constexpr int p = 2;
+    Eigen::Matrix<T, N, p> x;
+    // 正弦波でテストする
+    constexpr double period = 2. * M_PI;
+    constexpr double interval = period / N;
+    for (size_t i = 0; i < N; i++) {
+        x(i, 0) = std::sin(i * interval);
+        x(i, 1) = std::cos(i * interval);
+    }
+    _PRINT(x)
+    auto X1 = Eigen::fft<T>(x);
+    _PRINT(X1)
+    auto X2 = Eigen::fft<std::complex<T>>(x);
+    _PRINT(X2)
+    auto X3 = Eigen::fft(x);
+    _PRINT(X3)
+    auto X4 = Eigen::ifft<T>(x);
+    _PRINT(X4)
+    auto X5 = Eigen::ifft<std::complex<T>>(x);
+    _PRINT(X5)
+    auto X6 = Eigen::ifft(x);
+    _PRINT(X6)
+    // auto y = Eigen::ifft<std::complex<T>>(X);
+    // _PRINT(y)
     return 0;
 }
