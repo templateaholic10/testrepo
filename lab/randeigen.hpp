@@ -6,8 +6,8 @@
 #ifndef RANDEIGEN_HPP
 #define RANDEIGEN_HPP
 
-#include <exrandom>
 #include <exeigen>
+#include <exrandom>
 #include <Eigen/Cholesky>
 
 namespace std {
@@ -155,6 +155,180 @@ namespace std {
             return A.transpose() * A;
         }
     };
+
+    namespace {
+        constexpr int doubled_size(const int size)
+        {
+            if (size == Eigen::Dynamic) {
+                return Eigen::Dynamic;
+            } else {
+                return 2*size;
+            }
+        }
+    }
+
+    /*! @brief std::Gaussianのstd::complex，Eigen::Vector版．ただしcircularly symmetricな場合
+    */
+    template <typename T, int n>
+    class Gaussian <Eigen::Vector <std::complex<T>, n>, typename std::enable_if <std::is_floating_point <T>::value>::type> : public Gaussian <Eigen::Vector <T, doubled_size(n)>> {
+    public:
+        using type = Gaussian<Eigen::Vector<std::complex<T>, n>>;
+        using base_type = Gaussian <Eigen::Vector <T, doubled_size(n)>>;
+        using result_type = Eigen::Vector <std::complex<T>, n>;
+        using real_type = Eigen::Vector<T, doubled_size(n)>;
+        using matrix_type = Eigen::Matrix<std::complex<T>, n, n>;
+    private:
+        const result_type mu;
+        const matrix_type sigma;
+        const int size;
+    public:
+        Gaussian(const result_type& mu_=result_type::Zero(), const matrix_type& sigma_=matrix_type::Identity(), const std::random_device::result_type seed=std::random_device()(), const int size_=n)
+            : base_type(Eigen::vjoin(mu_.real(), mu_.imag()), 0.5*Eigen::quadjoin(sigma_.real(), -sigma_.imag(), sigma_.imag(), sigma_.real()), seed, 2*size_), mu(mu_), sigma(sigma_), size(size_)
+        {
+        }
+
+        result_type operator()()
+        {
+            real_type tmp = base_type::operator()();
+            result_type retval(size);
+            for (int i = 0; i < size; i++) {
+                retval(i).real(tmp(i));
+                retval(i).imag(tmp(size+i));
+            }
+            return retval;
+        }
+
+        result_type mean() const
+        {
+            return mu;
+        }
+
+        result_type variance() const
+        {
+            return sigma;
+        }
+    };
+
+    /*! @brief std::Gaussianのstd::complex，Eigen::RowVector版．ただしcircularly symmetricな場合
+    */
+    template <typename T, int n>
+    class Gaussian <Eigen::RowVector <std::complex<T>, n>, typename std::enable_if <std::is_floating_point <T>::value>::type> : public Gaussian <Eigen::RowVector <T, doubled_size(n)>> {
+    public:
+        using type = Gaussian<Eigen::RowVector<std::complex<T>, n>>;
+        using base_type = Gaussian <Eigen::RowVector <T, doubled_size(n)>>;
+        using result_type = Eigen::RowVector <std::complex<T>, n>;
+        using real_type = Eigen::RowVector<T, doubled_size(n)>;
+        using matrix_type = Eigen::Matrix<std::complex<T>, n, n>;
+    private:
+        const result_type mu;
+        const matrix_type sigma;
+        const int size;
+    public:
+        Gaussian(const result_type& mu_=result_type::Zero(), const matrix_type& sigma_=matrix_type::Identity(), const std::random_device::result_type seed=std::random_device()(), const int size_=n)
+            : base_type(Eigen::hjoin(mu_.real(), mu_.imag()), 0.5*Eigen::quadjoin(sigma_.real(), sigma_.imag(), -sigma_.imag(), sigma_.real()), seed, 2*size_), mu(mu_), sigma(sigma_), size(size_)
+        {
+        }
+
+        result_type operator()()
+        {
+            real_type tmp = base_type::operator()();
+            result_type retval(size);
+            for (int i = 0; i < size; i++) {
+                retval(i).real(tmp(i));
+                retval(i).imag(tmp(size+i));
+            }
+            return retval;
+        }
+
+        result_type mean() const
+        {
+            return mu;
+        }
+
+        result_type variance() const
+        {
+            return sigma;
+        }
+    };
+
+    /*! @class
+        @brief Wishart分布に従う確率変数の関数オブジェクト
+        @tparam T double
+    */
+    template <typename T, class Ignored = void>
+    class Wishart;
+
+    /*! @brief 実ウィシャート分布
+    */
+    template <typename T, int n>
+    class Wishart <Eigen::Matrix <T, n, n>, typename std::enable_if <std::is_floating_point <T>::value>::type> {
+    public:
+        using type = Wishart<Eigen::Matrix<T, n, n>>;
+        using result_type = Eigen::Matrix <T, n, n>;
+        using v_type = Eigen::Vector<T, n>;
+        using N_type = Gaussian<v_type>;
+    private:
+        const int size;
+        const result_type sigma;
+        const int k;
+        N_type gaussian;
+    public:
+        Wishart(const result_type& sigma_=result_type::Identity(), const int k_=1, const std::random_device::result_type seed=std::random_device()(), const int size_=n)
+            : size(size_), sigma(sigma_), k(k_), gaussian(v_type::Zero(size_), sigma_, seed, size_)
+        {
+        }
+
+        result_type operator()()
+        {
+            result_type retval = result_type::Zero(size, size);
+            for (int i = 0; i < k; i++) {
+                const v_type x = gaussian();
+                retval += x * x.transpose();
+            }
+            return retval;
+        }
+
+        result_type mean() const
+        {
+            return k * sigma;
+        }
+    };
+
+    /*! @brief 複素ウィシャート分布
+    */
+    template <typename T, int n>
+    class Wishart <Eigen::Matrix <std::complex<T>, n, n>, typename std::enable_if <std::is_floating_point <T>::value>::type> {
+    public:
+        using type = Wishart<Eigen::Matrix<std::complex<T>, n, n>>;
+        using result_type = Eigen::Matrix <std::complex<T>, n, n>;
+        using v_type = Eigen::Vector<std::complex<T>, n>;
+        using N_type = Gaussian<v_type>;
+    private:
+        const int size;
+        const result_type sigma;
+        const int k;
+        N_type gaussian;
+    public:
+        Wishart(const result_type& sigma_=result_type::Identity(), const int k_=1, const std::random_device::result_type seed=std::random_device()(), const int size_=n)
+            : size(size_), sigma(sigma_), k(k_), gaussian(v_type::Zero(size_), sigma_, seed, size_)
+        {
+        }
+
+        result_type operator()()
+        {
+            result_type retval = result_type::Zero(size, size);
+            for (int i = 0; i < k; i++) {
+                const v_type x = gaussian();
+                retval += x * x.adjoint();
+            }
+            return retval;
+        }
+
+        result_type mean() const
+        {
+            return k * sigma;
+        }
+    };
 }
 
 namespace Eigen {
@@ -182,7 +356,7 @@ namespace Eigen {
         return retval;
     }
 
-    /*! @brief 各要素が一様分布に従う確率変数によって決定される行列を返す関数
+    /*! @brief 各要素が正規分布に従う確率変数によって決定される行列を返す関数
         @tparam rv_type 確率変数の型
         @tparam m 行サイズ
         @tparam n 列サイズ

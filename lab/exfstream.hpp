@@ -7,6 +7,7 @@
 #ifndef EXFSTREAM_HPP
 #define EXFSTREAM_HPP
 
+#include <cassert>
 #include <fstream>
 
 // 名前空間に入れると，その中の演算子しか探索しない
@@ -18,6 +19,7 @@ bool dump(const std::string& filename, const T& obj, std::ios_base::openmode mod
 {
     std::ofstream fout(filename, mode);
     if (fout.fail()) {
+        assert(false);
         return false;
     }
     fout << obj << std::endl;
@@ -32,6 +34,7 @@ bool load(const std::string& filename, T& obj, std::ios_base::openmode mode = st
 {
     std::ifstream fin(filename, mode);
     if (fin.fail()) {
+        assert(false);
         return false;
     }
     fin >> obj;

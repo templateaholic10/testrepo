@@ -8,6 +8,10 @@
 #define CMATH_EPSILON 1e-6
 #endif
 
+#ifndef CMATH_MAX_REP
+#define CMATH_MAX_REP 10000
+#endif
+
 namespace cpstd {
     /*! @brief コンパイル時絶対値関数
         @param d 実数
@@ -112,7 +116,10 @@ namespace cpstd {
         }
         // 初期値．
         double x = d;
-        while (x*x - d > CMATH_EPSILON) {
+        for (int i = 0; i < CMATH_MAX_REP; i++) {
+            if (x*x - d < CMATH_EPSILON) {
+                break;
+            }
             x = (x*x + d) / x * 0.5;
         }
         return x;

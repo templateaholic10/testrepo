@@ -11,6 +11,7 @@
 #include <typeinfo>
 #include <cxxabi.h>
 #include <boost/type.hpp>
+#include <boost/mpl/print.hpp>
 
 /*! @macro
     @brief 行位置マーカー
@@ -49,7 +50,15 @@
 #ifdef _TYPE
     #undef _TYPE
 #endif
-#define _TYPE(var) { std::cout << "$" #var ": " << util::typename_of <var>() << std::endl; }
+#define _TYPE(var) { std::cout << "$" #var ": " << type <var>() << std::endl; }
+
+/*! @macro
+    @brief 型名プリンタ．参照型を区別する
+*/
+#ifdef _DETAILTYPE
+    #undef _DETAILTYPE
+#endif
+#define _DETAILTYPE(var) { std::cout << "$" #var ": " << detailtype <var>() << std::endl; }
 
 /*! @macro
     @brief オブジェクトの型名プリンタ．参照型を区別しない
@@ -57,7 +66,7 @@
 #ifdef _TYPEOF
     #undef _TYPEOF
 #endif
-#define _TYPEOF(var) { std::cout << "$" #var ": " << _debug_hpp::type <decltype(var)>() << std::endl; }
+#define _TYPEOF(var) { std::cout << "$" #var ": " << type <decltype(var)>() << std::endl; }
 
 /*! @macro
     @brief オブジェクトの型名プリンタ．参照型を区別する
@@ -65,13 +74,13 @@
 #ifdef _DETAILTYPEOF
     #undef _DETAILTYPEOF
 #endif
-#define _DETAILTYPEOF(var) { std::cout << "$" #var ": " << _debug_hpp::detailtype <decltype(var)>() << std::endl; }
+#define _DETAILTYPEOF(var) { std::cout << "$" #var ": " << detailtype <decltype(var)>() << std::endl; }
 
 /*! @namespace _debug_hpp
     @brief マクロのための内部関数．
     野良C++erの雑記帳（http://d.hatena.ne.jp/gintenlabo/20100116/1263681145）様から
 */
-namespace _debug_hpp {
+namespace {
     /*! @brief typeinfoのデマングル関数．メモリリークが存在
     */
     char *demangle(const char *demangled)
@@ -96,5 +105,21 @@ namespace _debug_hpp {
         return demangle(typeid(boost::type <T> ).name() );
     }
 }
+
+/*! @macro
+    @brief コンパイル時型名プリンタ
+*/
+#ifdef _STATIC_TYPE
+    #undef _STATIC_TYPE
+#endif
+#define _STATIC_TYPE(var) { typedef boost::mpl::print <var>::type _static_type; }
+
+/*! @macro
+    @brief オブジェクトのコンパイル時型名プリンタ
+*/
+#ifdef _STATIC_TYPEOF
+    #undef _STATIC_TYPEOF
+#endif
+#define _STATIC_TYPEOF(var) { typedef boost::mpl::print <decltype(var)>::type _static_typeof; }
 
 #endif

@@ -10,8 +10,42 @@
 #include <random>
 #include <type_traits>
 #include <complex>
+#include <cmath>
 
 namespace std {
+    /*! @class
+        @brief std::bernoulli_distributionのラッパ関数オブジェクト．メルセンヌツイスタを使用して生成を行う
+    */
+    class Bernoulli {
+    public:
+        using result_type = std::bernoulli_distribution::result_type;
+        using param_type = double;
+    private:
+        std::mt19937                                mt;
+        std::bernoulli_distribution rv;
+        const param_type p;
+    public:
+        Bernoulli(param_type p_=0.5, std::random_device::result_type seed=std::random_device()())
+            : p(p_), mt(seed), rv(p_)
+        {
+        }
+
+        result_type operator()()
+        {
+            return rv(mt);
+        }
+
+        result_type min() const
+        {
+            return false;
+        }
+
+        result_type max() const
+        {
+            return true;
+        }
+    };
+
     /*! @class
         @brief std::uniform_int_distributionとstd::uniform_real_distributionのラッパ関数オブジェクト．メルセンヌツイスタを使用して生成を行う
         @tparam T 数値型またはstd::complex
@@ -153,6 +187,46 @@ namespace std {
         result_type variance() const
         {
             return sigma * sigma;
+        }
+    };
+
+    /*! @brief 1変量複素正規分布．ただしcircularly symmetricな場合
+    */
+    template <typename T>
+    class Gaussian <std::complex<T>, typename std::enable_if <std::is_floating_point <T>::value>::type> {
+    public:
+        using result_type = std::complex<T>;
+        using real_type = T;
+    private:
+        std::mt19937                           mt;
+        std::normal_distribution <real_type> rv_re;
+        std::normal_distribution <real_type> rv_im;
+        const result_type                      mu;
+        const result_type                      sigma; // 複素数型だが，実際は実正数
+    public:
+        Gaussian(result_type mu_=result_type(0., 0.), result_type sigma_=result_type(1., 0.), std::random_device::result_type seed=std::random_device()())
+            : mu(mu_), sigma(sigma_), mt(seed), rv_re(mu_.real(), sigma_.real()/std::sqrt(2.)), rv_im(mu_.imag(), sigma_.real()/std::sqrt(2.))
+        {
+        }
+
+        result_type operator()()
+        {
+            return result_type(rv_re(mt), rv_im(mt));
+        }
+
+        result_type mean() const
+        {
+            return mu;
+        }
+
+        result_type stddev() const
+        {
+            return sigma;
+        }
+
+        result_type variance() const
+        {
+            return std::norm(sigma);
         }
     };
 }

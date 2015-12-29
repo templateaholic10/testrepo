@@ -28,7 +28,8 @@
         "exfunctional.hpp",
         "iterative.hpp",
         "exarray.hpp",
-        "fft.hpp"
+        "fft.hpp",
+        "exmath.hpp"
     ],
     "constexpr": null
 }

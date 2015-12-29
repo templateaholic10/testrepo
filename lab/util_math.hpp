@@ -16,99 +16,6 @@ namespace util {
     */
     constexpr double epsilon = 10e-6;
 
-    /*! @brief コンパイル時べき乗関数
-        @param base 基数
-        @param exponent 指数
-        @returnn べき乗
-    */
-    template <typename T>
-    constexpr T power(const T base, int exponent)
-    {
-        T result = base;
-        for (int i = 1; i < exponent; i++) {
-            result *= base;
-        }
-
-        return result;
-    }
-
-    /*! @brief コンパイル時2進対数関数
-        @param n 真数
-        @return 2進対数
-    */
-    template <typename Numeric>
-    constexpr Numeric lg(const Numeric n)
-    {
-        Numeric _n  = n;
-        Numeric lgn = 0;
-        while (_n) {
-            lgn++;
-            _n >>= 1;
-        }
-
-        return lgn;
-    }
-
-    /*! @brief コンパイル時床関数
-        @param d 実数
-        @return dを超えない最大の整数（int）
-    */
-    constexpr int floor(const double d)
-    {
-        if (d > 0) {
-            // 正の場合
-            return static_cast <int>(d);
-        } else {
-            // 負の場合
-            return static_cast <int>(d + epsilon) - 1;
-        }
-    }
-
-    /*! @brief コンパイル時天井関数
-        @param d 実数
-        @return d以上の最小の整数（int）
-    */
-    constexpr int ceil(const double d)
-    {
-        if (d > 0) {
-            // 正の場合
-            return static_cast <int>(d - epsilon) + 1;
-        } else {
-            // 負の場合
-            return static_cast <int>(d);
-        }
-    }
-
-    /*! @brief コンパイル時四捨五入関数
-        @param d 実数
-        @return dを四捨五入した整数（int）
-    */
-    constexpr int round(const double d)
-    {
-        if (d > 0) {
-            // 正の場合
-            return static_cast <int>(d + 0.5);
-        } else {
-            // 負の場合
-            return static_cast <int>(d - 0.5);
-        }
-    }
-
-    /*! @brief コンパイル時平方根関数．Newton法による実装
-        @param d 非負実数
-        @return dの平方根
-    */
-    constexpr double sqrt(const double d)
-    {
-        SPROUT_ASSERT(d >= 0, "negative number has no square root!");
-        // 初期値．
-        double x = d;
-        while (x*x - d > epsilon) {
-            x = (x*x + d) / x * 0.5;
-        }
-        return x;
-    }
-
     /*! @brief 離散畳み込みを求める関数
         @param x 関数1（std::array）
         @param y 関数2（std::array）
@@ -155,7 +62,7 @@ namespace util {
 
     /*! @brief 2次方程式の小さい根を求める関数．桁落ちが小さい表式で求める．実根を持たないときエラー
     */
-    constexpr double quad_root_real2(double a, double b, double c)
+    constexpr double quad_root_real2(const double a, const double b, const double c)
     {
         return (b>=0) ? ((-b - sqrt(b*b - 4.*a*c)) / (2.*a)) : ((2.*c) / (-b + sqrt(b*b-4.*a*c)));
     }
