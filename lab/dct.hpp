@@ -62,6 +62,148 @@ namespace Eigen {
         return evenize1<Eigen::ColMajor>(M);
     }
 
+    template <typename Scalar, size_t N>
+    typename std::array<Scalar, 2*N-2> evenize1(const std::array<Scalar, N> &x)
+    {
+        using param_type = std::array<Scalar, N>;
+        using result_type = std::array<Scalar, 2*N-2>;
+        result_type retval;
+        std::copy(x.begin(), x.end(), retval.begin());
+        std::reverse_copy(x.begin()+1, x.end()-1, retval.begin()+N);
+        return retval;
+    }
+
+    template <typename Scalar>
+    typename std::vector<Scalar> evenize1(const std::vector<Scalar> &x)
+    {
+        using param_type = std::vector<Scalar>;
+        using result_type = std::vector<Scalar>;
+        const int N = x.size();
+        result_type retval(2*N-2);
+        std::copy(x.begin(), x.end(), retval.begin());
+        std::reverse_copy(x.begin()+1, x.end()-1, retval.begin()+N);
+        return retval;
+    }
+
+    /*! @brief 1変量時系列のDCT-1
+        @tparam To 実数型または複素数型
+        指定しないと複素数型になる
+        @tparam From 実数型または複素数型
+        @tparam N 系列の長さ
+        @param x 1変量時系列
+    */
+
+    /*! @brief std::array用
+    */
+
+    /*! @brief dct1<std::complex<double>>の場合を担保
+    */
+    template <typename To, typename From, size_t N, typename std::enable_if <std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
+    std::array <To, N> dct1(const std::array <From, N> &x)
+    {
+        using result_type = std::array <To, N>;
+        result_type retval;
+        Eigen::FFT <typename std::decomplexify <To>::type> fft;
+        fft.fwd(retval.data(), x.data(), N);
+
+        return retval;
+    }
+
+    /*! @brief 型指定しない場合を担保
+    */
+    template <size_t N, typename From>
+    std::array <typename std::complexify<From>::type, N> dct(const std::array <From, N> &x)
+    {
+        return dct<typename std::complexify<From>::type>(x);
+    }
+
+    /*! @brief dct<double>の場合を担保
+    */
+    template <typename To, typename From, size_t N, typename std::enable_if <!std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
+    std::array <To, N> dct(const std::array <From, N> &x)
+    {
+        using tmp_type = std::array <typename std::complexify <To>::type, N>;
+        tmp_type tmp(dct<typename std::complexify <To>::type>(x));
+        using result_type = std::array <To, N>;
+        result_type retval;
+        std::transform(tmp.begin(), tmp.end(), retval.begin(), [](const typename std::complexify <To>::type &c){return std::real(c);});
+
+        return retval;
+    }
+
+    /*! @brief std::vector用
+    */
+    template <typename T>
+    std::vector <typename std::complexify <T>::type> dct(const std::vector <T> &x)
+    {
+        using result_type = std::vector <typename std::complexify <T>::type>;
+        result_type                                       retval;
+        Eigen::FFT <typename std::decomplexify <T>::type> dct;
+        dct.fwd(retval, x);
+
+        return retval;
+    }
+
+    /*! @brief 多変量時系列のDCT-1
+        @tparam To 実数型または複素数型
+        指定しないと複素数型になる
+        @tparam From 実数型または複素数型
+        @tparam Rows 行数
+        @tparam Cols 列数
+        @param X データ行列
+        @param transpose 通常のデータ行列（時間方向が行方向）から転置する
+        デフォルト値はfalse
+    */
+
+    /*! @brief Eigen::Matrix用
+    */
+
+    /*! @brief dct<std::complex<double>>の場合を担保
+    */
+    template <typename To, typename From, int Rows, int Cols, typename std::enable_if <std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
+    Eigen::Matrix <To, Rows, Cols> dct(const Eigen::Matrix <From, Rows, Cols> &X, const bool transpose=false)
+    {
+        const int                                         rows = X.rows();
+        const int                                         cols = X.cols();
+        using result_type = Eigen::Matrix <To, Rows, Cols>;
+        result_type                                       retval(rows, cols);
+        Eigen::FFT <typename std::decomplexify <To>::type> dct;
+        if (transpose) {
+            for (int i = 0; i < rows; i++) {
+                retval.row(i) = dct.fwd(X.row(i).eval());
+            }
+        } else {
+            for (int j = 0; j < cols; j++) {
+                retval.col(j) = dct.fwd(X.col(j).eval());
+            }
+        }
+
+        return retval;
+    }
+
+    /*! @brief 型指定しない場合を担保
+    */
+    template <int Rows, int Cols, typename From>
+    Eigen::Matrix <typename std::complexify <From>::type, Rows, Cols> dct(const Eigen::Matrix <From, Rows, Cols> &X, const bool transpose=false)
+    {
+        return dct<typename std::complexify<From>::type>(X, transpose);
+    }
+
+    /*! @brief dct<double>の場合を担保
+    */
+    template <typename To, typename From, int Rows, int Cols, typename std::enable_if <!std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
+    Eigen::Matrix <To, Rows, Cols> dct(const Eigen::Matrix <From, Rows, Cols> &X, const bool transpose=false)
+    {
+        return std::real(dct<typename std::complexify<To>::type>(X, transpose));
+    }
+
+
+
+
+
+
+
+
     /*! @brief DCT-2用の偶拡張メタ関数．abcdeからabcdedcbを作る
     */
     template <typename T, int Option = Eigen::ColMajor>

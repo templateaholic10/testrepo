@@ -7,23 +7,19 @@
 #include <array_io>
 #include <vector_io>
 #include "debug.hpp"
+#include <numeric>
 
 int main(int argc, char const *argv[])
 {
     using T = double;
     constexpr int N = 10;
-    constexpr int p = 3;
-    using v_type = Eigen::Vector<T, p>;
-    using M_type = Eigen::Matrix<T, N, p>;
-    M_type M;
-    for (size_t i = 0; i < N; i++) {
-        for (size_t j = 0; j < p; j++) {
-            M(i, j) = i + j;
-        }
-    }
-    _PRINT(M)
-    auto Meven = Eigen::evenize2<Eigen::ColMajor>(M);
-    _PRINT(Meven)
+    // constexpr int p = 3;
+    using v_type = std::array<T, N>;
+    v_type v;
+    std::iota(v.begin(), v.end(), 0);
+    _PRINT(v)
+    auto veven = Eigen::evenize1(v);
+    _PRINT(veven)
 
     // _PRINT((Eigen::Vector<std::complex<T>, N>::Ones()))
 
