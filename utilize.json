@@ -19,6 +19,7 @@
         "vector_io.hpp",
         "eigen_io.hpp",
         "exfstream.hpp",
+        "exalgorithm.hpp",
         "interactive.hpp",
         "exeigen.hpp",
         "excomplex.hpp",

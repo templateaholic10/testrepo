@@ -8,18 +8,29 @@
 #include <vector_io>
 #include "debug.hpp"
 #include <numeric>
+#include "elemwise.hpp"
 
 int main(int argc, char const *argv[])
 {
     using T = double;
-    constexpr int N = 10;
-    // constexpr int p = 3;
+    constexpr int N = 5;
+    constexpr int p = 3;
     using v_type = std::array<T, N>;
+    // using M_type = Eigen::Matrix<T, N, p>;
     v_type v;
+    // M_type M;
     std::iota(v.begin(), v.end(), 0);
+    // M = M_type::Identity();
     _PRINT(v)
-    auto veven = Eigen::evenize1(v);
-    _PRINT(veven)
+    auto V = Eigen::dct1<T>(v);
+    _PRINT(V)
+    std::Elemwise<v_type> hoge = std::Elemwise<v_type>(v);
+    _PRINT(hoge)
+    auto piyo = hoge;
+    hoge += piyo;
+    v_type w(hoge.array());
+    _PRINT(w)
+    // _PRINT(Eigen::deevenize1<Eigen::RowMajor>(Meven))
 
     // _PRINT((Eigen::Vector<std::complex<T>, N>::Ones()))
 

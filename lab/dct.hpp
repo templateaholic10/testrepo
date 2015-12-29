@@ -85,9 +85,78 @@ namespace Eigen {
         return retval;
     }
 
+    /*! @brief DCT-1用の偶拡張から情報を取り出すメタ関数．abcdedcbからabcdeを作る
+    */
+    template <typename T, int Option = Eigen::ColMajor>
+    struct Deevenize1;
+
+    /*! @brief 縦ベクトル
+    */
+    template <typename Scalar, int Rows, int Cols>
+    struct Deevenize1 <Eigen::Matrix<Scalar, Rows, Cols>, Eigen::ColMajor> {
+        using type = typename Eigen::Scaledown<typename Eigen::Expand<Matrix<Scalar, Rows, Cols>, 2, 0>::type, 2, 1>::type;
+    };
+
+    /*! @brief 横ベクトル
+    */
+    template <typename Scalar, int Rows, int Cols>
+    struct Deevenize1 <Eigen::Matrix<Scalar, Rows, Cols>, Eigen::RowMajor> {
+        using type = typename Eigen::Scaledown<typename Eigen::Expand<Matrix<Scalar, Rows, Cols>, 0, 2>::type, 1, 2>::type;
+    };
+
+    /*! @brief DCT-1用の偶拡張から情報を取り出す関数．abcdedcbからabcdeを作る
+    */
+    template <int Option, typename Scalar, int Rows, int Cols, typename std::enable_if<Option == Eigen::ColMajor>::type* = nullptr>
+    typename Deevenize1<Eigen::Matrix<Scalar, Rows, Cols>, Option>::type deevenize1(const Eigen::Matrix<Scalar, Rows, Cols> &M)
+    {
+        const int rows = M.rows();
+        const int cols = M.cols();
+        using param_type = Eigen::Matrix<Scalar, Rows, Cols>;
+        using result_type = typename Deevenize1<param_type, Option>::type;
+        return M.template block<result_type::RowsAtCompileTime, result_type::ColsAtCompileTime>(0, 0, (rows+2)/2, cols).eval();
+    }
+
+    template <int Option, typename Scalar, int Rows, int Cols, typename std::enable_if<Option == Eigen::RowMajor>::type* = nullptr>
+    typename Deevenize1<Eigen::Matrix<Scalar, Rows, Cols>, Option>::type deevenize1(const Eigen::Matrix<Scalar, Rows, Cols> &M)
+    {
+        const int rows = M.rows();
+        const int cols = M.cols();
+        using param_type = Eigen::Matrix<Scalar, Rows, Cols>;
+        using result_type = typename Deevenize1<param_type, Option>::type;
+        return M.template block<result_type::RowsAtCompileTime, result_type::ColsAtCompileTime>(0, 0, rows, (cols+2)/2).eval();
+    }
+
+    template <typename Scalar, int Rows, int Cols>
+    typename Deevenize1<Eigen::Matrix<Scalar, Rows, Cols>, Eigen::ColMajor>::type deevenize1(const Eigen::Matrix<Scalar, Rows, Cols> &M)
+    {
+        return deevenize1<Eigen::ColMajor>(M);
+    }
+
+    template <typename Scalar, size_t Neven>
+    typename std::array<Scalar, (Neven+2)/2> deevenize1(const std::array<Scalar, Neven> &x)
+    {
+        constexpr int N = (Neven+2)/2;
+        using param_type = std::array<Scalar, Neven>;
+        using result_type = std::array<Scalar, N>;
+        result_type retval;
+        std::copy(x.begin(), x.begin()+N, retval.begin());
+        return retval;
+    }
+
+    template <typename Scalar>
+    typename std::vector<Scalar> deevenize1(const std::vector<Scalar> &x)
+    {
+        const int Neven = x.size();
+        const int N = (Neven+2)/2;
+        using param_type = std::vector<Scalar>;
+        using result_type = std::vector<Scalar>;
+        result_type retval(N);
+        std::copy(x.begin(), x.begin()+N, retval.begin());
+        return retval;
+    }
+
     /*! @brief 1変量時系列のDCT-1
-        @tparam To 実数型または複素数型
-        指定しないと複素数型になる
+        @tparam To 実数型または複素数型．指定しないと実数型になる
         @tparam From 実数型または複素数型
         @tparam N 系列の長さ
         @param x 1変量時系列
@@ -101,34 +170,39 @@ namespace Eigen {
     template <typename To, typename From, size_t N, typename std::enable_if <std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
     std::array <To, N> dct1(const std::array <From, N> &x)
     {
+        using param_type = std::array<From, N>;
+        using tmp_param_type = std::array<From, 2*N-2>;
+        using tmp_result_type = std::array<To, 2*N-2>;
         using result_type = std::array <To, N>;
+
+        tmp_result_type tmp_retval;
         result_type retval;
         Eigen::FFT <typename std::decomplexify <To>::type> fft;
-        fft.fwd(retval.data(), x.data(), N);
+        fft.fwd(tmp_retval.data(), evenize1(x).data(), 2*N-2);
 
+        return deevenize1(tmp_retval);
+    }
+
+    /*! @brief dct<double>の場合を担保
+    */
+    template <typename To, typename From, size_t N, typename std::enable_if <!std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
+    std::array <To, N> dct1(const std::array <From, N> &x)
+    {
+        using tmp_result_type = std::array <typename std::complexify<To>::type, N>;
+        using result_type = std::array <To, N>;
+
+        const tmp_result_type tmp_retval(dct1<typename std::complexify<To>::type>(x));
+        result_type retval;
+        std::transform(tmp_retval.begin(), tmp_retval.end(), retval.begin(), [](const typename std::complexify<To>::type c)->To{return c.real();});
         return retval;
     }
 
     /*! @brief 型指定しない場合を担保
     */
     template <size_t N, typename From>
-    std::array <typename std::complexify<From>::type, N> dct(const std::array <From, N> &x)
+    std::array <typename std::decomplexify<From>::type, N> dct1(const std::array <From, N> &x)
     {
-        return dct<typename std::complexify<From>::type>(x);
-    }
-
-    /*! @brief dct<double>の場合を担保
-    */
-    template <typename To, typename From, size_t N, typename std::enable_if <!std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
-    std::array <To, N> dct(const std::array <From, N> &x)
-    {
-        using tmp_type = std::array <typename std::complexify <To>::type, N>;
-        tmp_type tmp(dct<typename std::complexify <To>::type>(x));
-        using result_type = std::array <To, N>;
-        result_type retval;
-        std::transform(tmp.begin(), tmp.end(), retval.begin(), [](const typename std::complexify <To>::type &c){return std::real(c);});
-
-        return retval;
+        return dct1<typename std::decomplexify<From>::type>(x);
     }
 
     /*! @brief std::vector用
