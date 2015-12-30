@@ -12,22 +12,30 @@
 
 int main(int argc, char const *argv[])
 {
-    using T = double;
+    using T = std::complex<double>;
     constexpr int N = 5;
     constexpr int p = 3;
     using v_type = std::array<T, N>;
     // using M_type = Eigen::Matrix<T, N, p>;
     v_type v;
     // M_type M;
-    std::iota(v.begin(), v.end(), 0);
+    // std::iota(v.begin(), v.end(), 0.);
     // M = M_type::Identity();
     _PRINT(v)
-    auto V = Eigen::dct1<T>(v);
-    _PRINT(V)
+    // auto V = Eigen::dct1<T>(v);
+    // _PRINT(V)
     std::Elemwise<v_type> hoge = std::Elemwise<v_type>(v);
     _PRINT(hoge)
     auto piyo = hoge;
-    hoge += piyo;
+    _PRINT(hoge)
+    _PRINT(piyo)
+    hoge[2] += 5;
+    _PRINT(hoge)
+    _PRINT(piyo)
+    // _PRINT((hoge >= piyo))
+    // _PRINT((piyo >= hoge))
+    hoge = std::Elemwise<v_type>(v);
+    _PRINT(hoge.real())
     v_type w(hoge.array());
     _PRINT(w)
     // _PRINT(Eigen::deevenize1<Eigen::RowMajor>(Meven))

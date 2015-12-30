@@ -108,8 +108,8 @@ namespace crtp {
     };
 
     /*! @class
-        @brief <=，==の実装を，>=に委譲することで自動化するための基底クラス
-        @tparam T /を実装したいクラス
+        @brief >=，==の実装を，<=に委譲することで自動化するための基底クラス
+        @tparam T >=，==を実装したいクラス
     */
     template <class T>
     struct ordered {
