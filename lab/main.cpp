@@ -12,7 +12,7 @@
 
 int main(int argc, char const *argv[])
 {
-    using T = double;
+    using T = std::complex<double>;
     constexpr int N = 5;
     constexpr int p = 3;
     using v_type = std::array<T, N>;
@@ -32,10 +32,10 @@ int main(int argc, char const *argv[])
     hoge[2] += 5;
     _PRINT(hoge)
     _PRINT(piyo)
-    _PRINT((hoge >= piyo))
-    _PRINT((piyo >= hoge))
+    // _PRINT((hoge >= piyo))
+    // _PRINT((piyo >= hoge))
+    _PRINT(hoge.real())
     hoge = std::Elemwise<v_type>(v);
-    // _PRINT(hoge.real())
     v_type w(hoge.array());
     _PRINT(w)
     // _PRINT(Eigen::deevenize1<Eigen::RowMajor>(Meven))
