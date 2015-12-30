@@ -35,6 +35,11 @@ int main(int argc, char const *argv[])
     // _PRINT((hoge >= piyo))
     // _PRINT((piyo >= hoge))
     _PRINT(hoge.real())
+    _PRINT(hoge.imag())
+    _PRINT(hoge.abs())
+    _PRINT(hoge.arg())
+    _PRINT(hoge.norm())
+    _PRINT(hoge.conj())
     hoge = std::Elemwise<v_type>(v);
     v_type w(hoge.array());
     _PRINT(w)

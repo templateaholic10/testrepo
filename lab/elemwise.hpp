@@ -40,9 +40,9 @@ std::ostream&operator<<(std::ostream &os, const std::Elemwise <Seq> &elemwise);
 */
 namespace std {
     template <typename T, size_t N>
-    class Elemwise <std::array <T, N> > : public Elemwise_impl <Elemwise<std::array<T, N>>, std::array<T, N>, T> {
+    class Elemwise <std::array <T, N> > : public Elemwise_impl <Elemwise <std::array <T, N> >, std::array <T, N>, T> {
     public:
-        using seq_type   = std::array<T, N>;
+        using seq_type   = std::array <T, N>;
         using value_type = T;
         using type       = Elemwise <seq_type>;
         using base_type  = Elemwise_impl <type, seq_type, value_type>;
@@ -83,8 +83,54 @@ std::ostream&operator<<(std::ostream &os, const std::Elemwise <std::array <T, N>
 }
 
 namespace std {
+    template <typename T>
+    class Elemwise <std::vector <T> > : public Elemwise_impl <Elemwise <std::vector <T> >, std::vector <T>, T> {
+    public:
+        using seq_type   = std::vector <T>;
+        using value_type = T;
+        using type       = Elemwise <seq_type>;
+        using base_type  = Elemwise_impl <type, seq_type, value_type>;
+    public:
+        /*! @brief コンストラクタ
+        */
+        Elemwise(const seq_type &data)
+            : base_type(data)
+        {
+        }
+
+        /*! @brief vectorの取り出し
+        */
+        seq_type &vector()
+        {
+            return static_cast <seq_type&>(*this);
+        }
+
+        /*! @brief 挿入子
+        */
+        template <typename T_>
+        friend std::ostream&operator<<(std::ostream &os, const Elemwise <std::vector <T_> > &elemwise);
+    };
+}
+
+template <typename T>
+std::ostream&operator<<(std::ostream &os, const std::Elemwise <std::vector <T> > &elemwise)
+{
+    const int N = elemwise.size();
+    if (N <= 0) {
+        return os;
+    }
+    os << *(elemwise.begin());
+    for (auto it = elemwise.begin() + 1; it != elemwise.end(); it++) {
+        os << delim << (*it);
+    }
+
+    return os;
+}
+
+namespace std {
     template <class Derived, typename Seq_type, typename Value_type, typename Ignored>
-    class Elemwise_impl : public Seq_type, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type> >, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type>, Value_type>, public devel::Order_operations2 <Elemwise_impl <Derived, Seq_type, Value_type> > {
+    class Elemwise_impl : public Seq_type, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type> >, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type>, Value_type>, public
+                          devel::Order_operations2 <Elemwise_impl <Derived, Seq_type, Value_type> > {
     public:
         using seq_type   = Seq_type;
         using value_type = Value_type;
@@ -233,18 +279,20 @@ namespace std {
         struct Scalarchange;
 
         template <typename T, size_t N, typename Scalar>
-        struct Scalarchange <std::array<T, N>, Scalar> {
-            using type = std::array<Scalar, N>;
+        struct Scalarchange <std::array <T, N>, Scalar> {
+            using type = std::array <Scalar, N>;
         };
 
         template <typename T, typename Scalar>
-        struct Scalarchange <std::vector<T>, Scalar> {
-            using type = std::vector<Scalar>;
+        struct Scalarchange <std::vector <T>, Scalar> {
+            using type = std::vector <Scalar>;
         };
     }
 
     template <class Derived, typename Seq_type, typename Value_type>
-    class Elemwise_impl <Derived, Seq_type, Value_type, typename std::enable_if<std::is_complex<Value_type>::value>::type> : public Seq_type, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type>>, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type>, Value_type>, public devel::Order_operations2 <Elemwise_impl <Derived, Seq_type, Value_type> > {
+    class Elemwise_impl <Derived, Seq_type, Value_type, typename std::enable_if <std::is_complex <Value_type>::value>::type> : public Seq_type, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type> >, public
+                                                                                                                               devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type>, Value_type>, public
+                                                                                                                               devel::Order_operations2 <Elemwise_impl <Derived, Seq_type, Value_type> > {
     public:
         using seq_type   = Seq_type;
         using value_type = Value_type;
@@ -384,15 +432,81 @@ namespace std {
 
         /*! @brief 複素数演算
         */
-        Elemwise<typename Scalarchange<seq_type, typename std::decomplexify<value_type>::type>::type> real() const
+        Elemwise <typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type> real() const
         {
-            const seq_type &cseq_this(static_cast<const seq_type &>(*this));
-            using tmp_result_type = typename Scalarchange<seq_type, typename std::decomplexify<value_type>::type>::type;
-            using result_type = Elemwise<tmp_result_type>;
+            const seq_type&cseq_this(static_cast <const seq_type&>(*this));
+            using tmp_result_type = typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type;
+            using result_type     = Elemwise <tmp_result_type>;
             tmp_result_type retdata;
-            std::transform(cseq_this.begin(), cseq_this.end(), retdata.begin(), [](const value_type &elem){
+            std::transform(cseq_this.begin(), cseq_this.end(), retdata.begin(), [](const value_type &elem) {
                 return elem.real();
             });
+
+            return result_type(retdata);
+        }
+
+        Elemwise <typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type> imag() const
+        {
+            const seq_type&cseq_this(static_cast <const seq_type&>(*this));
+            using tmp_result_type = typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type;
+            using result_type     = Elemwise <tmp_result_type>;
+            tmp_result_type retdata;
+            std::transform(cseq_this.begin(), cseq_this.end(), retdata.begin(), [](const value_type &elem) {
+                return elem.imag();
+            });
+
+            return result_type(retdata);
+        }
+
+        Elemwise <typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type> abs() const
+        {
+            const seq_type&cseq_this(static_cast <const seq_type&>(*this));
+            using tmp_result_type = typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type;
+            using result_type     = Elemwise <tmp_result_type>;
+            tmp_result_type retdata;
+            std::transform(cseq_this.begin(), cseq_this.end(), retdata.begin(), [](const value_type &elem) {
+                return std::abs(elem);
+            });
+
+            return result_type(retdata);
+        }
+
+        Elemwise <typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type> arg() const
+        {
+            const seq_type&cseq_this(static_cast <const seq_type&>(*this));
+            using tmp_result_type = typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type;
+            using result_type     = Elemwise <tmp_result_type>;
+            tmp_result_type retdata;
+            std::transform(cseq_this.begin(), cseq_this.end(), retdata.begin(), [](const value_type &elem) {
+                return std::arg(elem);
+            });
+
+            return result_type(retdata);
+        }
+
+        Elemwise <typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type> norm() const
+        {
+            const seq_type&cseq_this(static_cast <const seq_type&>(*this));
+            using tmp_result_type = typename Scalarchange <seq_type, typename std::decomplexify <value_type>::type>::type;
+            using result_type     = Elemwise <tmp_result_type>;
+            tmp_result_type retdata;
+            std::transform(cseq_this.begin(), cseq_this.end(), retdata.begin(), [](const value_type &elem) {
+                return std::norm(elem);
+            });
+
+            return result_type(retdata);
+        }
+
+        Derived conj() const
+        {
+            const seq_type&cseq_this(static_cast <const seq_type&>(*this));
+            using tmp_result_type = seq_type;
+            using result_type     = Derived;
+            tmp_result_type retdata;
+            std::transform(cseq_this.begin(), cseq_this.end(), retdata.begin(), [](const value_type &elem) {
+                return std::conj(elem);
+            });
+
             return result_type(retdata);
         }
     };
