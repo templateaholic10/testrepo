@@ -22,28 +22,8 @@ int main(int argc, char const *argv[])
     // std::iota(v.begin(), v.end(), 0.);
     // M = M_type::Identity();
     _PRINT(v)
-    // auto V = Eigen::dct1<T>(v);
-    // _PRINT(V)
-    std::Elemwise<v_type> hoge = std::Elemwise<v_type>(v);
-    _PRINT(hoge)
-    auto piyo = hoge;
-    _PRINT(hoge)
-    _PRINT(piyo)
-    hoge[2] += 5;
-    _PRINT(hoge)
-    _PRINT(piyo)
-    // _PRINT((hoge >= piyo))
-    // _PRINT((piyo >= hoge))
-    _PRINT(hoge.real())
-    _PRINT(hoge.imag())
-    _PRINT(hoge.abs())
-    _PRINT(hoge.arg())
-    _PRINT(hoge.norm())
-    _PRINT(hoge.conj())
-    hoge = std::Elemwise<v_type>(v);
-    v_type w(hoge.array());
-    _PRINT(w)
-    // _PRINT(Eigen::deevenize1<Eigen::RowMajor>(Meven))
+    auto V = Eigen::dct1<T>(v);
+    _PRINT(V)
 
     // _PRINT((Eigen::Vector<std::complex<T>, N>::Ones()))
 

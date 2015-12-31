@@ -7,6 +7,7 @@
 #define DCT_HPP
 
 #include <fft>
+#include <elemwise>
 
 namespace Eigen {
     /*! @brief DCT-1用の偶拡張メタ関数．abcdeからabcdedcbを作る
@@ -170,17 +171,7 @@ namespace Eigen {
     template <typename To, typename From, size_t N, typename std::enable_if <std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
     std::array <To, N> dct1(const std::array <From, N> &x)
     {
-        using param_type = std::array<From, N>;
-        using tmp_param_type = std::array<From, 2*N-2>;
-        using tmp_result_type = std::array<To, 2*N-2>;
-        using result_type = std::array <To, N>;
-
-        tmp_result_type tmp_retval;
-        result_type retval;
-        Eigen::FFT <typename std::decomplexify <To>::type> fft;
-        fft.fwd(tmp_retval.data(), evenize1(x).data(), 2*N-2);
-
-        return deevenize1(tmp_retval);
+        return (std::Elemwise<std::array <To, N>>(deevenize1(fft<To>(evenize1(x)))) * 0.5).array();
     }
 
     /*! @brief dct<double>の場合を担保

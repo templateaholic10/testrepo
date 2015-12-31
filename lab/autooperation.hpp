@@ -8,7 +8,7 @@
 #define AUTOOPERATION_HPP
 
 namespace devel {
-    /*! @brief 加減乗除
+    /*! @brief 加減乗除の複合代入演算子から2項演算子を生成する
     */
     template <class Derived, class Rhs = Derived>
     class Four_operations {
@@ -37,15 +37,9 @@ namespace devel {
             retval /= rhs;
             return retval;
         }
-        Derived operator%(const Rhs &rhs) const
-        {
-            Derived retval(static_cast<const Derived &>(*this));
-            retval %= rhs;
-            return retval;
-        }
     };
 
-    /*! @brief 加減乗除余
+    /*! @brief 加減乗除余の複合代入演算子から2項演算子を生成する
     */
     template <class Derived, class Rhs = Derived>
     class Five_operations {
@@ -82,7 +76,7 @@ namespace devel {
         }
     };
 
-    /*! @brief 順序
+    /*! @brief <=から残りの関係演算子を生成する
     */
     template <class Derived>
     class Order_operations1 {
@@ -114,7 +108,7 @@ namespace devel {
         }
     };
 
-    /*! @brief 順序
+    /*! @brief <から残りの関係演算子を生成する
     */
     template <class Derived>
     class Order_operations2 {
@@ -143,6 +137,18 @@ namespace devel {
         {
             const Derived &dthis = static_cast <const Derived &>(*this);
             return (dthis > rhs) || (dthis == rhs);
+        }
+    };
+
+    /*! @brief ==から!=を生成する
+    */
+    template <class Derived>
+    class Equi_operations {
+    public:
+        bool operator!=(const Derived &rhs) const
+        {
+            const Derived &dthis = static_cast <const Derived &>(*this);
+            return !(dthis == rhs);
         }
     };
 };

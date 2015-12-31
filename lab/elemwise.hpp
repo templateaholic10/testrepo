@@ -14,7 +14,7 @@
 #include <array>
 #include <vector>
 #include <excomplex>
-#include "autooperation.hpp"
+#include <autooperation>
 #include <debug>
 
 namespace {
@@ -53,6 +53,13 @@ namespace std {
             : base_type(data)
         {
         }
+
+        Elemwise(seq_type &&data)
+            : base_type(std::move(data))
+        {
+        }
+
+        Elemwise() = delete;
 
         /*! @brief arrayの取り出し
         */
@@ -98,6 +105,13 @@ namespace std {
         {
         }
 
+        Elemwise(seq_type &&data)
+            : base_type(std::move(data))
+        {
+        }
+
+        Elemwise() = delete;
+
         /*! @brief vectorの取り出し
         */
         seq_type &vector()
@@ -128,149 +142,261 @@ std::ostream&operator<<(std::ostream &os, const std::Elemwise <std::vector <T> >
 }
 
 namespace std {
+    /*! @brief 要素演算用の構造体であるから，例えば+=でなく+であっても自らを更新すればよい
+    */
     template <class Derived, typename Seq_type, typename Value_type, typename Ignored>
-    class Elemwise_impl : public Seq_type, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type> >, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type>, Value_type>, public
+    class Elemwise_impl : public Seq_type, public
                           devel::Order_operations2 <Elemwise_impl <Derived, Seq_type, Value_type> > {
     public:
         using seq_type   = Seq_type;
         using value_type = Value_type;
         using type       = Elemwise_impl <Derived, Seq_type, Value_type>;
-    private:
-        seq_type       *seq_this;
-        const seq_type *cseq_this;
     public:
         /*! @brief コンストラクタ
         */
         Elemwise_impl(const seq_type &data)
-            : seq_type(data), seq_this(static_cast <seq_type *>(this)), cseq_this(static_cast <const seq_type *>(this))
+            : seq_type(data)
+        {
+        }
+
+        Elemwise_impl(seq_type &&data)
+            : seq_type(std::move(data))
         {
         }
 
         Elemwise_impl() = delete;
 
-        Elemwise_impl(const type &obj)
-            : seq_type(static_cast <const seq_type&>(obj)), seq_this(static_cast <seq_type *>(this)), cseq_this(static_cast <const seq_type *>(this))
-        {
-        }
-
-        Elemwise_impl&operator=(const type &obj)
-        {
-            seq_this->operator=(static_cast <const seq_type&>(obj));
-            seq_this  = static_cast <seq_type *>(this);
-            cseq_this = static_cast <const seq_type *>(this);
-
-            return *this;
-        }
-
-        Elemwise_impl(type &&obj)
-            : seq_type(std::move(static_cast <const seq_type&>(obj))), seq_this(static_cast <seq_type *>(this)), cseq_this(static_cast <const seq_type *>(this))
-        {
-        }
-
-        Elemwise_impl&operator=(type &&obj)
-        {
-            seq_this->operator=(std::move(static_cast <const seq_type&>(obj)));
-            seq_this  = static_cast <seq_type *>(this);
-            cseq_this = static_cast <const seq_type *>(this);
-
-            return *this;
-        }
-
-        /*! @brief 演算子たち
+        /*! @brief 演算子たち．演算用の一時的な構造体なので，+=でなく+であっても自身を更新する．再利用には注意が必要
         */
-        type&operator+=(const value_type &rhs)
+        Derived&operator+=(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem += rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator+=(const type &rhs)
+        Derived&operator+(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator+=(rhs);
+        }
+
+        Derived&operator+=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem += relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator-=(const value_type &rhs)
+        Derived&operator+(const seq_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            return operator+=(rhs);
+        }
+
+        Derived&operator+=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem += relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator+(const type &rhs)
+        {
+            return operator+=(rhs);
+        }
+
+        Derived&operator-=(const value_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem -= rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator-=(const type &rhs)
+        Derived&operator-(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator-=(rhs);
+        }
+
+        Derived&operator-=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem -= relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator*=(const value_type &rhs)
+        Derived&operator-(const seq_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            return operator-=(rhs);
+        }
+
+        Derived&operator-=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem -= relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator-(const type &rhs)
+        {
+            return operator-=(rhs);
+        }
+
+        Derived&operator*=(const value_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem *= rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator*=(const type &rhs)
+        Derived&operator*(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator*=(rhs);
+        }
+
+        Derived&operator*=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem *= relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator/=(const value_type &rhs)
+        Derived&operator*(const seq_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            return operator*=(rhs);
+        }
+
+        Derived&operator*=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem *= relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator*(const type &rhs)
+        {
+            return operator*=(rhs);
+        }
+
+        Derived&operator/=(const value_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem /= rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator/=(const type &rhs)
+        Derived&operator/(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator/=(rhs);
+        }
+
+        Derived&operator/=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem /= relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator%=(const value_type &rhs)
+        Derived&operator/(const seq_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            return operator/=(rhs);
+        }
+
+        Derived&operator/=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem /= relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator/(const type &rhs)
+        {
+            return operator/=(rhs);
+        }
+
+        Derived&operator%=(const value_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem %= rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator%=(const type &rhs)
+        Derived&operator%(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator%=(rhs);
+        }
+
+        Derived&operator%=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem %= relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator%(const seq_type &rhs)
+        {
+            return operator%=(rhs);
+        }
+
+        Derived&operator%=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem %= relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator%(const type &rhs)
+        {
+            return operator%=(rhs);
         }
 
         bool operator<(const type &rhs) const
         {
-            return std::lexicographical_compare(cseq_this->begin(), cseq_this->end(), rhs.begin(), rhs.end());
+            const seq_type &cseq_this(static_cast<const seq_type &>(*this));
+            return std::lexicographical_compare(cseq_this.begin(), cseq_this.end(), rhs.begin(), rhs.end());
         }
     };
 
@@ -290,144 +416,251 @@ namespace std {
     }
 
     template <class Derived, typename Seq_type, typename Value_type>
-    class Elemwise_impl <Derived, Seq_type, Value_type, typename std::enable_if <std::is_complex <Value_type>::value>::type> : public Seq_type, public devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type> >, public
-                                                                                                                               devel::Five_operations <Elemwise_impl <Derived, Seq_type, Value_type>, Value_type>, public
-                                                                                                                               devel::Order_operations2 <Elemwise_impl <Derived, Seq_type, Value_type> > {
+    class Elemwise_impl <Derived, Seq_type, Value_type, typename std::enable_if <std::is_complex <Value_type>::value>::type> : public Seq_type, devel::Equi_operations<Elemwise_impl<Derived, Seq_type, Value_type>> {
     public:
         using seq_type   = Seq_type;
         using value_type = Value_type;
         using type       = Elemwise_impl <Derived, Seq_type, Value_type>;
-    private:
-        seq_type       *seq_this;
-        const seq_type *cseq_this;
     public:
         /*! @brief コンストラクタ
         */
         Elemwise_impl(const seq_type &data)
-            : seq_type(data), seq_this(static_cast <seq_type *>(this)), cseq_this(static_cast <const seq_type *>(this))
+            : seq_type(data)
+        {
+        }
+
+        Elemwise_impl(seq_type &&data)
+            : seq_type(std::move(data))
         {
         }
 
         Elemwise_impl() = delete;
 
-        Elemwise_impl(const type &obj)
-            : seq_type(static_cast <const seq_type&>(obj)), seq_this(static_cast <seq_type *>(this)), cseq_this(static_cast <const seq_type *>(this))
-        {
-        }
-
-        Elemwise_impl&operator=(const type &obj)
-        {
-            seq_this->operator=(static_cast <const seq_type&>(obj));
-            seq_this  = static_cast <seq_type *>(this);
-            cseq_this = static_cast <const seq_type *>(this);
-
-            return *this;
-        }
-
-        Elemwise_impl(type &&obj)
-            : seq_type(std::move(static_cast <const seq_type&>(obj))), seq_this(static_cast <seq_type *>(this)), cseq_this(static_cast <const seq_type *>(this))
-        {
-        }
-
-        Elemwise_impl&operator=(type &&obj)
-        {
-            seq_this->operator=(std::move(static_cast <const seq_type&>(obj)));
-            seq_this  = static_cast <seq_type *>(this);
-            cseq_this = static_cast <const seq_type *>(this);
-
-            return *this;
-        }
-
-        /*! @brief 演算子たち
+        /*! @brief 演算子たち．演算用の一時的な構造体なので，+=でなく+であっても自身を更新する．再利用には注意が必要
         */
-        type&operator+=(const value_type &rhs)
+        Derived&operator+=(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem += rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator+=(const type &rhs)
+        Derived&operator+(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator+=(rhs);
+        }
+
+        Derived&operator+=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem += relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator-=(const value_type &rhs)
+        Derived&operator+(const seq_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            return operator+=(rhs);
+        }
+
+        Derived&operator+=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem += relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator+(const type &rhs)
+        {
+            return operator+=(rhs);
+        }
+
+        Derived&operator-=(const value_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem -= rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator-=(const type &rhs)
+        Derived&operator-(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator-=(rhs);
+        }
+
+        Derived&operator-=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem -= relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator*=(const value_type &rhs)
+        Derived&operator-(const seq_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            return operator-=(rhs);
+        }
+
+        Derived&operator-=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem -= relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator-(const type &rhs)
+        {
+            return operator-=(rhs);
+        }
+
+        Derived&operator*=(const value_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem *= rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator*=(const type &rhs)
+        Derived&operator*(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator*=(rhs);
+        }
+
+        Derived&operator*=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem *= relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator/=(const value_type &rhs)
+        Derived&operator*(const seq_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            return operator*=(rhs);
+        }
+
+        Derived&operator*=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem *= relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator*(const type &rhs)
+        {
+            return operator*=(rhs);
+        }
+
+        Derived&operator/=(const value_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem /= rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator/=(const type &rhs)
+        Derived&operator/(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator/=(rhs);
+        }
+
+        Derived&operator/=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem /= relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator%=(const value_type &rhs)
+        Derived&operator/(const seq_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), [&rhs](value_type &lelem) {
+            return operator/=(rhs);
+        }
+
+        Derived&operator/=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem /= relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator/(const type &rhs)
+        {
+            return operator/=(rhs);
+        }
+
+        Derived&operator%=(const value_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [&rhs](value_type &lelem) {
                 lelem %= rhs;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
         }
 
-        type&operator%=(const type &rhs)
+        Derived&operator%(const value_type &rhs)
         {
-            std::for_each(seq_this->begin(), seq_this->end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+            return operator%=(rhs);
+        }
+
+        Derived&operator%=(const seq_type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
                 lelem %= relem;
             });
 
-            return *this;
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator%(const seq_type &rhs)
+        {
+            return operator%=(rhs);
+        }
+
+        Derived&operator%=(const type &rhs)
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), rhs.begin(), [](value_type &lelem, const value_type &relem) {
+                lelem %= relem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
+        Derived&operator%(const type &rhs)
+        {
+            return operator%=(rhs);
         }
 
         /*! @brief 複素数演算
@@ -508,6 +741,12 @@ namespace std {
             });
 
             return result_type(retdata);
+        }
+
+        bool operator==(const type &rhs) const
+        {
+            const seq_type &cseq_this(static_cast<const seq_type &>(*this));
+            return std::equal(cseq_this.begin(), cseq_this.end(), rhs.begin(), rhs.end());
         }
     };
 }
