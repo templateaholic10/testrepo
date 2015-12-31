@@ -258,6 +258,16 @@ namespace std {
             return operator-=(rhs);
         }
 
+        Derived&operator-()
+        {
+            seq_type &seq_this(static_cast<seq_type &>(*this));
+            std::for_each(seq_this.begin(), seq_this.end(), [](value_type &lelem) {
+                lelem = -lelem;
+            });
+
+            return static_cast<Derived&>(*this);
+        }
+
         Derived&operator*=(const value_type &rhs)
         {
             seq_type &seq_this(static_cast<seq_type &>(*this));

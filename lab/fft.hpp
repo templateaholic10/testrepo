@@ -82,30 +82,31 @@ namespace Eigen {
         @tparam Rows 行数
         @tparam Cols 列数
         @param X データ行列
-        @param transpose 通常のデータ行列（時間方向が行方向）から転置する
-        デフォルト値はfalse
+        @param option 時間方向の縦横．デフォルト値はEigen::ColMajorでこのとき時間方向は縦
     */
 
     /*! @brief Eigen::Matrix用
     */
 
+    // TODO: 時間方向横のときfftがうまくいかない
+
     /*! @brief fft<std::complex<double>>の場合を担保
     */
     template <typename To, typename From, int Rows, int Cols, typename std::enable_if <std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
-    Eigen::Matrix <To, Rows, Cols> fft(const Eigen::Matrix <From, Rows, Cols> &X, const bool transpose=false)
+    Eigen::Matrix <To, Rows, Cols> fft(const Eigen::Matrix <From, Rows, Cols> &X, const int option = Eigen::ColMajor)
     {
         const int                                         rows = X.rows();
         const int                                         cols = X.cols();
         using result_type = Eigen::Matrix <To, Rows, Cols>;
         result_type                                       retval(rows, cols);
         Eigen::FFT <typename std::decomplexify <To>::type> fft;
-        if (transpose) {
-            for (int i = 0; i < rows; i++) {
-                retval.row(i) = fft.fwd(X.row(i).eval());
-            }
-        } else {
+        if (option == Eigen::ColMajor) {
             for (int j = 0; j < cols; j++) {
                 retval.col(j) = fft.fwd(X.col(j).eval());
+            }
+        } else {
+            for (int i = 0; i < rows; i++) {
+                retval.row(i) = fft.fwd(X.row(i).eval());
             }
         }
 
@@ -115,17 +116,17 @@ namespace Eigen {
     /*! @brief 型指定しない場合を担保
     */
     template <int Rows, int Cols, typename From>
-    Eigen::Matrix <typename std::complexify <From>::type, Rows, Cols> fft(const Eigen::Matrix <From, Rows, Cols> &X, const bool transpose=false)
+    Eigen::Matrix <typename std::complexify <From>::type, Rows, Cols> fft(const Eigen::Matrix <From, Rows, Cols> &X, const int option = Eigen::ColMajor)
     {
-        return fft<typename std::complexify<From>::type>(X, transpose);
+        return fft<typename std::complexify<From>::type>(X, option);
     }
 
     /*! @brief fft<double>の場合を担保
     */
     template <typename To, typename From, int Rows, int Cols, typename std::enable_if <!std::is_same <To, typename std::complexify <To>::type>::value>::type * = nullptr>
-    Eigen::Matrix <To, Rows, Cols> fft(const Eigen::Matrix <From, Rows, Cols> &X, const bool transpose=false)
+    Eigen::Matrix <To, Rows, Cols> fft(const Eigen::Matrix <From, Rows, Cols> &X, const int option = Eigen::ColMajor)
     {
-        return std::real(fft<typename std::complexify<To>::type>(X, transpose));
+        return fft<typename std::complexify<To>::type>(X, option).real();
     }
 
     /*! @brief 1変量周波数系列の逆FFT
@@ -210,8 +211,7 @@ namespace Eigen {
         @tparam Rows 行数
         @tparam Cols 列数
         @param X 周波数データ行列
-        @param transpose 通常のデータ行列（時間方向が行方向）から転置する
-        デフォルト値はfalse
+        @param option 時間方向の縦横．デフォルト値はEigen::ColMajorでこのとき時間方向は縦
     */
 
     /*! @brief Eigen::Matrix用
@@ -220,24 +220,24 @@ namespace Eigen {
     /*! @brief 引数がstd::complex<double>>の場合を担保
     */
     template <typename To, typename From, int Rows, int Cols, typename std::enable_if <std::is_same <From, typename std::complexify <From>::type>::value>::type * = nullptr>
-    Eigen::Matrix <To, Rows, Cols> ifft(const Eigen::Matrix <From, Rows, Cols> &X, const bool transpose=false)
+    Eigen::Matrix <To, Rows, Cols> ifft(const Eigen::Matrix <From, Rows, Cols> &X, const int option = Eigen::ColMajor)
     {
         using result_type = Eigen::Matrix <To, Rows, Cols>;
         const int                                            rows = X.rows();
         const int                                            cols = X.cols();
         result_type                                          retval(rows, cols);
         Eigen::FFT <typename std::decomplexify <From>::type> fft;
-        if (transpose) {
-            Eigen::RowVector<To, Cols> tmp;
-            for (int i = 0; i < rows; i++) {
-                fft.inv(tmp, X.row(i).eval());
-                retval.row(i) = tmp;
-            }
-        } else {
+        if (option == Eigen::ColMajor) {
             Eigen::Vector<To, Rows> tmp;
             for (int j = 0; j < cols; j++) {
                 fft.inv(tmp, X.col(j).eval());
                 retval.col(j) = tmp;
+            }
+        } else {
+            Eigen::RowVector<To, Cols> tmp;
+            for (int i = 0; i < rows; i++) {
+                fft.inv(tmp, X.row(i).eval());
+                retval.row(i) = tmp;
             }
         }
 
@@ -247,7 +247,7 @@ namespace Eigen {
     /*! @brief 引数がdoubleの場合を担保
     */
     template <typename To, typename From, int Rows, int Cols, typename std::enable_if <!std::is_same <From, typename std::complexify <From>::type>::value>::type * = nullptr>
-    Eigen::Matrix <To, Rows, Cols> ifft(const Eigen::Matrix <From, Rows, Cols> &X, const bool transpose=false)
+    Eigen::Matrix <To, Rows, Cols> ifft(const Eigen::Matrix <From, Rows, Cols> &X, const int option = Eigen::ColMajor)
     {
         const int                                            rows = X.rows();
         const int                                            cols = X.cols();
@@ -259,15 +259,15 @@ namespace Eigen {
                 tmp(i, j).imag(0.);
             }
         }
-        return ifft<To>(tmp, transpose);
+        return ifft<To>(tmp, option);
     }
 
     /*! @brief 値域が指定されていない場合を担保
     */
     template <int Rows, int Cols, typename From>
-    Eigen::Matrix <typename std::complexify<From>::type, Rows, Cols> ifft(const Eigen::Matrix <From, Rows, Cols> &X, const bool transpose=false)
+    Eigen::Matrix <typename std::complexify<From>::type, Rows, Cols> ifft(const Eigen::Matrix <From, Rows, Cols> &X, const int option = Eigen::ColMajor)
     {
-        return ifft<typename std::complexify<From>::type>(X);
+        return ifft<typename std::complexify<From>::type>(X, option);
     }
 }
 

@@ -12,18 +12,32 @@
 
 int main(int argc, char const *argv[])
 {
-    using T = std::complex<double>;
-    constexpr int N = 5;
+    using T = double;
+    constexpr int N = 3;
     constexpr int p = 3;
-    using v_type = std::array<T, N>;
-    // using M_type = Eigen::Matrix<T, N, p>;
-    v_type v;
-    // M_type M;
-    // std::iota(v.begin(), v.end(), 0.);
-    // M = M_type::Identity();
-    _PRINT(v)
-    auto V = Eigen::dct1<T>(v);
-    _PRINT(V)
+
+    // arrayのテスト
+    // using v_type = std::array<T, N>;
+    // v_type v;
+    // v.fill(0.);
+    // v[0] = 1.;
+    // _PRINT(v)
+    // auto V = Eigen::dct2(v);
+    // _PRINT(V)
+    // auto v2 = Eigen::idct2(V);
+    // _PRINT(v2)
+
+    // 行列のテスト
+    using M_type = Eigen::Matrix<T, N, p>;
+    M_type M;
+    M = M_type::Identity();
+    _PRINT(M)
+    _PRINT(Eigen::fft(M, Eigen::ColMajor))
+    _PRINT(Eigen::fft(M, Eigen::RowMajor))
+    // auto Mf = Eigen::dct2<Eigen::RowMajor>(M);
+    // _PRINT(Mf)
+    // auto M2 = Eigen::idct2<Eigen::RowMajor>(Mf);
+    // _PRINT(M2)
 
     // _PRINT((Eigen::Vector<std::complex<T>, N>::Ones()))
 
