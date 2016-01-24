@@ -7,6 +7,7 @@
 #define EXEIGEN_HPP
 
 #include <iostream>
+#include <constexpr/cmath>
 #include <excomplex>
 #include <Eigen/Core>
 #include <Eigen/SVD>
@@ -33,63 +34,79 @@ namespace Eigen {
 
         constexpr int add(const int lhs, const int rhs)
         {
-            return or_Dynamic(lhs, rhs, lhs+rhs);
-        };
+            return or_Dynamic(lhs, rhs, lhs + rhs);
+        }
 
         constexpr int sub(const int lhs, const int rhs)
         {
-            return or_Dynamic(lhs, rhs, lhs-rhs);
-        };
+            return or_Dynamic(lhs, rhs, lhs - rhs);
+        }
 
         constexpr int multi(const int lhs, const int rhs)
         {
-            return or_Dynamic(lhs, rhs, lhs*rhs);
-        };
+            return or_Dynamic(lhs, rhs, lhs * rhs);
+        }
 
         constexpr int div(const int lhs, const int rhs)
         {
-            return or_Dynamic(lhs, rhs, lhs/rhs);
+            return or_Dynamic(lhs, rhs, lhs / rhs);
+        }
+    }
+
+    namespace meta {
+        /*! @brief 行列を転置するメタ関数
+        */
+        template <typename T>
+        struct transpose;
+
+        template <typename Scalar, int Rows, int Cols>
+        struct transpose <Eigen::Matrix <Scalar, Rows, Cols> >
+        {
+            using type = Eigen::Matrix <Scalar, Cols, Rows>;
+        };
+
+        /*! @breif 行列を定数だけ拡大するメタ関数
+        */
+        template <typename T, int Rowplus, int Colplus>
+        struct expand;
+
+        template <typename Scalar, int Rows, int Cols, int Rowplus, int Colplus>
+        struct expand <Eigen::Matrix <Scalar, Rows, Cols>, Rowplus, Colplus> {
+            using type = Eigen::Matrix <Scalar, Size::add(Rows, Rowplus), Size::add(Cols, Colplus)>;
+        };
+
+        /*! @brief 行列をスケール拡大するメタ関数
+        */
+        template <typename T, int Rowscale, int Colscale>
+        struct scaleup;
+
+        template <typename Scalar, int Rows, int Cols, int Rowscale, int Colscale>
+        struct scaleup <Eigen::Matrix <Scalar, Rows, Cols>, Rowscale, Colscale> {
+            using type = Eigen::Matrix <Scalar, Size::multi(Rows, Rowscale), Size::multi(Cols, Colscale)>;
+        };
+
+        /*! @brief 行列をスケール縮小するメタ関数
+        */
+        template <typename T, int Rowscale, int Colscale>
+        struct scaledown;
+
+        template <typename Scalar, int Rows, int Cols, int Rowscale, int Colscale>
+        struct scaledown <Eigen::Matrix <Scalar, Rows, Cols>, Rowscale, Colscale> {
+            using type = Eigen::Matrix <Scalar, Size::div(Rows, Rowscale), Size::div(Cols, Colscale)>;
         };
     }
 
-    /*! @breif 行列を定数だけ拡大するメタ関数
-    */
-    template <typename T, int Rowplus, int Colplus>
-    struct Expand;
-
-    template <typename Scalar, int Rows, int Cols, int Rowplus, int Colplus>
-    struct Expand<Eigen::Matrix<Scalar, Rows, Cols>, Rowplus, Colplus> {
-        using type = Eigen::Matrix<Scalar, Size::add(Rows, Rowplus), Size::add(Cols, Colplus)>;
-    };
+    template <typename T>
+    using Transpose_t = typename meta::transpose <T>::type;
 
     template <typename T, int Rowplus, int Colplus>
-    using Expand_t = typename Expand<T, Rowplus, Colplus>::type;
-
-    /*! @brief 行列をスケール拡大するメタ関数
-    */
-    template <typename T, int Rowscale, int Colscale>
-    struct Scaleup;
-
-    template <typename Scalar, int Rows, int Cols, int Rowscale, int Colscale>
-    struct Scaleup<Eigen::Matrix<Scalar, Rows, Cols>, Rowscale, Colscale> {
-        using type = Eigen::Matrix<Scalar, Size::multi(Rows, Rowscale), Size::multi(Cols, Colscale)>;
-    };
+    using Expand_t = typename meta::expand <T, Rowplus, Colplus>::type;
 
     template <typename T, int Rowscale, int Colscale>
-    using Scaleup_t = typename Scaleup<T, Rowscale, Colscale>::type;
-
-    /*! @brief 行列をスケール縮小するメタ関数
-    */
-    template <typename T, int Rowscale, int Colscale>
-    struct Scaledown;
-
-    template <typename Scalar, int Rows, int Cols, int Rowscale, int Colscale>
-    struct Scaledown<Eigen::Matrix<Scalar, Rows, Cols>, Rowscale, Colscale> {
-        using type = Eigen::Matrix<Scalar, Size::div(Rows, Rowscale), Size::div(Cols, Colscale)>;
-    };
+    using Scaleup_t = typename meta::scaleup <T, Rowscale, Colscale>::type;
 
     template <typename T, int Rowscale, int Colscale>
-    using Scaledown_t = typename Scaledown<T, Rowscale, Colscale>::type;
+    using Scaledown_t = typename meta::scaledown <T, Rowscale, Colscale>::type;
 }
 
 /*! @brief エイリアス群
@@ -406,34 +423,66 @@ namespace Eigen {
 
     /*! @brief 行列を対称化する関数
     */
-    template <typename _Scalar, int _Size>
-    Eigen::Matrix <_Scalar, _Size, _Size> symmentrize(const Eigen::Matrix <_Scalar, _Size, _Size> &M)
+    template <typename Derived>
+    Derived symmentrize(const Eigen::MatrixBase <Derived> &M)
     {
         return (M + M.transpose()) / 2;
     }
 
     /*! @brief 行列を歪対称化する関数
     */
-    template <typename _Scalar, int _Size>
-    Eigen::Matrix <_Scalar, _Size, _Size> antisymmetrise(const Eigen::Matrix <_Scalar, _Size, _Size> &M)
+    template <typename Derived>
+    Derived antisymmetrise(const Eigen::MatrixBase <Derived> &M)
     {
         return (M - M.transpose()) / 2;
     }
 
     /*! @brief 行列をエルミート化する関数
     */
-    template <typename _Scalar, int _Size>
-    Eigen::Matrix <_Scalar, _Size, _Size> Hermitize(const Eigen::Matrix <_Scalar, _Size, _Size> &M)
+    template <typename Derived>
+    Derived Hermitize(const Eigen::MatrixBase <Derived> &M)
     {
         return (M + M.adjoint()) / 2;
     }
 
     /*! @brief 行列を歪エルミート化する関数
     */
-    template <typename _Scalar, int _Size>
-    Eigen::Matrix <_Scalar, _Size, _Size> antiHermitize(const Eigen::Matrix <_Scalar, _Size, _Size> &M)
+    template <typename Derived>
+    Derived antiHermitize(const Eigen::MatrixBase <Derived> &M)
     {
         return (M - M.adjoint()) / 2;
+    }
+
+    /*! @brief 行列のMoore-Penrose型一般逆行列を求める関数
+        @param M 行列
+    */
+    template <typename Derived>
+    Transpose_t <Derived> pinverse(const MatrixBase <Derived> &M)
+    {
+        constexpr int Rows = Derived::RowsAtCompileTime;
+        constexpr int Cols = Derived::ColsAtCompileTime;
+        constexpr int Min  = cpstd::min(Rows, Cols);
+        const int     rows = M.rows();
+        const int     cols = M.cols();
+        const int     min  = std::min(rows, cols);
+        const int     max  = std::max(rows, cols);
+
+        Eigen::JacobiSVD <Derived> svd(M, ComputeFullU | ComputeFullV);
+        typename Eigen::JacobiSVD <Derived>::SingularValuesType singular_values_inv = svd.singularValues();
+        const double epsilon = 1.e-6;
+
+        for (size_t i = 0; i < min; i++) {
+            if (singular_values_inv(i) < epsilon) {
+                singular_values_inv(i) = 0.;
+            } else {
+                singular_values_inv(i) = 1. / singular_values_inv(i);
+            }
+        }
+
+        Transpose_t <Derived> invSigma(Transpose_t <Derived>::Zero(cols, rows));
+        invSigma.template block <Min, Min>(0, 0, min, min) = singular_values_inv.asDiagonal();
+
+        return svd.matrixV() * invSigma * svd.matrixU().adjoint();
     }
 
     /*! @brief 行列のk番目（0が最大，n-1が最小）の特異値を返す関数
@@ -448,17 +497,34 @@ namespace Eigen {
         return svd.singularValues().eval()(k);
     }
 
+    template <typename _Scalar, int _Rows, int _Cols>
+    Eigen::Vector <typename std::decomplexify <_Scalar>::type, _Cols> singular_values(const Eigen::Matrix <_Scalar, _Rows, _Cols> &M)
+    {
+        Eigen::JacobiSVD <Eigen::Matrix <_Scalar, _Rows, _Cols> > svd(M);
+
+        return svd.singularValues();
+    }
+
     /*! @brief 行列のk番目の固有値を返す関数
         @param M 行列
         @param k 求める固有値の序列
     */
     template <typename _Scalar, int _Rows, int _Cols>
-    typename std::decomplexify <_Scalar>::type eigenvalue(const Eigen::Matrix <_Scalar, _Rows, _Cols> &M, const int k)
+    typename std::complexify <_Scalar>::type eigenvalue(const Eigen::Matrix <_Scalar, _Rows, _Cols> &M, const int k)
     {
         // todo: 順序は適当
         Eigen::EigenSolver <Eigen::Matrix <_Scalar, _Rows, _Cols> > es(M);
 
-        return es.eigenValues().eval()(k);
+        return es.eigenvalues().eval()(k);
+    }
+
+    template <typename _Scalar, int _Rows, int _Cols>
+    Eigen::Vector <typename std::complexify <_Scalar>::type, _Cols> eigenvalues(const Eigen::Matrix <_Scalar, _Rows, _Cols> &M)
+    {
+        // todo: 順序は適当
+        Eigen::EigenSolver <Eigen::Matrix <_Scalar, _Rows, _Cols> > es(M);
+
+        return es.eigenvalues();
     }
 
     /*! @brief エルミート行列のk番目の固有値（0が最大，n-1が最小）を返す関数
@@ -477,6 +543,20 @@ namespace Eigen {
         }
 
         return es.eigenvalues().eval()(M.rows() - 1 - k);
+    }
+
+    template <typename _Scalar, int _Rows, int _Cols>
+    Eigen::Vector <typename std::decomplexify <_Scalar>::type, _Cols> selfadjoint_eigenvalues(const Eigen::Matrix <_Scalar, _Rows, _Cols> &M)
+    {
+        assert(M.rows() == M.cols());
+        Eigen::SelfAdjointEigenSolver <Eigen::Matrix <_Scalar, _Rows, _Cols> > es(M);
+        if (es.info() != Eigen::Success) {
+            assert(false);
+
+            return 0;
+        }
+
+        return es.eigenvalues();
     }
 
     /*! @brief 行列の正定値性を判定する関数

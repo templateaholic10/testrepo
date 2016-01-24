@@ -19,14 +19,14 @@ namespace Eigen {
     */
     template <typename Scalar, int Rows, int Cols>
     struct Evenize1 <Eigen::Matrix <Scalar, Rows, Cols>, Eigen::ColMajor> {
-        using type = typename Eigen::Expand <typename Eigen::Scaleup <Matrix <Scalar, Rows, Cols>, 2, 1>::type, -2, 0>::type;
+        using type = typename Eigen::meta::expand <typename Eigen::meta::scaleup <Matrix <Scalar, Rows, Cols>, 2, 1>::type, -2, 0>::type;
     };
 
     /*! @brief 横ベクトル
     */
     template <typename Scalar, int Rows, int Cols>
     struct Evenize1 <Eigen::Matrix <Scalar, Rows, Cols>, Eigen::RowMajor> {
-        using type = typename Eigen::Expand <typename Eigen::Scaleup <Matrix <Scalar, Rows, Cols>, 1, 2>::type, 0, -2>::type;
+        using type = typename Eigen::meta::expand <typename Eigen::meta::scaleup <Matrix <Scalar, Rows, Cols>, 1, 2>::type, 0, -2>::type;
     };
 
     /*! @brief DCT-1用の偶拡張関数．abcdeからabcdedcbを作る
@@ -99,14 +99,14 @@ namespace Eigen {
     */
     template <typename Scalar, int Rows, int Cols>
     struct Deevenize1 <Eigen::Matrix <Scalar, Rows, Cols>, Eigen::ColMajor> {
-        using type = typename Eigen::Scaledown <typename Eigen::Expand <Matrix <Scalar, Rows, Cols>, 2, 0>::type, 2, 1>::type;
+        using type = typename Eigen::meta::scaledown <typename Eigen::meta::expand <Matrix <Scalar, Rows, Cols>, 2, 0>::type, 2, 1>::type;
     };
 
     /*! @brief 横ベクトル
     */
     template <typename Scalar, int Rows, int Cols>
     struct Deevenize1 <Eigen::Matrix <Scalar, Rows, Cols>, Eigen::RowMajor> {
-        using type = typename Eigen::Scaledown <typename Eigen::Expand <Matrix <Scalar, Rows, Cols>, 0, 2>::type, 1, 2>::type;
+        using type = typename Eigen::meta::scaledown <typename Eigen::meta::expand <Matrix <Scalar, Rows, Cols>, 0, 2>::type, 1, 2>::type;
     };
 
     /*! @brief DCT-1用の偶拡張から情報を取り出す関数．abcdedcbからabcdeを作る
@@ -353,14 +353,14 @@ namespace Eigen {
     */
     template <typename Scalar, int Rows, int Cols>
     struct Evenize2 <Eigen::Matrix <Scalar, Rows, Cols>, Eigen::ColMajor> {
-        using type = typename Eigen::Scaleup <Matrix <Scalar, Rows, Cols>, 4, 1>::type;
+        using type = typename Eigen::meta::scaleup <Matrix <Scalar, Rows, Cols>, 4, 1>::type;
     };
 
     /*! @brief 横ベクトル
     */
     template <typename Scalar, int Rows, int Cols>
     struct Evenize2 <Eigen::Matrix <Scalar, Rows, Cols>, Eigen::RowMajor> {
-        using type = typename Eigen::Scaleup <Matrix <Scalar, Rows, Cols>, 1, 4>::type;
+        using type = typename Eigen::meta::scaleup <Matrix <Scalar, Rows, Cols>, 1, 4>::type;
     };
 
     /*! @brief DCT-2用の偶拡張関数．abcdeから0a0b0c0d0e0e0d0c0b0aを作る
@@ -457,14 +457,14 @@ namespace Eigen {
     */
     template <typename Scalar, int Rows, int Cols>
     struct Deevenize2 <Eigen::Matrix <Scalar, Rows, Cols>, Eigen::ColMajor> {
-        using type = typename Eigen::Scaledown <Matrix <Scalar, Rows, Cols>, 4, 1>::type;
+        using type = typename Eigen::meta::scaledown <Matrix <Scalar, Rows, Cols>, 4, 1>::type;
     };
 
     /*! @brief 横ベクトル
     */
     template <typename Scalar, int Rows, int Cols>
     struct Deevenize2 <Eigen::Matrix <Scalar, Rows, Cols>, Eigen::RowMajor> {
-        using type = typename Eigen::Scaledown <Matrix <Scalar, Rows, Cols>, 1, 4>::type;
+        using type = typename Eigen::meta::scaledown <Matrix <Scalar, Rows, Cols>, 1, 4>::type;
     };
 
     /*! @brief DCT-2用の偶拡張から情報を取り出す関数．abcdedcbからabcdeを作る

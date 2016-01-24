@@ -82,6 +82,16 @@ namespace std {
         {
             return b;
         }
+
+        static result_type default_min()
+        {
+            return 0;
+        }
+
+        static result_type default_max()
+        {
+            return std::numeric_limits <result_type>::max();
+        }
     };
 
     template <typename T>
@@ -112,6 +122,16 @@ namespace std {
         result_type max() const
         {
             return b;
+        }
+
+        static result_type default_min()
+        {
+            return 0.;
+        }
+
+        static result_type default_max()
+        {
+            return 1.;
         }
     };
 
@@ -144,6 +164,16 @@ namespace std {
         result_type max() const
         {
             return b;
+        }
+
+        static result_type default_min()
+        {
+            return std::complex <T>(0., 0.);
+        }
+
+        static result_type default_max()
+        {
+            return std::complex <T>(1., 1.);
         }
     };
 

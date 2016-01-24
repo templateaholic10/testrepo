@@ -329,6 +329,56 @@ namespace std {
             return k * sigma;
         }
     };
+
+    /*! @class
+        @brief 各要素が一様分布に従うランダム行列確率変数の関数オブジェクト
+        @tparam T double
+    */
+    template <typename T>
+    class ElemUniform;
+
+    /*! @brief 各要素が一様分布に従うランダム行列分布
+    */
+    template <typename T, int m, int n>
+    class ElemUniform <Eigen::Matrix <T, m, n>> {
+    public:
+        using type = ElemUniform<Eigen::Matrix<T, m, n>>;
+        using result_type = Eigen::Matrix <T, m, n>;
+        using param_type = T;
+        using ElemDistribution_type = Uniform<T>;
+    private:
+        const int rows;
+        const int cols;
+        const param_type a;
+        const param_type b;
+        ElemDistribution_type uniform;
+    public:
+        ElemUniform(param_type a_=ElemDistribution_type::default_min(), param_type b_=ElemDistribution_type::default_max(), std::random_device::result_type seed=std::random_device()(), const int rows_=m, const int cols_=n)
+            : uniform(a_, b_, seed), rows(rows_), cols(cols_), a(a_), b(b_)
+        {
+        }
+
+        result_type operator()()
+        {
+            result_type retval;
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    retval(i, j) = uniform();
+                }
+            }
+            return retval;
+        }
+
+        param_type elemmin() const
+        {
+            return a;
+        }
+
+        param_type elemmax() const
+        {
+            return b;
+        }
+    };
 }
 
 namespace Eigen {

@@ -10,6 +10,25 @@
 #include <constexpr/cmath>
 
 namespace std {
+    /*! @brief 剰余．標準の剰余演算子は
+         -2 % 5 = -2
+         のように0に近い方に丸める．このmodは有限環への写像を定めるため
+         mod(-2, 5) = 3
+    */
+    template <typename Lhs, typename Rhs, typename std::enable_if<std::is_integral<Lhs>::value>::type* = nullptr>
+    constexpr Lhs mod(const Lhs &lhs, const Rhs &rhs)
+    {
+        return lhs % rhs + (lhs < 0 ? rhs : 0);
+    }
+
+    /*! @brief 実数版．角度を[0, 2\PI)に納めるのに使ったりする
+    */
+    template <typename Lhs, typename Rhs, typename std::enable_if<std::is_floating_point<Lhs>::value>::type* = nullptr>
+    constexpr Lhs mod(const Lhs &lhs, const Rhs &rhs)
+    {
+        return lhs - (cpstd::floor(lhs/rhs)) * rhs;
+    }
+
     /*! @brief 円周率
     */
     template <typename Floating = double, typename std::enable_if<std::is_floating_point<Floating>::value>::type* = nullptr>

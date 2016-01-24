@@ -29,6 +29,7 @@ namespace optimization {
         コンストラクタまたはinitで初期化
         processでシミュレート
         flushで出力
+        do-while型，つまりforward-stop_condの順
 
         派生クラスは以下の要件を満たす
         (1) 明示的なコンストラクタを持ち，初期化子リストでIterativeコンストラクタをコールする

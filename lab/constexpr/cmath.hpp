@@ -13,6 +13,22 @@
 #endif
 
 namespace cpstd {
+    /*! @brief コンパイル時最小値関数
+    */
+    template <typename T>
+    constexpr T min(const T &lhs, const T &rhs)
+    {
+        return (lhs < rhs) ? lhs : rhs;
+    }
+
+    /*! @brief コンパイル時最大値関数
+    */
+    template <typename T>
+    constexpr T max(const T &lhs, const T &rhs)
+    {
+        return (lhs > rhs) ? lhs : rhs;
+    }
+
     /*! @brief コンパイル時絶対値関数
         @param d 実数
         @returnn 絶対値
@@ -72,6 +88,12 @@ namespace cpstd {
         }
     }
 
+    template <typename Result, typename Numeric>
+    constexpr Result floor(const Numeric d)
+    {
+        return static_cast<Result>(floor(d));
+    }
+
     /*! @brief コンパイル時天井関数
         @param d 実数
         @return d以上の最小の整数（int）
@@ -88,6 +110,12 @@ namespace cpstd {
         }
     }
 
+    template <typename Result, typename Numeric>
+    constexpr Result ceil(const Numeric d)
+    {
+        return static_cast<Result>(ceil(d));
+    }
+
     /*! @brief コンパイル時四捨五入関数
         @param d 実数
         @return dを四捨五入した整数（int）
@@ -102,6 +130,12 @@ namespace cpstd {
             // 負の場合
             return static_cast <int>(d - 0.5);
         }
+    }
+
+    template <typename Result, typename Numeric>
+    constexpr Result round(const Numeric d)
+    {
+        return static_cast<Result>(round(d));
     }
 
     /*! @brief コンパイル時平方根関数．Newton法による実装
@@ -123,6 +157,12 @@ namespace cpstd {
             x = (x*x + d) / x * 0.5;
         }
         return x;
+    }
+
+    template <typename Result, typename Numeric>
+    constexpr Result sqrt(const Numeric d)
+    {
+        return static_cast<Result>(sqrt(d));
     }
 }
 
