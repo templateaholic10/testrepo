@@ -259,6 +259,38 @@ namespace std {
             return std::norm(sigma);
         }
     };
+
+    /*! @class
+        @brief std::chi_squared_distributionのラッパ関数オブジェクト．メルセンヌツイスタを使用して生成を行う
+        @tparam T double
+    */
+    template <typename T, class Ignored = void>
+    class Chisq;
+
+    template <typename T>
+    class Chisq <T, typename std::enable_if <std::is_floating_point <T>::value>::type> {
+    public:
+        using result_type = T;
+    private:
+        std::mt19937                           mt;
+        std::chi_squared_distribution <result_type> rv;
+        const result_type                      n;
+    public:
+        Chisq(result_type n_=1.0, std::random_device::result_type seed=std::random_device()())
+            : n(n_), mt(seed), rv(n_)
+        {
+        }
+
+        result_type operator()()
+        {
+            return rv(mt);
+        }
+
+        result_type df() const  // degrees of freedom
+        {
+            return n;
+        }
+    };
 }
 
 #endif

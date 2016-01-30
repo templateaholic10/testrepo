@@ -10,6 +10,22 @@
 #include <exeigen>
 #include <eigen_io>
 
+/*! @macro
+    @brief 毎ステップのXを出力するかどうか
+*/
+#ifndef LOGGINGX
+#define LOGGINGX 1
+#endif
+
+/*! @macro
+    @brief 毎ステップの誤差を出力するかどうか
+*/
+#ifndef LOGGINGERR
+#define LOGGINGERR 0
+#endif
+
+// このほか，OFFSTREAMをマクロ定義することにより出力をオフにできる
+
 namespace equation {
     /*! @class
         @brief 修正Newton-Raphson法クラスの本体
@@ -40,6 +56,8 @@ namespace equation {
         const var_type x_0; // 初期解
         const matrix_type J_0;  // 初期解におけるヤコビ行列
         const Eigen::Transpose_t<matrix_type> J_0_oinv; // 初期解におけるヤコビ行列のouter inverse
+        bool success;   // 正常終了フラグ
+        int _step;   // ステップ数
     public:
         static double epsilon;  // 非常に小さい数
         static char delim;  // デリミタ
@@ -48,25 +66,39 @@ namespace equation {
         /*! @brief コンストラクタ
         */
         Newton_Raphson2(const func_type &f_, const Jacobi_type &J_, const int var_dim_=n, const int eq_dim_=m)
-        : var_dim(var_dim_), eq_dim(eq_dim_), f(f_), J(J_)
+        : var_dim(var_dim_), eq_dim(eq_dim_), f(f_), J(J_), success(true), _step(0)
         {
         }
 
         /*! @brief 解く
         */
-        var_type solve(std::ostream &os=std::cout, const var_type &x_0=var_type::Ones()) const
+        var_type solve(std::ostream &os=std::cout, const var_type &x_0=var_type::Ones())
         {
             const matrix_type J_0 = J(x_0);
             const Eigen::Transpose_t<matrix_type> J_0_oinv = Eigen::pinverse(J_0);
             var_type x = x_0;
+            _step = 0;
 
-            while(true) {
+            for (size_t i = 0; i < max_rep; i++) {
+                _step++;
+
+                #ifndef OFFSTREAM
+                #if LOGGINGX
                 out(os, x, false, delim);
                 os << std::endl;
+                #endif
+                #endif
                 const eq_type eq = J_0_oinv * f(x);
 
                 // 停止条件
-                if (eq.norm() < epsilon) {
+                const scalar_type err = eq.norm();
+                #ifndef OFFSTREAM
+                #if LOGGINGERR
+                os << err << std::endl;
+                #endif
+                #endif
+                if (err < epsilon) {
+                    success = true;
                     return x;
                 }
 
@@ -74,19 +106,33 @@ namespace equation {
                 x = x + (matrix_type::Identity(var_dim, var_dim) + J_0_oinv * (J(x) - J_0)).colPivHouseholderQr().solve(- eq);
             };
 
-            std::cerr << "NO SOLUTION" << std::endl;
+            success = false;
             return x;
+        }
+
+        /*! @brief 正常終了したかどうか
+        */
+        bool fail() const
+        {
+            return !success;
+        }
+
+        /*! @brief ステップ数
+        */
+        int step() const
+        {
+            return _step;
         }
     };
 
     template <typename T, int n, int m>
-    double Newton_Raphson2 <std::function<Eigen::Vector<T, m>(const Eigen::Vector<T, n> &)>>::epsilon = 1.e-4;
+    double Newton_Raphson2 <std::function<Eigen::Vector<T, m>(const Eigen::Vector<T, n> &)>>::epsilon = 1.e-5;
 
     template <typename T, int n, int m>
     char Newton_Raphson2 <std::function<Eigen::Vector<T, m>(const Eigen::Vector<T, n> &)>>::delim = ',';
 
     template <typename T, int n, int m>
-    int Newton_Raphson2 <std::function<Eigen::Vector<T, m>(const Eigen::Vector<T, n> &)>>::max_rep = 10000;
+    int Newton_Raphson2 <std::function<Eigen::Vector<T, m>(const Eigen::Vector<T, n> &)>>::max_rep = 1000;
 }
 
 #endif

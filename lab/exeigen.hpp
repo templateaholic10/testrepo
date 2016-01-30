@@ -94,6 +94,28 @@ namespace Eigen {
         struct scaledown <Eigen::Matrix <Scalar, Rows, Cols>, Rowscale, Colscale> {
             using type = Eigen::Matrix <Scalar, Size::div(Rows, Rowscale), Size::div(Cols, Colscale)>;
         };
+
+        /*! @brief 複素化
+        */
+        template <typename T>
+        struct complexify;
+
+        template <typename Scalar, int Rows, int Cols>
+        struct complexify <Eigen::Matrix <Scalar, Rows, Cols>>
+        {
+            using type = Eigen::Matrix <typename std::complexify<Scalar>::type, Rows, Cols>;
+        };
+
+        /*! @brief 脱複素化
+        */
+        template <typename T>
+        struct decomplexify;
+
+        template <typename Scalar, int Rows, int Cols>
+        struct decomplexify <Eigen::Matrix <Scalar, Rows, Cols>>
+        {
+            using type = Eigen::Matrix <typename std::decomplexify<Scalar>::type, Rows, Cols>;
+        };
     }
 
     template <typename T>
@@ -270,6 +292,32 @@ namespace std {
 /*! @brief 行列演算群
 */
 namespace Eigen {
+    /*! @brief 複素ベクトルの実部と虚部を積み重ねる
+    */
+    template <typename Derived, int Option = Eigen::ColMajor, typename std::enable_if <std::is_complex<typename Derived::Scalar>::value>::type * = nullptr, typename std::enable_if <Option == Eigen::ColMajor>::type * = nullptr>
+    Matrix<typename std::decomplexify<typename Derived::Scalar>::type, Size::multi(Derived::RowsAtCompileTime, 2), Derived::ColsAtCompileTime> Cartesian_form(const MatrixBase <Derived> &M)
+    {
+        using result_type = Matrix<typename std::decomplexify<typename Derived::Scalar>::type, Size::multi(Derived::RowsAtCompileTime, 2), Derived::ColsAtCompileTime>;
+        const int rows = M.rows();
+        const int cols = M.cols();
+        result_type retval;
+        retval.template block<Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>(0, 0, rows, cols) = M.real();
+        retval.template block<Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>(rows, 0, rows, cols) = M.imag();
+        return retval;
+    }
+
+    template <typename Derived, int Option, typename std::enable_if <std::is_complex<typename Derived::Scalar>::value>::type * = nullptr, typename std::enable_if <Option == Eigen::RowMajor>::type * = nullptr>
+    Matrix<typename std::decomplexify<typename Derived::Scalar>::type, Derived::RowsAtCompileTime, Size::multi(Derived::ColsAtCompileTime, 2)> Cartesian_form(const MatrixBase <Derived> &M)
+    {
+        using result_type = Matrix<typename std::decomplexify<typename Derived::Scalar>::type, Derived::RowsAtCompileTime, Size::multi(Derived::ColsAtCompileTime, 2)>;
+        const int rows = M.rows();
+        const int cols = M.cols();
+        result_type retval;
+        retval.template block<Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>(0, 0, rows, cols) = M.real();
+        retval.template block<Derived::RowsAtCompileTime, Derived::ColsAtCompileTime>(0, cols, rows, cols) = M.imag();
+        return retval;
+    }
+
     namespace {
         constexpr int joined_size(const int size1, const int size2)
         {
@@ -480,7 +528,7 @@ namespace Eigen {
         }
 
         Transpose_t <Derived> invSigma(Transpose_t <Derived>::Zero(cols, rows));
-        invSigma.template block <Min, Min>(0, 0, min, min) = singular_values_inv.asDiagonal();
+        invSigma.template block <Min, Min>(0, 0, min, min) = singular_values_inv.template cast<typename Derived::Scalar>().asDiagonal();
 
         return svd.matrixV() * invSigma * svd.matrixU().adjoint();
     }

@@ -7,6 +7,7 @@
 #define DAD_HPP
 
 #include <Newton_Raphson2>
+#include <randeigen>
 
 namespace linear_algebra {
     /*! @struct
@@ -36,7 +37,7 @@ namespace linear_algebra {
         {
         }
 
-        vector_type operator()(const vector_type &x)
+        vector_type operator()(const vector_type &x) const
         {
             return x.asDiagonal() * A * x - a;
         }
@@ -70,7 +71,7 @@ namespace linear_algebra {
         {
         }
 
-        vector2R_type operator()(const vector2R_type &z)
+        vector2R_type operator()(const vector2R_type &z) const
         {
             vector_type x;
             x.real() = z.template block <cp_dim, 1>(0, 0, dim, 1);
@@ -110,7 +111,7 @@ namespace linear_algebra {
         {
         }
 
-        matrix_type operator()(const vector_type &x)
+        matrix_type operator()(const vector_type &x) const
         {
             matrix_type tmp = x.asDiagonal() * A;
             tmp += (A * x).eval().asDiagonal();
@@ -146,7 +147,7 @@ namespace linear_algebra {
         {
         }
 
-        matrix2R_type operator()(const vector2R_type &z)
+        matrix2R_type operator()(const vector2R_type &z) const
         {
             vector_type x;
             x.real() = z.template block <cp_dim, 1>(0, 0, dim, 1);
@@ -188,13 +189,39 @@ namespace linear_algebra {
         const matrix_type A;
         const vector_type a;
     public:
+        static int max_trial;
+    public:
         /*! @brief コンストラクタ
         */
         DAD(const matrix_type &A_, const vector_type &a_=vector_type::Ones())
             : A(A_), a(a_), base_type(func_type(DAD_func <matrix_type>(A_, a_)), Jacobi_type(DAD_Jacobi <matrix_type>(A_)))
         {
         }
+
+        /*! @brief 解が見つかるまで初期値を変えながら解く
+        */
+        vector_type solve_again(std::ostream &os=std::cout, const vector_type &x_0_=vector_type::Ones())
+        {
+            std::Gaussian <vector_type> gaussian;
+            vector_type x_0 = x_0_;
+            for (int i = 0; i < max_trial; i++) {
+                // 解く
+                const vector_type x = solve(os, x_0);
+
+                // チェック
+                if (base_type::success) {
+                    return x;
+                }
+
+                // 更新
+                x_0 = gaussian();
+            }
+            assert(false);
+        }
     };
+
+    template <typename T, int n>
+    int DAD <Eigen::Matrix <T, n, n>, typename std::enable_if <!std::is_complex <T>::value>::type>::max_trial = 10;
 
     template <typename T, int n>
     class DAD <Eigen::Matrix <T, n, n>, typename std::enable_if <std::is_complex <T>::value>::type>
@@ -222,6 +249,8 @@ namespace linear_algebra {
         const matrix_type  A;
         const vectorR_type a;
     public:
+        static int max_trial;
+    public:
         /*! @brief コンストラクタ
         */
         DAD(const matrix_type &A_, const vectorR_type &a_=vectorR_type::Ones())
@@ -231,7 +260,7 @@ namespace linear_algebra {
 
         /*! @brief 解く
         */
-        vector_type solve(std::ostream &os=std::cout, const vector_type &x_0=vector_type::Ones()) const
+        vector_type solve(std::ostream &os=std::cout, const vector_type &x_0=vector_type::Ones())
         {
             vector2R_type z_0;
             z_0.template block <cp_dim, 1>(0, 0, dim, 1)   = x_0.real();
@@ -243,7 +272,31 @@ namespace linear_algebra {
 
             return retval;
         }
+
+        /*! @brief 解が見つかるまで初期値を変えながら解く
+        */
+        vector_type solve_again(std::ostream &os=std::cout, const vector_type &x_0_=vector_type::Ones())
+        {
+            std::Gaussian <vector_type> gaussian;
+            vector_type x_0 = x_0_;
+            for (int i = 0; i < max_trial; i++) {
+                // 解く
+                const vector_type x = solve(os, x_0);
+
+                // チェック
+                if (base_type::success) {
+                    return x;
+                }
+
+                // 更新
+                x_0 = gaussian();
+            }
+            assert(false);
+        }
     };
+
+    template <typename T, int n>
+    int DAD <Eigen::Matrix <T, n, n>, typename std::enable_if <std::is_complex <T>::value>::type>::max_trial = 10;
 }
 
 #endif

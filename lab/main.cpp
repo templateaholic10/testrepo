@@ -1,25 +1,21 @@
 #include <iostream>
-#include "DAD.hpp"
+#include <fstream>
+#include "exrandom.hpp"
 #include <debug>
 
 int main(int argc, char const *argv[])
 {
-    using scalar_type = std::complex<double>;
-    using scalarR_type = typename std::decomplexify<scalar_type>::type;
-    constexpr int dim = 2;
+    using T = double;
+    std::Chisq<T> chisq;
+    constexpr int n = 1000;
+    const std::string filename = "test_chi.csv";
+    std::ofstream fout(filename);
 
-    using vector_type = Eigen::Vector<scalar_type, dim>;
-    using vectorR_type = Eigen::Vector<scalarR_type, dim>;
-    using matrix_type = Eigen::Matrix<scalar_type, dim, dim>;
+    for (int i = 0; i < n; i++) {
+        fout << chisq() << std::endl;
+    }
 
-    matrix_type A(2. * matrix_type::Identity());
-    vectorR_type a(vectorR_type::Ones());
-    _PRINT(A)
-    _PRINT(a)
-
-    linear_algebra::DAD<matrix_type> dad(A, a);
-    vector_type x = dad.solve();
-    _PRINT(x)
+    fout.close();
 
     return 0;
 }
