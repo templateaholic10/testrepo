@@ -9,6 +9,8 @@
 #include "../util.hpp"
 
 namespace sfinae {
+    // 基本的には，std::enable_ifにメタ関数を渡して実装する．
+
     // クラステンプレートの場合
     // 部分特殊化とSFINAEを組み合わせる．
     // SFINAEに失敗すると特殊化の候補から除外する．
@@ -72,7 +74,7 @@ namespace sfinae {
     // 関数テンプレートの場合
     // オーバーロードとSFINAEを組み合わせる．
     // SFINAEに失敗するとオーバーロードの候補から除外する．
-    // 複数通りに特殊化可能なとき,，ダメ．
+    // 複数通りに特殊化可能なとき，ダメ．
 
     // 整数型かどうかを教えてくれる関数．
     template <class T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>

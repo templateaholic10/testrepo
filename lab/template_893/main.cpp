@@ -1,11 +1,10 @@
-char *gets(char *str);
-
-#include "template_893.hpp"
-#include "dimension.hpp"
-#include "sfinae.hpp"
-#include "../util.hpp"
+#include <debug>
+#include "function.hpp"
 
 int main(int argc, char const *argv[]) {
-    sfinae::test_sfinae();
+    const double hoge = 1.2;
+    auto piyo = test::convert<int>(hoge);
+    _PRINT(piyo)
+    _TYPEOF(piyo)
     return 0;
 }

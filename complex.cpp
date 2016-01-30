@@ -1,3 +1,5 @@
+char* gets(char* str);
+
 #include <complex>
 #include <iostream>
 using namespace std;
@@ -7,7 +9,7 @@ int main(){
 	complex<double> z2( 2.0, -2.0 );
 	complex<double> w = polar( 1.0, 3.141592 / 2.0 );//極座標
 	//複素数の基本関数
-	cout << z1.real() << " , "<< z1.imag() << "i"<<endl;
+	cout << std::real(z1) << " , "<< z1.imag() << "i"<<endl;
 	cout << arg(z1) << endl;
 	cout << norm(z1) << endl;
 	cout << conj(z1)<<endl;

@@ -1,0 +1,18 @@
+{
+    "Aikatsu": {
+        "Akari": "Dreamy Crown",
+        "Sumire": "Loli Gothic",
+        "Hinaki": "Vivid Kiss"
+    },
+    "Words": [
+        "hoge",
+        "piyo",
+        "fuga",
+        "moge"
+    ],
+    "Others": [
+        1,
+        true,
+        null
+    ]
+}

@@ -2,9 +2,40 @@
 #define UTILTEST
 
 #include "util.hpp"
+#include "util_int.hpp"
 #include "util_array.hpp"
 
 namespace util {
+    void prime_test()
+    {
+        constexpr int p = 8421070;
+        constexpr bool tf = util_int::is_prime(p);
+        std::cout << "p: " << p << std::endl;
+        std::cout << "is_prime: " << (tf ? "true" : "false") << std::endl;
+    }
+
+    void PF_test()
+    {
+        using Z_5Z = util_int::PF<5>;
+
+        constexpr auto _0 = Z_5Z(0);
+        constexpr auto _1 = Z_5Z(1);
+        constexpr auto _2 = Z_5Z(2);
+        constexpr auto _3 = Z_5Z(3);
+        constexpr auto _4 = Z_5Z(4);
+
+        static_assert(_2 + _3 == _0);
+        static_assert(_2 - _3 == _4);
+        static_assert(_2 * _3 == _1);
+        static_assert(_2 / _3 == _4);
+        static_assert(power(_2, 1000) == _1);
+    }
+
+    void fermat_test()
+    {
+        std::cout << util_int::fermat_test_p(17) << std::endl;
+    }
+
     template <class T, std::size_t Size>
     void disp_array(const std::array <T, Size> &A)
     {

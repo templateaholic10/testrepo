@@ -5,37 +5,82 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
-#include <array>
+// #include <array>
 #include <vector>
-#include <utility>
+// #include <utility>
 #include <cstddef>
 #include <tuple>
 #include <map>
 #include <bitset>
-#include <boost/type.hpp>
+// #include <boost/type.hpp>
 #include <boost/optional.hpp>
+#include <typeinfo>
+#include <cxxabi.h>
 
 namespace util {
+    // ・_HERE関数
+    // デバッグ用なのでアンダーバー．
+    #ifdef _HERE
+    #undef _HERE
+    #endif
+#define _HERE { std::cout << __LINE__ << std::endl; }
+
     // ・_DISPLAY関数
     // デバッグ用なのでアンダーバー．
     #ifdef _DISPLAY
     #undef _DISPLAY
     #endif
-#define _DISPLAY(var) { std::cout << "$" #var ": " << var << std::endl; }
+#define _DISPLAY(var) { std::cout << "$" #var ": " << (var) << std::endl; }
     #ifdef _DISPLAY_SEQ
     #undef _DISPLAY_SEQ
     #endif
 #define _DISPLAY_SEQ(seq)             \
     {                                 \
         std::cout << "$" #seq ":";    \
-        for (auto elem : seq) {       \
+        for (auto elem : (seq)) {       \
             std::cout << " " << elem; \
         }                             \
         std::cout << std::endl;       \
     }
 
+    // ・_TYPE関数
+    // デバッグ用なのでアンダーバー．
+    #ifdef _TYPE
+    #undef _TYPE
+    #endif
+#define _TYPE(var) { std::cout << "$" #var ": " << util::typename_of <decltype(var)>() << std::endl; }
+
+    /*! @brief 大きい方を返す関数
+    */
+    template <typename T>
+    constexpr T max(T x, T y)
+    {
+        return (x > y) ? x : y;
+    }
+
+    /*! @brief 小さい方を返す関数
+    */
+    template <typename T>
+    constexpr T min(T x, T y)
+    {
+        return (x < y) ? x : y;
+    }
+
+    /*! @brief 均一なarrayを生成する関数
+    */
+    template <typename T, size_t n>
+    std::array<T, n> uniform_array(const T& x)
+    {
+        std::array<T, n> retval;
+        for (auto elem : retval) {
+            elem = x;
+        }
+        return retval;
+    }
+
     // ・repeat関数
-    // 文字列strをdelimで区切ってn回osに出力する
+    // 文字列strをdelimで区切ってn回osに出力する．
+    // 下のRepeatクラスの使用を推奨．
     void repeat(std::ostream &os, const std::string &str, int n)
     {
         for (int i = 0; i < n; i++) {
@@ -54,6 +99,7 @@ namespace util {
     // ・Repeatクラス
     // std::cout << Repeat("gfn", "2") << std::endl;
     // のように使う．
+    // 記法がスマートでよい．
     class Repeat
     {
     public:
@@ -163,13 +209,13 @@ namespace util {
             begin++;
         }
         while (begin < end) {
-            if (str[end-1] != ' ' && str[end-1] != '\t' && str[end-1] != '\n' && str[end-1] != '\r' && str[end-1] != '\v') {
+            if (str[end - 1] != ' ' && str[end - 1] != '\t' && str[end - 1] != '\n' && str[end - 1] != '\r' && str[end - 1] != '\v') {
                 break;
             }
             end--;
         }
 
-        return str.substr(begin, end-begin);
+        return str.substr(begin, end - begin);
     }
 
     // ・配列つきenum
@@ -245,6 +291,7 @@ namespace util {
     }
 
     // ・slice関数
+    // めっちゃ怪しいから使わない方がいいよ．
     template <int i, int j>
     struct Slice
     {
@@ -350,8 +397,6 @@ namespace util {
     // ・typename_of関数
     // typeid.name出力をデマングルする．
     // 野良C++erさんのコード．
-    #include <typeinfo>
-    #include <cxxabi.h>
 
     // __cxa_demangleがmallocして返すためメモリリークがある．
     char *demangle(const char *demangled)
@@ -370,9 +415,25 @@ namespace util {
     }
 
     // Tの型名を取得．
+    // 参照型を区別しない．
+    template <typename T>
+    char *typename_of(T x)
+    {
+        return demangle(typeid(T).name() );
+    }
+
+    // Tの型名を取得．
     // 参照型を区別するが，boost::type<>の中に表示されるので冗長．
     template <typename T>
     char *typename_of_detail()
+    {
+        return demangle(typeid(boost::type <T> ).name() );
+    }
+
+    // Tの型名を取得．
+    // 参照型を区別するが，boost::type<>の中に表示されるので冗長．
+    template <typename T>
+    char *typename_of_detail(T x)
     {
         return demangle(typeid(boost::type <T> ).name() );
     }
