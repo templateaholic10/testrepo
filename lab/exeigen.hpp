@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief Eigenのためのエイリアス，要素演算，行列演算群
-    @author yanteyon10
+    @author templateaholic10
     @date 11/21
 */
 #ifndef EXEIGEN_HPP

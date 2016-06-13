@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief FFT
-    @author yanteyon10
+    @author templateaholic10
     @date 12/9
 */
 #ifndef FFT_HPP

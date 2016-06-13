@@ -1,6 +1,6 @@
 /*! @file
     @brief 修正Newton-Raphson法により非線形最適化問題を解くクラス
-    @author yanteyon10
+    @author templateaholic10
     @data 1/24
 */
 #ifndef NEWTON_RAPHSON2_HPP

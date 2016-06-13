@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief std::complexのユーティリティ関数群
-    @author yanteyon10
+    @author templateaholic10
     @date 10/28
 */
 #ifndef EXCOMPLEX_HPP

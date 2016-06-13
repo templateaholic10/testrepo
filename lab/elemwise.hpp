@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief シーケンスのelemwiseクラス
-    @auther yanteyon10
+    @auther templateaholic10
     @date 12/30
 */
 

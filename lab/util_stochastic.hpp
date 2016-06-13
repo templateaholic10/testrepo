@@ -1,6 +1,6 @@
 /*! @file
     @brief 統計におけるユーティリティ関数群（特にEigenを使用するもの）
-    @author yanteyon10
+    @author templateaholic10
     @date 10/31
 */
 #ifndef UTIL_STOCHASTIC

@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief std::arrayを拡張するクラス
-    @author yanteyon10
+    @author templateaholic10
     @date 11/18
 */
 #ifndef ARRAY_MATRIX_HPP

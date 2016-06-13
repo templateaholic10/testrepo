@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief 演算子の自動実装のためのCRTP基底クラス
-    @auther yanteyon10
+    @auther templateaholic10
     @date 12/30
 */
 

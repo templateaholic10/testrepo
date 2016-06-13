@@ -1,6 +1,6 @@
 /*! @file
     @brief 関数テンプレートに関する誤解
-    @author yanteyon10
+    @author templateaholic10
     @date 11/29
 */
 

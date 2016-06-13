@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief Runge_Kutta法により初期値問題を解くクラス
-    @author yanteyon10
+    @author templateaholic10
     @date 1/6
 */
 #ifndef RUNGE_KUTTA_HPP

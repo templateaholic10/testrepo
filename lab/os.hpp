@@ -1,6 +1,6 @@
 /*! @file
     @brief pythonのosモジュールを模倣したユーティリティ
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/3
 */
 

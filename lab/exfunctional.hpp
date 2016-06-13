@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief functionalヘッダの拡張
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/13
 */
 

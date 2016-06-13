@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief 関数空間の上の演算子
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/13
 */
 

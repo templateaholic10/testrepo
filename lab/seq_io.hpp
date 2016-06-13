@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief シーケンスI/O
-    @author yanteyon10
+    @author templateaholic10
     @date 11/18
 */
 #ifndef SEQ_IO_HPP

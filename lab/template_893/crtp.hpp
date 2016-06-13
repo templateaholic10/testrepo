@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief CRTP（奇妙に再帰したテンプレートパターン，上からの混入）の実験
-    @author yanteyon10
+    @author templateaholic10
     @date 11/9
 */
 #ifndef CRTP_HPP

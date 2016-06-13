@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief std::array I/O
-    @author yanteyon10
+    @author templateaholic10
     @date 11/18
 */
 #ifndef ARRAY_IO_HPP

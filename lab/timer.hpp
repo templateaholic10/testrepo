@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief タイマークラス
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/2
 */
 
