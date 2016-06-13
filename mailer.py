@@ -75,12 +75,12 @@ class Gmail_sender(Email_sender):
         Email_sender.__init__(self, addr, password, Gmail_sender.host, Gmail_sender.port)
 
 def main():
-    addr = "akari401test@gmail.com"
-    password = "04armeria_prism01"
+    addr = "piyo@gmail.com"
+    password = "pass"
     gmail = Gmail_sender(addr, password)
     subject = u"てすと"
     body = u"てすとです．"
-    to_addr = "zonmin10@gmail.com"
+    to_addr = "hoge@gmail.com"
     gmail.send(subject, body, to_addr)
 
 if __name__ == "__main__":

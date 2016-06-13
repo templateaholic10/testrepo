@@ -3,8 +3,8 @@
 
 import mailer
 
-_addr = "akari401test@gmail.com"
-_password = "04armeria_prism01"
+_addr = "piyo@gmail.com"
+_password = "pass"
 
 def herald(to_addr):
     def _herald(func):
@@ -26,7 +26,7 @@ def herald(to_addr):
     return _herald
 
 def main():
-    to_addr = "zonmin10@gmail.com"
+    to_addr = "hoge@gmail.com"
 
     @herald(to_addr)
     def test():
