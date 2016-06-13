@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief diagonal matrix scaling
-    @author yanteyon10
+    @author templateaholic10
     @data 1/24
 */
 #ifndef DAD_HPP

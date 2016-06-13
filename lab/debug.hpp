@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief デバッグ用マクロ群
-    @author yanteyon10
+    @author templateaholic10
     @date 11/29
 */
 

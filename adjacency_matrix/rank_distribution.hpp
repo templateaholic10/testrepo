@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief 隣接行列のランクの分布を計算する関数
-    @author yanteyon10
+    @author templateaholic10
     @date 11/18
 */
 #ifndef RANK_DISTRIBUTION_HPP

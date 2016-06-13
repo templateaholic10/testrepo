@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief DCT（離散コサイン変換）．DCT-1とDCT-2がある
-    @author yanteyon10
+    @author templateaholic10
     @date 12/29
 */
 #ifndef DCT_HPP

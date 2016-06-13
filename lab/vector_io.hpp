@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief std::vector I/O
-    @author yanteyon10
+    @author templateaholic10
     @date 11/18
 */
 #ifndef VECTOR_IO_HPP

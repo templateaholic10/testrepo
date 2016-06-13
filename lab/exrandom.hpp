@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief std::randomのユーティリティクラス
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/2
 */
 

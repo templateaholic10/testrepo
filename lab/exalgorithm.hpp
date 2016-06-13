@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief algorithmヘッダの拡張
-    @auther yanteyon10
+    @auther templateaholic10
     @date 12/30
 */
 

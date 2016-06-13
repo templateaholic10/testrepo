@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief Eigenでランダム行列を扱うためのユーティリティ関数群
-    @author yanteyon10
+    @author templateaholic10
     @date 11/21
 */
 #ifndef RANDEIGEN_HPP

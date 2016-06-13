@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief 零元，単位元，デフォルト値を統一的に扱うインタフェース
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/10
 */
 

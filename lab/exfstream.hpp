@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief fstreamのユーティリティ関数
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/13
 */
 

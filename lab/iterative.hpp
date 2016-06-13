@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief 反復法の基底クラス
-    @author yanteyon10
+    @author templateaholic10
     @date 11/26
 */
 #ifndef ITERATIVE_HPP

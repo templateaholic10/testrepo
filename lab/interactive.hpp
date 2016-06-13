@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief 対話型環境の基底クラス
-    @author yanteyon10
+    @author templateaholic10
     @date 11/20
 */
 #ifndef INTERACTIVE_HPP

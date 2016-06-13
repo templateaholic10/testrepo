@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief SFINAEのユーティリティメタ関数群
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/19
 */
 

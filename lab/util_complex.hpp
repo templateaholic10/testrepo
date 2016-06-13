@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief std::complexのユーティリティクラス
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/2
 */
 

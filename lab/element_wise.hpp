@@ -1,6 +1,6 @@
 ﻿/*! @file
     @brief シーケンスのelement_wise演算子
-    @auther yanteyon10
+    @auther templateaholic10
     @date 11/19
 */
 
