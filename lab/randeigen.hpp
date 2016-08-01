@@ -18,6 +18,41 @@ namespace std {
     template <typename T, class Ignored = void>
     class Standard_gaussian;
 
+    template <typename T>
+    class Standard_gaussian <Eigen::Vector<T, 1>, typename std::enable_if <std::is_floating_point <T>::value>::type> {
+    public:
+        using type = Standard_gaussian<Eigen::Vector<T, 1>>;
+        using result_type = Eigen::Vector<T, 1>;
+    private:
+        Gaussian<T> gaussian;
+    public:
+        const int size;
+    public:
+        Standard_gaussian(const std::random_device::result_type seed=std::random_device()(), const int size_=1)
+            : gaussian(0., 1., seed), size(size_)
+        {
+        }
+
+        result_type operator()()
+        {
+            result_type retval(size);
+            for (int i = 0; i < size; i++) {
+                retval(i) = gaussian();
+            }
+            return retval;
+        }
+
+        result_type mean() const
+        {
+            return result_type::Zero(size);
+        }
+
+        result_type variance() const
+        {
+            return result_type::Identity(size, size);
+        }
+    };
+
     template <typename T, int n>
     class Standard_gaussian <Eigen::Vector<T, n>, typename std::enable_if <std::is_floating_point <T>::value>::type> {
     public:
