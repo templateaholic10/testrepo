@@ -12,6 +12,7 @@ int main()
     using cM_type = Eigen::Matrix<Scalar, n, n>;
     MC<m, n> mc;
     mc.M << 1,0,3,0,2,3,0,2,0,0,2,0,2,1,0,3,0,3,5,2;
+    mc.M = (mc.M.array() - mc.M.mean()).matrix();
     mc.A = make_mask(mc.M);
     _PRINT(mc.A)
     mc.Lr = rM_type::Zero();
