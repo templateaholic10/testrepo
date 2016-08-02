@@ -54,7 +54,7 @@ public:
     using bigV_type = Eigen::Vector<Scalar, mn>;
     using bigM_type = Eigen::Matrix<Scalar, mn, mn>;
 public:
-    M_type M; // 観測行列
+    M_type M; // 観測行列．平均ゼロ
     M_type A; // マスク行列
     M_type X; // 真の行列
     M_type Y;
