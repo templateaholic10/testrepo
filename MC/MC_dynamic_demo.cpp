@@ -30,8 +30,14 @@ int main()
 
     // mc.M = (mc.M.array() - mc.M.mean()).matrix();
     mc.A = make_mask(mc.M);
-    mc.Lr.setZero();
-    mc.Lc.setZero();
+
+    fin.open(Lr_filename);
+    in(fin, mc.Lr);
+    fin.close();
+
+    fin.open(Lc_filename);
+    in(fin, mc.Lc);
+    fin.close();
 
     fin.open(prob_param_filename);
     fin >> mc.gamma_n >> mc.gamma_r >> mc.gamma_c >> mc.rho;

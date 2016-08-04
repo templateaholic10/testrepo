@@ -5,6 +5,7 @@
 #include <unsupported/Eigen/KroneckerProduct>
 #include <debug>
 #include <constexpr/cmath>
+#include <timer>
 
 using Scalar = double;
 constexpr Scalar epsilon = 1.e-6;
@@ -47,7 +48,7 @@ T soften(const T &x, const T &l)
 // B(Map<VectorXd>(A.data(), A.cols()*A.rows()));
 
 template <typename T>
-Eigen::MatrixX<T> prox_nu(const Eigen::MatrixX<T> &M, const Scalar &l)
+Eigen::MatrixX<T> prox_nu(const Eigen::MatrixX<T> &M, const Scalar &l, Scalar &nu)
 {
     using M_type = Eigen::MatrixX<T>;
     const int m = M.rows();
@@ -55,8 +56,10 @@ Eigen::MatrixX<T> prox_nu(const Eigen::MatrixX<T> &M, const Scalar &l)
     const int minmn = std::min(m, n);
     Eigen::JacobiSVD<M_type> svd(M, Eigen::ComputeThinU | Eigen::ComputeThinV);
     Eigen::VectorX<T> softenSV = svd.singularValues();
+    nu = 0.;
     for (int i = 0; i < minmn; i++) {
         softenSV[i] = soften(softenSV[i], l);
+        nu += softenSV[i];
     }
     return svd.matrixU()*softenSV.asDiagonal()*svd.matrixV().transpose();
 }
@@ -92,6 +95,8 @@ public:
     Scalar rho;
     bigSM_type coef;
     Eigen::ConjugateGradient<bigSM_type> cg;
+
+    Scalar nu;
 public:
     static int max_rep;
     static Scalar abs_tol;
@@ -132,7 +137,7 @@ public:
     void X_opt()
     {
         // Y-Zにgamma_n/rhoで近接させる
-        X = prox_nu((Y-Z).eval(), gamma_n/rho);
+        X = prox_nu((Y-Z).eval(), gamma_n/rho, nu);
     }
     void Y_opt()
     {
@@ -144,8 +149,12 @@ public:
     }
     void step()
     {
+        Timer<> timer;
         X_opt();
+        _PRINT(timer.elapsed())
+        timer.restart();
         Y_opt();
+        _PRINT(timer.elapsed())
         Z += X - Y;
     }
     bool stop_cond() const
