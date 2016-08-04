@@ -7,6 +7,7 @@
         "dct.hpp",
         "debug.hpp",
         "eigen_io.hpp",
+        "eigensparse_io.hpp",
         "element_wise.hpp",
         "elemwise.hpp",
         "exalgorithm.hpp",

@@ -19,7 +19,7 @@
 #ifdef _HERE
     #undef _HERE
 #endif
-#define _HERE { std::cout << __LINE__ << std::endl; }
+#define _HERE { std::cerr << __LINE__ << std::endl; }
 
 /*! @macro
     @brief オブジェクトプリンタ
@@ -27,7 +27,7 @@
 #ifdef _PRINT
     #undef _PRINT
 #endif
-#define _PRINT(var) { std::cout << "$" #var ": " << (var) << std::endl; }
+#define _PRINT(var) { std::cerr << "$" #var ": " << (var) << std::endl; }
 
 /*! @macro
     @brief シーケンスプリンタ
@@ -37,11 +37,11 @@
 #endif
 #define _PRINTSEQ(seq)                   \
     {                                    \
-        std::cout << "$" #seq ":";       \
+        std::cerr << "$" #seq ":";       \
         for (const auto &elem : (seq)) { \
-            std::cout << " " << elem;    \
+            std::cerr << " " << elem;    \
         }                                \
-        std::cout << std::endl;          \
+        std::cerr << std::endl;          \
     }
 
 /*! @macro
@@ -50,7 +50,7 @@
 #ifdef _TYPE
     #undef _TYPE
 #endif
-#define _TYPE(var) { std::cout << "$" #var ": " << type <var>() << std::endl; }
+#define _TYPE(var) { std::cerr << "$" #var ": " << type <var>() << std::endl; }
 
 /*! @macro
     @brief 型名プリンタ．参照型を区別する
@@ -58,7 +58,7 @@
 #ifdef _DETAILTYPE
     #undef _DETAILTYPE
 #endif
-#define _DETAILTYPE(var) { std::cout << "$" #var ": " << detailtype <var>() << std::endl; }
+#define _DETAILTYPE(var) { std::cerr << "$" #var ": " << detailtype <var>() << std::endl; }
 
 /*! @macro
     @brief オブジェクトの型名プリンタ．参照型を区別しない
@@ -66,7 +66,7 @@
 #ifdef _TYPEOF
     #undef _TYPEOF
 #endif
-#define _TYPEOF(var) { std::cout << "$" #var ": " << type <decltype(var)>() << std::endl; }
+#define _TYPEOF(var) { std::cerr << "$" #var ": " << type <decltype(var)>() << std::endl; }
 
 /*! @macro
     @brief オブジェクトの型名プリンタ．参照型を区別する
@@ -74,7 +74,7 @@
 #ifdef _DETAILTYPEOF
     #undef _DETAILTYPEOF
 #endif
-#define _DETAILTYPEOF(var) { std::cout << "$" #var ": " << detailtype <decltype(var)>() << std::endl; }
+#define _DETAILTYPEOF(var) { std::cerr << "$" #var ": " << detailtype <decltype(var)>() << std::endl; }
 
 /*! @namespace _debug_hpp
     @brief マクロのための内部関数．

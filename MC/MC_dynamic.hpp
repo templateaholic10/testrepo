@@ -1,5 +1,6 @@
 #include <exeigen>
 #include <eigen_io>
+#include <fstream>
 #include <Eigen/Sparse>
 #include <Eigen/IterativeLinearSolvers>
 #include <unsupported/Eigen/KroneckerProduct>
@@ -101,6 +102,7 @@ public:
     static int max_rep;
     static Scalar abs_tol;
     static Scalar rel_tol;
+    static std::string logfile;
 public:
     MC(const int m_, const int n_)
     : m(m_), n(n_), mn(m_*n_), sqrtmn(std::sqrt(m_*n_)), M(SM_type(m_, n_)), A(SM_type(m_, n_)), X(M_type(m_, n_)), Y(M_type(m_, n_)), Y_old(M_type(m_, n_)), Z(M_type(m_, n_)), Lr(SM_type(m_, m_)), Lc(SM_type(n_, n_)), coef(bigSM_type(m_*n_, m_*n_))
@@ -111,8 +113,6 @@ public:
         Y = Y_old = M_type::Zero(m, n);
         M_type tmp = M_type(M.transpose());
         Z = Eigen::Map<M_type>(tmp.data(), Z.rows(), Z.cols());
-        _PRINT(M_type(M))
-        _PRINT(Z)
 
         // Aを行列化ののち対角行列にする
         coef.setIdentity();
@@ -151,10 +151,10 @@ public:
     {
         Timer<> timer;
         X_opt();
-        _PRINT(timer.elapsed())
+        // _PRINT(timer.elapsed())
         timer.restart();
         Y_opt();
-        _PRINT(timer.elapsed())
+        // _PRINT(timer.elapsed())
         Z += X - Y;
     }
     bool stop_cond() const
@@ -166,12 +166,21 @@ public:
 
         return err_P < tor_P && err_D < tor_D;
     }
+    void log(const std::string &id="") const
+    {
+        std::ofstream fout(logfile+id);
+        out(fout, X);
+        fout.close();
+    }
     void go()
     {
         init();
         for (int i = 0; i < max_rep; i++) {
             _PRINT(i)
             step();
+            #ifdef LOGGER
+            log(std::to_string(i));
+            #endif
             if (stop_cond()) {
                 break;
             }
@@ -185,3 +194,5 @@ template <typename T>
 T MC<T>::abs_tol = 1.e-6;
 template <typename T>
 T MC<T>::rel_tol = 1.e-6;
+template <typename T>
+std::string MC<T>::logfile = "X.log";
